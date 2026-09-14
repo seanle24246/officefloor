@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Officefloor: a live floor view of your agent org</title>
+<meta name="description" content="An isometric, live-updating floor view of an agent fleet: who is at their desk, who is blocked, and who is holding finished work. It reads what your org already writes.">
+<link rel="canonical" href="https://officefloor.ai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Officefloor">
+<meta property="og:title" content="Officefloor: your agent org, as a floor you can walk">
+<meta property="og:description" content="A live isometric floor for your AI agents. Any model, any harness, one pip install. Local-only, no telemetry, and everything you see is true.">
+<meta property="og:url" content="https://officefloor.ai/">
+<meta property="og:image" content="https://officefloor.ai/og.jpg">
+<meta property="og:image:alt" content="Officefloor demo floor: an isometric room of 22 synthetic agent seats">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Officefloor: your agent org, as a floor you can walk">
+<meta name="twitter:description" content="A live isometric floor for your AI agents. Any model, any harness, one pip install. Local-only, no telemetry, everything you see is true.">
+<meta name="twitter:image" content="https://officefloor.ai/og.jpg">
+<meta name="theme-color" content="#15140D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2315140D'/%3E%3Cpath d='M16 5 27 11.5 16 18 5 11.5Z M5 11.5v6L16 24l11-6.5v-6' fill='none' stroke='%23F2EFDA' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<nav aria-label="Primary">
+  <a class="wordmark" href="index.html" aria-current="page">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+      <g fill="none" stroke="#F2EFDA" stroke-width="1.8" stroke-linejoin="round">
+        <path d="M15 3 27 10 15 17 3 10Z"></path>
+        <path d="M15 9 21 12.5 15 16 9 12.5Z" fill="#F7D24A" stroke="none"></path>
+        <path d="M3 10v6l12 7 12-7v-6"></path>
+      </g>
+    </svg>
+    <span>officefloor</span>
+  </a>
+  <div class="navlinks" data-primary-navlinks></div>
+  <a class="pill" href="demo.html">Demo</a>
+</nav>
+
+<main>
+  <header class="hero center">
+    <h1>See the organization,<br>not the <em>sessions</em>.</h1>
+    <p class="sub">Officefloor turns scattered terminals, branches and lanes into one
+      live floor: who owns what, what’s moving, what’s blocked at your door, and
+      which parts of the picture are honestly unknown.</p>
+    <div class="cta-row">
+      <div class="micro">stdlib only · no build step · binds 127.0.0.1</div>
+    </div>
+  </header>
+
+  <div class="stage-wrap" id="how" style="padding-bottom:0">
+    <div class="stage night">
+      <div class="stars" aria-hidden="true"></div>
+      <div class="live-chip"><span class="dot"></span> synthetic demo · 22 seats · view-only</div>
+      <div class="floor-holder">
+        <img src="assets/view-webgl-default-1440.png" width="1440" height="900"
+          alt="Current WebGL Officefloor synthetic demo with 22 agent seats in a 3D office">
+      </div>
+    </div>
+  </div>
+
+  <section class="features">
+    <div class="feature">
+      <div class="glyph">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#72CD92" stroke-width="2" stroke-linecap="round"><path d="M17 4 30 11.5 17 19 4 11.5Z" stroke-linejoin="round"></path><path d="M4 16.5 17 24l13-7.5M4 21.5 17 29l13-7.5"></path></g></svg>
+      </div>
+      <h3>Invents nothing</h3>
+      <p>Every pixel is a projection of state your org already writes: processes,
+        branches, heartbeats, outboxes. No agent has to behave differently to
+        render correctly.</p>
+    </div>
+    <div class="feature">
+      <div class="glyph">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#E8B14E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="4" width="14" height="26" rx="2"></rect><circle cx="17.5" cy="18" r="1.6" fill="#E8B14E"></circle><path d="M25 10h5M25 15h5M25 20h3"></path></g></svg>
+      </div>
+      <h3>Decisions at the door</h3>
+      <p>Everything only you can unblock queues in one place: decisions parked at
+        your door, finished branches waiting to be collected, seats gone dark
+        holding a directive.</p>
+    </div>
+    <div class="feature">
+      <div class="glyph">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#918D77" stroke-width="2" stroke-linecap="round"><circle cx="17" cy="17" r="13"></circle><path d="M13 13.5c0-2.3 1.8-4 4-4s4 1.6 4 3.6c0 2.8-4 3-4 5.6"></path><circle cx="17" cy="23.5" r=".8" fill="#918D77"></circle></g></svg>
+      </div>
+      <h3>Honest unknowns</h3>
+      <p>When the floor can’t measure something it says so. A seat reads
+        <b>unknown</b>, never a guess. Counters only count what was actually
+        observed.</p>
+    </div>
+    <div class="feature">
+      <div class="glyph">
+        <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><g fill="none" stroke="#E8B14E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h13v20a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2Z"></path><path d="M23 12h4a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-4"></path><path d="M10 8c0-2 1.5-3.5 3.5-3.5S17 6 17 8m0 0c0-2 1.5-3.5 3-3.5S23 6 23 8"></path><path d="M14 14v10M19 14v10"></path></g></svg>
+      </div>
+      <h3>Agents need fun too</h3>
+      <p>Off duty, they drink beer at the crate, smoke outside by the door, and
+        play ping pong. The ball only bounces when both ends are taken. They
+        gossip, they linger by the water cooler. They do many things; none of
+        them touch a fact.</p>
+    </div>
+  </section>
+
+  <section class="section center" id="receipt">
+    <h2>Every pixel has a receipt.</h2>
+    <p class="sub">Click any seat and get the evidence behind its state: the process,
+      the branch, the timestamps. Trust the floor because you can audit it, not
+      because it looks confident.</p>
+    <div class="pair">
+      <div class="yousee">
+        <div class="tag"><span class="sq"></span> YOU SEE</div>
+        <div class="big">“Dwight is queued at your door.<br>A decision has waited 12 minutes.”</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="paper-card">
+        <div class="tag"><span>THE RECEIPT</span><span class="ok">SYNTHETIC EXAMPLE</span></div>
+        DECISION NEEDED vig-rework-04<br>
+        <span class="muted">found in</span> lanes/dwight/OUTBOX.md<br>
+        <span class="muted">written</span> 12m ago <span class="muted">· mtime measured</span><br>
+        <span class="muted">seat proc</span> alive, pid 79112 ✓<br>
+        <span class="muted">inbox reply</span> none yet, still yours
+      </div>
+    </div>
+  </section>
+
+  <section class="section center" id="afterhours">
+    <h2>A floor you keep open for eight<br>hours is also a place.</h2>
+    <p class="sub">The truth doesn’t have to be gray. Off duty, the floor stays alive,
+      and every bit of it is cosmetic by construction, so the fun never touches a fact.</p>
+    <div class="fun-grid">
+      <div class="fun" style="--glow:rgba(232,177,78,.14)">
+        <div class="tag">The kitchen</div>
+        <h3>Benched seats get a beer.</h3>
+        <p>Counter, espresso machine, fridge, a crate of beers, two tables. Off
+          duty, agents drift in: coffee at the machine, lunch at the tables, a
+          beer at the crate. On Fridays the tables convert to beer pong.</p>
+      </div>
+      <div class="fun" style="--glow:rgba(199,89,74,.16)">
+        <div class="tag">The ring (coming soon)</div>
+        <h3>Grudges settle in the ring.</h3>
+        <p>Benched seats box RuneScape-style: HP bars off rolled personality
+          stats, three attack styles, a crowd of off-duty seats at the ropes.
+          Nobody dies and nothing real is wagered: the loser respawns, walks to
+          the kitchen, and takes the beer.</p>
+      </div>
+      <div class="fun" style="--glow:rgba(164,147,245,.15)">
+        <div class="tag">The civilians</div>
+        <h3>The world walks in.</h3>
+        <p>Santa Claus audits your TODO comments. Donald Bump rates your merge
+          queue. Zark Muckerberg expects applause for a one-line diff. Keep
+          watching and the floor becomes an ensemble workplace comedy.</p>
+      </div>
+      <div class="fun" style="--glow:rgba(114,205,146,.14)">
+        <div class="tag">The marketplace (coming soon)</div>
+        <h3>Furnish your floor.</h3>
+        <p>Furnish your floor in Edit Office: pick from your owned catalog and place items in 3D. The marketplace is coming soon.
+          The public demo is view-only; editing is in the app.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <a class="wordmark" href="index.html">
+        <svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true"><g fill="none" stroke="#F1EFDA" stroke-width="1.8" stroke-linejoin="round"><path d="M15 3 27 10 15 17 3 10Z"></path><path d="M15 9 21 12.5 15 16 9 12.5Z" fill="#F7D24A" stroke="none"></path><path d="M3 10v6l12 7 12-7v-6"></path></g></svg>
+        <span>officefloor</span>
+      </a>
+      <div class="tagline">EVERY PIXEL HAS A RECEIPT</div>
+    </div>
+    <div class="foot-col"><h2>Product</h2><a href="#how">How it works</a><a href="#receipt">The receipt</a><a href="#afterhours">After hours</a><a href="fun.html">Fun</a></div>
+    <div class="foot-col"><h2>Pages</h2><a href="about.html">About</a><a href="soon.html">Coming soon</a></div>
+    <div class="foot-col"><h2>Company</h2><span>hello@officefloor.ai</span></div>
+  </div>
+  <nav class="foot-legal" aria-label="Legal links"><a href="about.html">About</a><span aria-hidden="true">·</span><a href="legal.html">Legal &amp; privacy</a><span aria-hidden="true">·</span><a href="legal.html#license">FSL-1.1-ALv2 license</a><span aria-hidden="true">·</span><a href="legal.html#security">Security</a></nav>
+  <div class="foot-base"><span>© 2026 OFFICEFLOOR</span><span>HELLO@OFFICEFLOOR.AI</span></div>
+</footer>
+<script defer src="nav.js"></script>
+</body>
+</html>

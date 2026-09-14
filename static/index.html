@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Officefloor — live agent floor</title>
+<link rel="stylesheet" href="office.css" />
+<link rel="stylesheet" href="office.hud.shell.css" />
+<link rel="stylesheet" href="office.activity.shell.css" />
+<link rel="stylesheet" href="office.utilities.css" />
+<link rel="stylesheet" href="office.keyboard.css" />
+<link rel="stylesheet" href="office.needscard.css" />
+<link rel="stylesheet" href="office.editmode.css" />
+<link rel="stylesheet" href="decision.panel.css" />
+<link rel="stylesheet" href="store.css" />
+<link rel="stylesheet" href="agent.manager.css" />
+<link rel="stylesheet" href="decision.room.shell.css" />
+<link rel="stylesheet" href="costview.css" />
+<link rel="stylesheet" href="dispatch.css" />
+<link rel="stylesheet" href="office.vignette.card.css" />
+<link rel="stylesheet" href="office.npcvig.storypanel.css" />
+</head>
+<body>
+<canvas id="glstage" aria-hidden="true"></canvas>
+
+<div id="topbar" class="hud">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">🏢</span><span class="brand-copy"><span class="brand-title">Officefloor</span><span class="brand-subtitle">agent org, live floor</span></span></div>
+  <span id="mode" class="pill">…</span>
+  <div id="counters" role="status" aria-live="polite" aria-atomic="true" aria-label="Fleet status"></div>
+  <div class="spacer"></div>
+  <button class="btn primary" id="needsBtn" aria-pressed="false" title="everything only you can unblock (n)">
+    🙋 needs me <b id="needsCount">0</b>
+  </button>
+  <button class="btn" id="follow" aria-pressed="false" title="follow floor activity (f)">🎥 follow</button>
+  <button class="btn" id="recenter" title="center the whole floor (c)">⌖ center</button>
+</div>
+
+<div id="inspector" class="hud" role="dialog" aria-label="Seat inspector">
+  <button class="btn close" id="closeInspector" aria-label="Close inspector">✕</button>
+  <h2 id="insName">—</h2>
+  <div class="role" id="insRole"></div>
+  <dl class="kv" id="insKv"></dl>
+  <div class="tail" id="insTail"></div>
+</div>
+
+<div id="needs" class="hud" role="dialog" aria-label="Needs-me panel">
+  <button class="btn close" id="closeNeeds" aria-label="Close needs-me panel">✕</button>
+  <h3>Needs me</h3>
+  <div id="needsWarn"></div>
+  <ul id="needsList"></ul>
+</div>
+
+<section id="ticker" class="hud" role="region" aria-labelledby="activityHeading" data-office-hud-activity="persistent">
+  <div id="activityHeader">
+    <h3 id="activityHeading">Floor activity</h3>
+    <button id="activityCollapseToggle" type="button" aria-controls="activityTabs feed" aria-expanded="true" aria-label="Collapse floor activity" title="Collapse floor activity">▾</button>
+  </div>
+  <ul id="activityCompactRow" aria-live="polite" aria-atomic="true" aria-label="Compact floor activity" hidden></ul>
+  <ul id="feed" role="tabpanel" aria-live="polite" aria-atomic="false"></ul>
+</section>
+
+<details id="legend" class="hud" open>
+  <summary>What you're seeing</summary>
+  <div class="legend-body">
+    <span>📦 branch ready</span><span>❓ needs a call</span><span>🚧 blocked</span><br />
+    <span>✉️ unread directive</span><span>🧊 frozen</span><span>☠️ dark</span><span>💤 benched</span><span>❔ liveness unknown</span>
+  </div>
+</details>
+
+<div id="officeTour" class="office-tour" role="dialog" aria-live="polite" aria-label="Demo state tour" hidden></div>
+
+<div id="welcome" class="hud" role="dialog" aria-modal="true" aria-label="Welcome">
+  <button class="btn close" id="closeWelcome" aria-label="Close welcome">✕</button>
+  <h2>Welcome to the floor</h2>
+  <p id="welcomeBody"></p>
+  <button class="btn primary" id="dismissWelcome">Got it</button>
+</div>
+
+<div id="setup" class="hud" role="dialog" aria-modal="true" aria-label="Point the office at your agents">
+  <h2>No agent org found</h2>
+  <p id="setupBody"></p>
+  <pre id="setupCommands"></pre>
+  <button class="btn primary" id="setupCopy">Copy the command</button>
+</div>
+
+<div id="toast" class="hud" role="status" aria-live="polite"></div>
+
+<!-- The standard office remains the default; alternate worlds are explicit,
+     persisted presentation choices and never change server state. -->
+<!-- Side-effect script: reads the server/bake-resolved feature meta. -->
+<script src="feature.flags.js" data-office-side-effect></script>
+<script src="office.boot.js"></script>
+<script src="resolve.js"></script>
+<script src="settings.panel.js"></script>
+<!-- Side-effect script: installs a setting + wraps fetch; registers no module. -->
+<script src="office.layout-setting.js" data-office-side-effect></script>
+<script src="office.theme.js"></script>
+<script src="office.theme.contract.js"></script>
+<script src="office.theme.registry.js"></script>
+<script src="office.theme.golive.js"></script>
+<script src="office.geom.js"></script>
+<script src="office.states.js"></script>
+<script src="stats.js"></script>
+<script src="office.vitals.js" data-office-side-effect></script>
+<script src="idleflavor.js"></script>
+<!-- Shared 2.5D footprint/wall/occupancy snapshot; plain global side effect. -->
+<script src="office.spatial.js" data-office-side-effect></script>
+<script src="office.por.nav.js"></script>
+<script src="office.actors.js"></script>
+<script src="office.props.core.js"></script>
+<script src="office.cars.paint.js"></script>
+<script src="office.cars.glue.js" data-office-side-effect></script>
+<script src="bouts.js" data-office-side-effect></script>
+<script src="office.boxing.js"></script>
+<script src="office.boxing.card.js"></script>
+<script src="office.boxing.wire.js"></script>
+<script src="office.cards.card.js"></script>
+<script src="office.props.office.js"></script>
+<script src="office.props.naruto.js"></script>
+<script src="office.props.beach.js"></script>
+<script src="office.claims.js"></script>
+<script src="office.customization.contract.js"></script>
+<script src="office.edit.mode.js" data-office-side-effect></script>
+<script src="office.state.js"></script>
+<script src="office.setup.js"></script>
+<!-- Play-money wager CORE (GAM1). Installs global OfficeWager, registers no
+     OFFICE.module → side-effect marker keeps OFFICE.seal() balanced. Floor/UI
+     glue (GAM-G1) lands separately. -->
+<script src="office.wager.js" data-office-side-effect></script>
+<!-- GMB1 dice-zone gambling + the demo idle selector. All install globals
+     (OfficeIdleGamble / OfficeIdleActivities / OfficeDemoIdleShowcase), register no OFFICE.module →
+     side-effect markers keep OFFICE.seal() balanced. SOL glue wires them to
+     the floor selector separately. -->
+<script src="office.idle.activity.core.js" data-office-side-effect></script>
+<script src="office.idle.activities.js" data-office-side-effect></script>
+<script src="office.idle.demo.js" data-office-side-effect></script>
+<script src="office.idle.gamble.js" data-office-side-effect></script>
+<script src="office.idle.activity.glue.js" data-office-side-effect></script>
+<!-- PARKED FOR MVP (sun-only): WXP1 DSF weather ENGINE + now-seam PRODUCERS.
+     They remain loaded/verified but are not consumed by the floor paint seam.
+     weather.js installs global
+     OfficeWeatherCore (the DSF composition: makeForecast/frameAt + the 12
+     leaves); office.weather.now.js reads it and installs OfficeWeatherNow —
+     the schema-pinned NOW feed reserved for the post-MVP weather seam. Both register no
+     OFFICE.module → side-effect markers keep OFFICE.seal() balanced. -->
+<script src="weather.js" data-office-side-effect></script>
+<script src="office.weather.now.js" data-office-side-effect></script>
+<!-- clock is a global pure helper; daynight is a real OFFICE module. The floor
+     effects paint glue below composes both with WDN1 at the live frame seam. -->
+<script src="clock.js" data-office-side-effect></script>
+<script src="office.daynight.js"></script>
+<!-- WDN1 day/night VISIBLE core (weather overlays parked for MVP). Installs
+     global OfficeAmbientVisual
+     (no OFFICE.module → side-effect marker). SOL glue binds the day/night
+     portion to office.daynight and paints it separately. -->
+<script src="office.ambient.visual.core.js" data-office-side-effect></script>
+<!-- RBD1 AM1 interaction-log + relationshipBoard PRODUCERS. agentlog.core
+     installs global OfficeAgentLog (pairKey/affinityScore/relationTier);
+     office.relationship.board.js reads it and installs OfficeRelationshipBoard —
+     the board the relationFloor glue below consumes. Both register no
+     OFFICE.module → side-effect markers keep OFFICE.seal() balanced. -->
+<script src="office.agentlog.core.js" data-office-side-effect></script>
+<script src="office.social.tales.js" data-office-side-effect></script>
+<script src="office.relationship.board.js" data-office-side-effect></script>
+<!-- REL1 relationships-on-floor VISIBLE core. Installs global
+     OfficeRelationshipFloor (no OFFICE.module → side-effect marker). Its glue
+     (relationFloor) + the paint binding to AM1 land separately. -->
+<script src="office.relationship.floor.core.js" data-office-side-effect></script>
+<script src="office.relationship.floor.glue.js" data-office-side-effect></script>
+<!-- Presentation-only glue: clear-sun daylight paint plus AM1 relationship
+     drift/signals. Installs a global (OfficeFloorEffects), never writes
+     snapshot/Actor truth. Composes the producers above at the frame seam. -->
+<script src="office.floor.effects.js" data-office-side-effect></script>
+<script src="office.camera.js"></script>
+<script src="office.pan.js"></script>
+<script src="office.select.js"></script>
+<script src="office.hud.js"></script>
+<script src="office.hud.truth.js"></script>
+<script src="office.hud.topbar.js"></script>
+<script src="office.hud.fleet.js"></script>
+<script src="office.anim.js" data-office-side-effect></script>
+<script src="office.anim.smoke.leaf.js" data-office-side-effect></script>
+<script src="office.plate.data.js"></script>
+<script src="office.plate.nav.js"></script>
+<script src="office.plate.js"></script>
+<script src="office.picker.js"></script>
+<script src="office.choreoview.js"></script>
+<script src="boards.js"></script>
+<script src="decision.center.js"></script>
+<script src="decision.room.js"></script>
+<script src="office.needs.js"></script>
+<script src="office.vig.avatars.js"></script>
+<script src="office.vig.avatar.bump.js"></script>
+<script src="office.npcvig.core.js"></script>
+<script src="office.npcvig.bank.etta.js"></script>
+<script src="office.npcvig.bank.trump.js"></script>
+<script src="office.npcvig.bank.kimjongillest.js"></script>
+<script src="office.npcvig.bank.peep.js"></script>
+<script src="office.npcvig.bank.muckerberg.js"></script>
+<script src="office.npcvig.bank.saltman.js"></script>
+<script src="office.npcvig.bank.santa.js"></script>
+<script src="office.npcvig.bank.jesus.js"></script>
+<script src="office.npcvig.bank.rabbi.js"></script>
+<script src="office.npcvig.bank.narudo.js"></script>
+<script src="office.npcvig.bank.amerigo.js"></script>
+<script src="office.npcvig.bank.clown.js"></script>
+<script src="office.npcvig.bank.reaper.js"></script>
+<script src="office.npcvig.bank.meme-distracted-by-the-swarm.js"></script>
+<script src="office.npcvig.bank.meme-this-is-fine-oncall.js"></script>
+<script src="office.npcvig.bank.meme-drake-vibes-vs-docs.js"></script>
+<script src="office.npcvig.bank.meme-they-dont-know-demo.js"></script>
+<script src="office.npcvig.bank.meme-stonks-context.js"></script>
+<script src="office.npcvig.bank.meme-gigachad-cobol.js"></script>
+<script src="office.npcvig.bank.meme-is-this-a-data-migration.js"></script>
+<script src="office.npcvig.bank.meme-corporate-same-picture.js"></script>
+<script src="office.npcvig.bank.meme-yelling-at-legacy-cat.js"></script>
+<script src="office.npcvig.bank.meme-once-again-gpus.js"></script>
+<script src="office.npcvig.bank.denny.js"></script>
+<script src="office.npcvig.bank.mlk.js"></script>
+<script src="office.npcvig.bank.lincoln.js"></script>
+<script src="office.npcvig.bank.einstein.js"></script>
+<script src="office.npcvig.bank.moosk.js"></script>
+<script src="office.npcvig.bank.klinton.js"></script>
+<script src="office.npcvig.bank.buddha.js"></script>
+<script src="office.npcvig.bank.gandhi.js"></script>
+<script src="office.npcvig.bank.mj.js"></script>
+<script src="office.npcvig.bank.kanye-east.js"></script>
+<script src="office.npcvig.bank.kim-smardashian.js"></script>
+<script src="office.npcvig.bank.m-and-m.js"></script>
+<script src="office.npcvig.bank.johnny-dipp.js"></script>
+<script src="office.npcvig.bank.angelina-jolly.js"></script>
+<script src="office.npcvig.bank.brad-pitt-stop.js"></script>
+<script src="office.npcvig.bank.leo-dicapri.js"></script>
+<script src="office.npcvig.bank.tom-cruz.js"></script>
+<script src="office.npcvig.bank.george-cloony.js"></script>
+<script src="office.npcvig.bank.will-smyth.js"></script>
+<script src="office.npcvig.bank.tiger-wood.js"></script>
+<script src="office.npcvig.bank.david-beckhome.js"></script>
+<script src="office.npcvig.bank.michael-jordon.js"></script>
+<script src="office.npcvig.bank.kobe.js"></script>
+<script src="office.npcvig.bank.lebron-jame.js"></script>
+<script src="office.npcvig.bank.tom-bradie.js"></script>
+<script src="office.npcvig.cast.js"></script>
+<script src="office.npcvig.render.js"></script>
+<script src="office.npcvig.spawnpath.js"></script>
+<script src="office.npcvig.paint.js"></script>
+<script src="office.npcvig.pace.js"></script>
+<script src="office.npcvig.wire.js"></script>
+<script src="office.npcvig.gate.js"></script>
+<script src="office.npcvig.continueui.js"></script>
+<script src="office.npcvig.activity.js" data-office-side-effect></script>
+<script src="office.npcvig.ufolife.js" data-office-side-effect></script>
+<script src="office.npcvig.director.js" data-office-side-effect></script>
+<script src="office.npcvig.story.js" data-office-side-effect></script>
+<script src="office.npcvig.storyarc.js" data-office-side-effect></script>
+<script src="office.npcvig.storyarcs.js" data-office-side-effect></script>
+<script src="office.npcvig.storypanel.js" data-office-side-effect></script>
+<script src="office.npcvig.storyglue.js" data-office-side-effect></script>
+<script src="office.npcvig.ufoglue.js" data-office-side-effect></script>
+<script src="office.npcvig.ufobeam.js" data-office-side-effect></script>
+<script src="office.npcvig.boot.js"></script>
+<script src="office.npcvig.arc.drivehome.js" data-office-side-effect></script>
+<script src="office.npcvig.follow.js"></script>
+<script src="office.follow.card.js"></script>
+<script src="office.avatar.appearance.js"></script>
+<script src="office.am.core.js"></script>
+<script src="office.am.placement.js"></script>
+<script src="office.am.behavior.js"></script>
+<script src="office.am.looks.js"></script>
+<script src="office.am.social.js"></script>
+<script src="office.am.history.js"></script>
+<script src="agent.manager.js"></script>
+<script src="office.mounts.js"></script>
+<script src="office.feed.js"></script>
+<script src="office.inspector.js"></script>
+<script src="office.place.js"></script>
+<script src="office.people.js"></script>
+<script src="office.needscard.js"></script>
+<!-- Installs OFFICE.decisionPanel as a global; it does not register an OFFICE module. -->
+<script src="decision.panel.js"></script>
+<!-- Marketplace panel. Self-mounts ONLY when the store_live flag is on (default
+     false), so loading it here does not ship the marketplace. Must load after
+     feature.flags.js, which resolves the flags it consults. Deliberately names
+     no global: this comment travels into the baked artifact, which is scanned
+     for live-surface tokens the offline build must not carry. -->
+<script src="store.panel.js" data-office-side-effect></script>
+<!-- office-bake-only: sim.js -->
+<script src="welcome.glossary.js"></script>
+<script src="welcome.js"></script>
+<script src="notify.js"></script>
+<script src="notify.ui.js"></script>
+<script src="notify.badge.js"></script>
+<script src="notify.strings.js"></script>
+<script src="office.tooltips.js"></script>
+<script src="elevator.js"></script>
+<script src="ticker.js"></script>
+<script src="cockpit.chat.js"></script>
+<script src="office.vignette.card.js"></script>
+<script src="office.influence.core.js" data-office-side-effect></script>
+<script src="office.influence.events.js"></script>
+<script src="office.webgl.required.js" data-office-side-effect></script>
+<script src="office.main.js"></script>
+<script src="office.tour.js"></script>
+<script src="office.talk.js"></script>
+<script src="office.ctxactions.js"></script>
+<script src="office.contextmenu.js"></script>
+<script src="office.keyboard.js"></script>
+<script src="office.follow.js"></script>
+<script src="office.hovercard.js"></script>
+<!-- Shared layout contract loads last so standalone panels can be adopted.
+     Side-effect script: installs window.OfficeDock; registers no module. -->
+<script src="office.dock.js" data-office-side-effect></script>
+<script src="nux.setup.js"></script>
+<!-- HUD-05: Help utility panel. Side-effect script. -->
+<script src="office.help.js" data-office-side-effect></script>
+<!-- HUD-01: global app shell + persistent nav rail. Side-effect script. -->
+<script src="office.hud.shell.js" data-office-side-effect></script>
+<!-- HUD-03: decision and attention routing coordinator. Side-effect script. -->
+<script src="office.hud.decision-routes.js" data-office-side-effect></script>
+</body>
+</html>

@@ -1,0 +1,690 @@
+{
+ "agents": [
+  {
+   "alive": true,
+   "blocked": false,
+   "blockers": "",
+   "branch": "main",
+   "decision_needed": "",
+   "desk": {
+    "x": 3,
+    "y": 2
+   },
+   "emoji": "owl",
+   "engine": "claude",
+   "errand": "",
+   "frozen": false,
+   "ghost": false,
+   "home": {
+    "x": 3,
+    "y": 3
+   },
+   "lane": "ada",
+   "liveness_known": true,
+   "model": "",
+   "name": "Ada",
+   "next": "",
+   "owes_reply": false,
+   "present": true,
+   "pushed_ago_s": 60,
+   "ready_for_pr": false,
+   "role": "teammate",
+   "state": "working",
+   "station": {
+    "x": 3,
+    "y": 3
+   },
+   "task": "golden task"
+  },
+  {
+   "alive": false,
+   "blocked": false,
+   "blockers": "",
+   "branch": "feat/x",
+   "decision_needed": "",
+   "desk": {
+    "x": 3,
+    "y": 2
+   },
+   "emoji": "hog",
+   "engine": "claude",
+   "errand": "",
+   "frozen": false,
+   "ghost": true,
+   "home": {
+    "x": 3,
+    "y": 3
+   },
+   "lane": "bob",
+   "liveness_known": true,
+   "model": "",
+   "name": "Bob",
+   "next": "",
+   "owes_reply": false,
+   "present": true,
+   "pushed_ago_s": 1000,
+   "ready_for_pr": false,
+   "role": "teammate",
+   "state": "bench",
+   "station": {
+    "x": 3,
+    "y": 3
+   },
+   "task": ""
+  },
+  {
+   "alive": false,
+   "blocked": false,
+   "blockers": "",
+   "branch": "",
+   "decision_needed": "",
+   "desk": {
+    "x": 3,
+    "y": 2
+   },
+   "emoji": "alien",
+   "engine": "codex",
+   "errand": "",
+   "frozen": false,
+   "ghost": false,
+   "home": {
+    "x": 3,
+    "y": 3
+   },
+   "lane": "cyn",
+   "liveness_known": false,
+   "model": "",
+   "name": "Cyn",
+   "next": "",
+   "owes_reply": false,
+   "present": true,
+   "pushed_ago_s": null,
+   "ready_for_pr": false,
+   "role": "teammate",
+   "state": "unknown",
+   "station": {
+    "x": 3,
+    "y": 3
+   },
+   "task": ""
+  }
+ ],
+ "events": [],
+ "layout": {
+  "board_table": {
+   "d": 3.0,
+   "w": 5.6,
+   "x": 13.2,
+   "y": 3.0
+  },
+  "bullpen_desks": [
+   {
+    "x": 2,
+    "y": 12
+   },
+   {
+    "x": 6,
+    "y": 12
+   },
+   {
+    "x": 10,
+    "y": 12
+   },
+   {
+    "x": 14,
+    "y": 12
+   },
+   {
+    "x": 18,
+    "y": 12
+   },
+   {
+    "x": 2,
+    "y": 15
+   },
+   {
+    "x": 6,
+    "y": 15
+   },
+   {
+    "x": 10,
+    "y": 15
+   },
+   {
+    "x": 14,
+    "y": 15
+   },
+   {
+    "x": 18,
+    "y": 15
+   }
+  ],
+  "bullpen_room": "bullpen",
+  "ceo_desk": {
+   "x": 3,
+   "y": 2
+  },
+  "ceo_queue": [
+   {
+    "x": 27,
+    "y": 2
+   },
+   {
+    "x": 28,
+    "y": 2
+   },
+   {
+    "x": 27,
+    "y": 4
+   },
+   {
+    "x": 28,
+    "y": 4
+   },
+   {
+    "x": 27,
+    "y": 6
+   },
+   {
+    "x": 28,
+    "y": 6
+   }
+  ],
+  "ceo_seat": {
+   "x": 3.4,
+   "y": 4.0
+  },
+  "corridor_cols": [
+   22
+  ],
+  "corridor_rows": [
+   9,
+   18
+  ],
+  "cto_desk": {
+   "x": 19,
+   "y": 6
+  },
+  "cto_seat": {
+   "x": 19.4,
+   "y": 8.0
+  },
+  "desks": {},
+  "door_queue": [
+   {
+    "x": 2,
+    "y": 5
+   },
+   {
+    "x": 3,
+    "y": 5
+   },
+   {
+    "x": 4,
+    "y": 5
+   },
+   {
+    "x": 2,
+    "y": 7
+   },
+   {
+    "x": 3,
+    "y": 7
+   },
+   {
+    "x": 4,
+    "y": 7
+   }
+  ],
+  "doors": [
+   {
+    "edge": "s",
+    "label": "TO THE FLOOR",
+    "x": 6,
+    "y": 8
+   },
+   {
+    "edge": "w",
+    "label": "LOUNGE",
+    "x": 23,
+    "y": 13
+   },
+   {
+    "edge": "n",
+    "label": "KITCHEN",
+    "x": 6,
+    "y": 19
+   },
+   {
+    "edge": "n",
+    "label": "REC",
+    "x": 17,
+    "y": 19
+   },
+   {
+    "edge": "s",
+    "label": "OUTSIDE",
+    "x": 26,
+    "y": 24
+   }
+  ],
+  "founder_door": {
+   "x": 1,
+   "y": 6
+  },
+  "offduty_spots": [
+   {
+    "where": "rec",
+    "x": 15,
+    "y": 21
+   },
+   {
+    "where": "rec",
+    "x": 19,
+    "y": 21
+   },
+   {
+    "where": "kitchen",
+    "x": 3.5,
+    "y": 23
+   },
+   {
+    "where": "kitchen",
+    "x": 6.5,
+    "y": 23
+   },
+   {
+    "where": "outside",
+    "x": 24,
+    "y": 26
+   },
+   {
+    "where": "outside",
+    "x": 26,
+    "y": 26
+   },
+   {
+    "where": "lounge",
+    "x": 24,
+    "y": 11
+   },
+   {
+    "where": "lounge",
+    "x": 25,
+    "y": 11
+   },
+   {
+    "where": "lounge",
+    "x": 26,
+    "y": 11
+   },
+   {
+    "where": "lounge",
+    "x": 24,
+    "y": 14
+   },
+   {
+    "where": "lounge",
+    "x": 26,
+    "y": 14
+   },
+   {
+    "where": "lounge",
+    "x": 24,
+    "y": 17
+   },
+   {
+    "where": "lounge",
+    "x": 26,
+    "y": 17
+   },
+   {
+    "where": "lounge",
+    "x": 25,
+    "y": 20
+   },
+   {
+    "where": "kitchen",
+    "x": 4,
+    "y": 21
+   },
+   {
+    "where": "kitchen",
+    "x": 7,
+    "y": 21
+   },
+   {
+    "where": "kitchen",
+    "x": 3,
+    "y": 22
+   },
+   {
+    "where": "kitchen",
+    "x": 5,
+    "y": 22
+   },
+   {
+    "where": "kitchen",
+    "x": 6,
+    "y": 22
+   },
+   {
+    "where": "kitchen",
+    "x": 8,
+    "y": 22
+   },
+   {
+    "where": "kitchen",
+    "x": 2,
+    "y": 21
+   },
+   {
+    "where": "kitchen",
+    "x": 9,
+    "y": 21
+   }
+  ],
+  "pedestrian_paths": [
+   {
+    "h": 1,
+    "id": "front-sidewalk",
+    "kind": "sidewalk",
+    "w": 29,
+    "x": 0,
+    "y": 25
+   },
+   {
+    "h": 5,
+    "id": "parking-east-crosswalk",
+    "kind": "crosswalk",
+    "w": 2,
+    "x": 20,
+    "y": 26
+   },
+   {
+    "h": 2,
+    "id": "outside-entry-walk",
+    "kind": "sidewalk",
+    "w": 2,
+    "x": 25,
+    "y": 24
+   }
+  ],
+  "props": [
+   {
+    "edge": "n",
+    "kind": "crown",
+    "type": "art",
+    "x": 5,
+    "y": 1
+   },
+   {
+    "edge": "n",
+    "type": "whiteboard",
+    "x": 15,
+    "y": 1
+   },
+   {
+    "edge": "n",
+    "type": "clock",
+    "x": 9,
+    "y": 10
+   },
+   {
+    "type": "rack",
+    "x": 1.15,
+    "y": 15.1
+   },
+   {
+    "d": 1.0,
+    "type": "couch",
+    "w": 3.0,
+    "x": 24,
+    "y": 11
+   },
+   {
+    "d": 1.6,
+    "type": "pingpong",
+    "w": 3.0,
+    "x": 16,
+    "y": 21
+   },
+   {
+    "d": 1.0,
+    "type": "counter",
+    "w": 5.0,
+    "x": 3,
+    "y": 20
+   },
+   {
+    "type": "espresso",
+    "x": 3.3,
+    "y": 20.1
+   },
+   {
+    "type": "fridge",
+    "x": 9,
+    "y": 20
+   },
+   {
+    "type": "crate",
+    "x": 10.4,
+    "y": 20.2
+   },
+   {
+    "type": "cooler",
+    "x": 1.1,
+    "y": 20.1
+   },
+   {
+    "type": "table",
+    "x": 4,
+    "y": 22
+   },
+   {
+    "type": "table",
+    "x": 7,
+    "y": 22
+   },
+   {
+    "edge": "n",
+    "type": "smashscreen",
+    "x": 19.1,
+    "y": 19
+   },
+   {
+    "d": 0.7,
+    "type": "smashcouch",
+    "w": 3.2,
+    "x": 18.1,
+    "y": 23.1
+   },
+   {
+    "d": 1.0,
+    "type": "beerpong",
+    "w": 4.0,
+    "x": 4,
+    "y": 22
+   },
+   {
+    "type": "ashcan",
+    "x": 27.4,
+    "y": 26.2
+   },
+   {
+    "model": "fable",
+    "plate": "FABLE 5",
+    "type": "car",
+    "vehicle": "sports",
+    "x": 8.9,
+    "y": 28.0
+   },
+   {
+    "model": "opus",
+    "plate": "OPUS 5",
+    "type": "car",
+    "vehicle": "luxsedan",
+    "x": 11.9,
+    "y": 28.0
+   },
+   {
+    "model": "haiku",
+    "plate": "HAIKU 45",
+    "type": "car",
+    "vehicle": "hatchback",
+    "x": 14.9,
+    "y": 28.0
+   },
+   {
+    "model": "sonnet",
+    "plate": "SONNET 5",
+    "type": "car",
+    "vehicle": "convertible",
+    "x": 17.9,
+    "y": 28.0
+   },
+   {
+    "type": "tree",
+    "x": 29.0,
+    "y": 27.0
+   },
+   {
+    "type": "tree",
+    "x": 30.2,
+    "y": 29.4
+   },
+   {
+    "type": "shrub",
+    "x": 22.5,
+    "y": 30.2
+   },
+   {
+    "type": "shrub",
+    "x": 28.0,
+    "y": 30.6
+   },
+   {
+    "type": "planter",
+    "x": 25.0,
+    "y": 27.0
+   },
+   {
+    "type": "planter",
+    "x": 27.0,
+    "y": 27.0
+   }
+  ],
+  "rooms": [
+   {
+    "h": 9,
+    "id": "ceo",
+    "label": "CEO \u2014 CORNER OFFICE",
+    "tint": "#3b2f5e",
+    "w": 10,
+    "x": 0,
+    "y": 0
+   },
+   {
+    "h": 9,
+    "id": "csuite",
+    "label": "THE BOARDROOM",
+    "tint": "#1f4a52",
+    "w": 11,
+    "x": 11,
+    "y": 0
+   },
+   {
+    "desk_cols": 2,
+    "h": 9,
+    "id": "review",
+    "label": "REVIEW + SECURITY",
+    "tint": "#5b2f2f",
+    "w": 13,
+    "x": 23,
+    "y": 0
+   },
+   {
+    "h": 8,
+    "id": "bullpen",
+    "label": "THE BULLPEN",
+    "tint": "#23405e",
+    "w": 22,
+    "x": 0,
+    "y": 10
+   },
+   {
+    "h": 14,
+    "id": "bench",
+    "label": "THE LOUNGE",
+    "tint": "#2c3f2c",
+    "w": 13,
+    "x": 23,
+    "y": 10
+   },
+   {
+    "h": 5,
+    "id": "kitchen",
+    "label": "KITCHEN",
+    "tint": "#4a3f2c",
+    "w": 14,
+    "x": 0,
+    "y": 19
+   },
+   {
+    "h": 5,
+    "id": "rec",
+    "label": "REC ROOM",
+    "tint": "#3d2c4a",
+    "w": 7,
+    "x": 15,
+    "y": 19
+   },
+   {
+    "h": 11,
+    "id": "lot",
+    "label": "PARKING LOT",
+    "outdoor": true,
+    "tint": "#202631",
+    "w": 20,
+    "x": 1,
+    "y": 25
+   }
+  ],
+  "seats": {},
+  "smoking": {
+   "h": 3.6,
+   "w": 7.0,
+   "x": 21.5,
+   "y": 25.2
+  },
+  "world": {
+   "building_h": 25,
+   "h": 36,
+   "w": 36
+  }
+ },
+ "liveness_known": true,
+ "mode": "shared",
+ "now": 1000000.0,
+ "poll_ms": 2500,
+ "pr_known": false,
+ "room": {
+  "name": "Golden Floor"
+ },
+ "summary": {
+  "absent": 0,
+  "asking": 0,
+  "bench": 1,
+  "blocked": 0,
+  "dead": 0,
+  "delivering": 0,
+  "frozen": 0,
+  "ghosts": 1,
+  "reading": 0,
+  "refused_pushes": 0,
+  "total": 3,
+  "unknown": 1,
+  "working": 1
+ },
+ "tick": 1000000
+}

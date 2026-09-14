@@ -1,0 +1,113 @@
+/* costview.css — CostView panel styling (harvested from nova office.css) */
+/* ---------- floor-integrated CostView ---------- */
+.office-costview {
+  --cv-panel: #0d1827; --cv-card: #111f30; --cv-edge: #2c425a; --cv-muted: #91a5bd;
+  position: relative; left: var(--office-hud-rail-width, 0px);
+  width: calc(100vw - var(--office-hud-rail-width, 0px));
+  min-height: 100dvh; padding: 28px clamp(18px, 3vw, 46px) 36px;
+  overflow: auto; color: #edf4fb; background:
+    radial-gradient(circle at 15% -20%, #16354a 0, transparent 38rem), #07101b;
+  font: 13px/1.45 ui-monospace, monospace;
+}
+.office-costview[hidden] { display: none !important; }
+.office-costview h2, .office-costview h3, .office-costview p { margin-top: 0; }
+.office-costview-head {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 18px;
+  align-items: start; margin: 0 auto 18px; max-width: 1500px;
+}
+.office-costview-head h2 { margin: 0 0 3px; color: #ffd166; font-size: clamp(25px, 4vw, 44px); }
+.office-costview-kicker { margin-bottom: 3px; color: var(--cv-muted); font-size: 10px; letter-spacing: 2px; }
+.office-costview-subtitle { margin-bottom: 0; color: var(--cv-muted); }
+.office-costview-status {
+  margin: 7px 0 0; padding: 6px 10px; color: var(--cv-muted); border: 1px solid var(--cv-edge);
+  border-radius: 999px; background: rgba(10, 19, 31, .8); font-size: 10px; white-space: nowrap;
+}
+.office-costview-status[data-state="ready"] { color: #76d6aa; border-color: #76d6aa; }
+.office-costview-status[data-state="partial"] { color: #ffbf69; border-color: #ffbf69; }
+.office-costview-status[data-state="error"],
+.office-costview-status[data-state="unavailable"] { color: #ff7b7b; border-color: #ff7b7b; }
+.office-costview-filters,
+.office-costview-summary,
+.office-costview-charts,
+.office-costview-budget,
+.office-costview-agents,
+.office-costview-source { max-width: 1500px; margin-left: auto; margin-right: auto; }
+.office-costview-filters {
+  display: grid; grid-template-columns: minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  gap: 12px; align-items: end; margin-bottom: 14px; padding: 15px;
+  background: rgba(13, 24, 39, .94); border: 1px solid var(--cv-edge); border-radius: 12px;
+}
+.office-costview-filters label { display: grid; gap: 5px; color: var(--cv-muted); font-size: 10px; }
+.office-costview-filters select {
+  min-height: 39px; padding: 0 10px; color: #edf4fb; background: #091420;
+  border: 1px solid #405b76; border-radius: 7px; font: inherit;
+}
+.office-costview-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 14px; }
+.office-costview-card {
+  min-width: 0; padding: 16px; background: rgba(17, 31, 48, .94);
+  border: 1px solid var(--cv-edge); border-radius: 12px; box-shadow: 0 16px 42px rgba(0,0,0,.22);
+}
+.office-costview-card > span, .office-costview-budget-grid span {
+  display: block; margin-bottom: 6px; color: var(--cv-muted); font-size: 9px; letter-spacing: .6px; text-transform: uppercase;
+}
+.office-costview-card > strong { display: block; overflow: hidden; color: #f5f8fc; font-size: 18px; text-overflow: ellipsis; }
+.office-costview-charts { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.office-costview-chart header, .office-costview-budget > header, .office-costview-agents > header {
+  display: flex; justify-content: space-between; gap: 12px; align-items: start;
+}
+.office-costview-chart h3, .office-costview-budget h3, .office-costview-agents h3 { margin-bottom: 9px; color: #dce8f5; }
+.office-costview-chart header p, .office-costview-budget header p, .office-costview-agents header p {
+  color: var(--cv-muted); font-size: 9px; text-align: right;
+}
+.office-costview-chart svg { display: block; width: 100%; min-height: 230px; overflow: visible; }
+.office-costview-chart .grid-line { stroke: var(--cv-edge); }
+.office-costview-chart .axis-label, .office-costview-chart .empty-label { fill: var(--cv-muted); font-size: 10px; }
+.office-costview-chart .input-bar { fill: #6fb6f1; }
+.office-costview-chart .output-bar { fill: #c68aed; }
+.office-costview-chart .cache-create-bar { fill: #e6a75d; }
+.office-costview-chart .cache-read-bar { fill: #70c9b2; }
+.office-costview-chart .throughput-line { fill: none; stroke: #f5e289; stroke-width: 3; }
+.office-costview-chart .throughput-point { fill: #111f30; stroke: #f5e289; stroke-width: 2; }
+.office-costview-chart .unpriced-mark { font-size: 8px; writing-mode: vertical-rl; text-orientation: mixed; }
+.office-costview-budget { margin-bottom: 14px; }
+.office-costview-budget-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--cv-edge); border-radius: 9px; }
+.office-costview-budget-grid > div { min-width: 0; padding: 13px; border-right: 1px solid var(--cv-edge); background: #0b1725; }
+.office-costview-budget-grid > div:last-child { border-right: 0; background: rgba(255, 209, 102, .08); }
+.office-costview-budget-grid strong { display: block; overflow-wrap: anywhere; }
+.office-costview-budget-grid small { display: block; margin-top: 5px; color: var(--cv-muted); }
+.office-costview-alert { margin: 12px 0 0; padding: 9px; color: #ff8585; border: 1px solid #ff8585; border-radius: 7px; }
+.office-costview-agents { margin-bottom: 14px; }
+.office-costview-table { overflow: auto; border: 1px solid var(--cv-edge); border-radius: 9px; }
+.office-costview-table table { width: 100%; min-width: 1060px; border-collapse: collapse; }
+.office-costview-table th, .office-costview-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--cv-edge); vertical-align: top; }
+.office-costview-table th { position: sticky; top: 0; color: var(--cv-muted); background: #0b1725; font-size: 9px; text-transform: uppercase; }
+.office-costview-table td { font-size: 10px; }
+.office-costview-table .agent-lane { color: #ffd166; font-weight: 800; }
+.office-costview-table .cell-list { display: grid; gap: 2px; }
+.office-costview-table small { color: var(--cv-muted); }
+.office-costview-source { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 20px; color: var(--cv-muted); font-size: 9px; }
+.office-costview-source p:last-child { grid-column: 1 / -1; }
+.office-costview-source-explainer { max-width: 1500px; margin: 0 auto 14px; padding: 10px 13px; color: var(--cv-muted); border: 1px solid var(--cv-edge); border-radius: 9px; background: rgba(13, 24, 39, .94); font-size: 10px; }
+.office-costview-coming-soon-card {
+  position: relative; display: grid; min-height: min(520px, calc(100dvh - 160px));
+  box-sizing: border-box; align-content: center; max-width: 960px; padding: clamp(38px, 7vw, 78px);
+  margin: 0 auto; text-align: center; border-color: #334b60;
+  background: radial-gradient(circle at 50% 38%, #122638 0, #0b1b2a 48%, #08131f 100%);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .24), inset 0 1px rgba(255, 255, 255, .04);
+}
+.office-costview-coming-soon-card .office-costview-kicker { margin-bottom: 12px; }
+.office-costview-coming-soon-card h2 { margin: 0; color: #edf2f7; font-size: clamp(34px, 6vw, 58px); font-weight: 500; letter-spacing: -1px; }
+.office-costview-coming-soon-status { margin: 22px 0 0; color: #e8ad31; font-size: 13px; font-weight: 800; letter-spacing: 2px; }
+.office-costview-coming-soon-copy { max-width: 480px; margin: 18px auto 0; color: #c8d1da; font-size: 13px; line-height: 1.8; }
+.office-costview-coming-soon-card > .btn { position: absolute; top: 12px; right: 12px; }
+.office-costview-head { grid-template-columns: 1fr auto; }
+.office-costview-status { grid-row: 2; }
+.office-costview-charts { grid-template-columns: 1fr; }
+.office-costview-summary, .office-costview-budget-grid { grid-template-columns: 1fr 1fr; }
+.office-costview { padding: 18px 12px 24px; }
+.office-costview-head, .office-costview-filters, .office-costview-summary,
+  .office-costview-budget-grid, .office-costview-source { grid-template-columns: 1fr; }
+.office-costview-head > .btn { position: absolute; top: 12px; right: 12px; }
+.office-costview-status { grid-row: auto; white-space: normal; }
+.office-costview-chart header, .office-costview-budget > header, .office-costview-agents > header { display: block; }
+.office-costview-chart header p, .office-costview-budget header p, .office-costview-agents header p { text-align: left; }

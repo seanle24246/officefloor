@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "zones": ["ceo", "csuite", "review", "bullpen", "bench", "kitchen", "rec"],
+  "stop_words": [
+    "create", "full", "generate", "hybrid", "only", "plate", "procedural",
+    "render", "supplied", "theme", "use"
+  ],
+  "defaults": {
+    "primitive_coverage": 0.6,
+    "license": "unreviewed generated candidate"
+  },
+  "signals": {
+    "plate_available_phrases": ["plate supplied", "render supplied"],
+    "override_phrases": {
+      "procedural": ["full procedural", "no plate", "procedural only"],
+      "hybrid": ["hybrid only", "use hybrid"],
+      "plate": ["full plate", "plate only"]
+    },
+    "coverage_phrases": [
+      {
+        "id": "high",
+        "value": 0.9,
+        "phrases": ["mostly primitives", "primitive rich"]
+      },
+      {
+        "id": "medium",
+        "value": 0.6,
+        "phrases": ["mixed scene", "procedural props"]
+      },
+      {
+        "id": "low",
+        "value": 0.15,
+        "phrases": ["minimal primitives", "slim runtime"]
+      }
+    ]
+  },
+  "tiers": {
+    "procedural": {
+      "description": "full-procedural: no plate; registered primitives and draw hooks only",
+      "pipeline_entrypoint": "theme_factory.plan_procedural",
+      "requires_plate": false,
+      "requires_palette": true,
+      "hook": "backdrop"
+    },
+    "hybrid": {
+      "description": "hybrid: plate backdrop plus procedural props, overlays, and truth-preserving runtime",
+      "pipeline_entrypoint": "theme_factory.assemble_hybrid",
+      "requires_plate": true,
+      "requires_palette": true,
+      "hook": "decor"
+    },
+    "plate": {
+      "description": "full-plate: supplied render plus slim runtime and minimal procedural composition",
+      "pipeline_entrypoint": "theme_factory.intake_full_plate",
+      "requires_plate": true,
+      "requires_palette": false,
+      "hook": null
+    }
+  },
+  "profiles": [
+    {
+      "id": "manhattan",
+      "label": "Manhattan penthouse",
+      "terms": ["manhattan", "penthouse"],
+      "plate_ref": "manhattan",
+      "primitive_coverage": 0.72,
+      "palette": {
+        "background": "#111827",
+        "brass": "#b68a52",
+        "stone": "#596579"
+      }
+    },
+    {
+      "id": "jungle",
+      "label": "Jungle field office",
+      "terms": ["jungle", "rainforest"],
+      "plate_ref": null,
+      "primitive_coverage": 0.95,
+      "palette": {
+        "background": "#071a12",
+        "canopy": "#1f6b45",
+        "sunlight": "#d9b95b"
+      }
+    },
+    {
+      "id": "supplied-render",
+      "label": "Supplied full-scene render",
+      "terms": ["full scene render", "supplied render"],
+      "plate_ref": "supplied-render",
+      "primitive_coverage": 0.15,
+      "palette": {}
+    }
+  ],
+  "rules": [
+    {
+      "id": "founder-procedural-override",
+      "priority": 600,
+      "match": { "override": "procedural" },
+      "tier": "procedural",
+      "rationale": "Founder override selects full-procedural; any available plate is ignored and the candidate uses registered primitives only.",
+      "examples": ["manhattan procedural only"]
+    },
+    {
+      "id": "founder-hybrid-override",
+      "priority": 590,
+      "match": { "override": "hybrid", "plate_available": true },
+      "tier": "hybrid",
+      "rationale": "Founder override selects hybrid because a registered or supplied plate can carry the backdrop while procedural layers remain available.",
+      "examples": ["manhattan hybrid only"]
+    },
+    {
+      "id": "founder-plate-override",
+      "priority": 580,
+      "match": { "override": "plate", "plate_available": true },
+      "tier": "plate",
+      "rationale": "Founder override selects full-plate; the supplied render is routed to the slim-runtime intake.",
+      "examples": ["manhattan plate only"]
+    },
+    {
+      "id": "representable-plate-hybrid",
+      "priority": 300,
+      "match": { "plate_available": true, "min_primitive_coverage": 0.35 },
+      "tier": "hybrid",
+      "rationale": "A plate is available and enough of the scene is representable by existing primitives, so the plate is a backdrop rather than the whole runtime.",
+      "examples": ["manhattan"]
+    },
+    {
+      "id": "low-coverage-full-plate",
+      "priority": 290,
+      "match": { "plate_available": true, "max_primitive_coverage": 0.35 },
+      "tier": "plate",
+      "rationale": "A render is available but primitive coverage is low, so full-plate preserves fidelity with a deliberately slim procedural layer.",
+      "examples": ["supplied render"]
+    },
+    {
+      "id": "no-plate-procedural-fallback",
+      "priority": 100,
+      "match": { "plate_available": false },
+      "tier": "procedural",
+      "rationale": "No plate is available; full-procedural always yields a deterministic best-effort palette and a candidate for the procedural compiler.",
+      "examples": ["germany theme"]
+    }
+  ]
+}

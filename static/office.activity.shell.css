@@ -1,0 +1,154 @@
+/* office.activity.shell.css — HUD-04 persistent Floor Activity composition. */
+
+#ticker[data-office-hud-activity="persistent"] {
+  position: fixed;
+  left: calc(var(--office-hud-rail-width) + 12px) !important;
+  right: auto !important;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  width: min(600px, calc(100vw - var(--office-hud-rail-width) - 24px)) !important;
+  min-height: 210px;
+  max-height: min(340px, calc(100vh - var(--office-hud-topbar-height) - 24px));
+  overflow: hidden;
+  z-index: 12;
+}
+
+#ticker[data-office-hud-activity="persistent"] > h3 {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 8px 12px 7px;
+}
+
+#activityTabs {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 3px;
+  padding: 5px 8px;
+  overflow-x: auto;
+  border-bottom: 1px solid rgba(120, 150, 200, .22);
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+
+#activityTabs [role="tab"] {
+  appearance: none;
+  min-height: 28px;
+  padding: 3px 7px;
+  color: #bdc7d8;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  font: 700 9px ui-monospace, monospace;
+  letter-spacing: .25px;
+  cursor: pointer;
+}
+
+#activityTabs [role="tab"]:hover,
+#activityTabs [role="tab"][aria-selected="true"] {
+  color: #edf2fb;
+  border-color: #71809c;
+  background: rgba(120, 150, 200, .16);
+}
+
+#activityTabs [data-activity-tab="funny"] { color: #c084fc; }
+#activityTabs [data-activity-tab="funny"][aria-selected="true"] {
+  color: #d8a7ff;
+  border-color: #c084fc;
+  background: rgba(192, 132, 252, .18);
+}
+
+#ticker[data-office-hud-activity="persistent"] > #feed {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  padding: 7px 10px 10px;
+  overflow: auto;
+}
+
+#feed li[role="button"] { cursor: pointer; }
+#feed li[role="button"]:focus-visible,
+#activityTabs [role="tab"]:focus-visible {
+  outline: 2px solid rgba(160, 190, 240, .95);
+  outline-offset: 1px;
+}
+
+#feed [data-playful="true"] { color: #c084fc; cursor: default; }
+#feed .playful-label {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 1px 5px;
+  color: #c084fc;
+  border: 1px solid #c084fc;
+  border-radius: 999px;
+  font-size: 9px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+#feed [data-activity-empty="true"] { color: var(--dim); }
+
+/* A contextual or utility drawer owns its side of the shell. Keep activity
+   visible in the remaining desktop floor instead of placing it underneath. */
+@media (min-width: 721px) {
+  body:has(#office-hud-contextual-drawer:not([hidden])) > #ticker[data-office-hud-activity="persistent"] {
+    left: calc(var(--office-hud-rail-width) + 372px) !important;
+    width: min(520px, calc(100vw - var(--office-hud-rail-width) - 384px)) !important;
+  }
+
+  body:has(#office-hud-utility-drawer:not([hidden])) > #ticker[data-office-hud-activity="persistent"] {
+    width: min(520px, calc(100vw - var(--office-hud-rail-width) - 384px)) !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  #ticker[data-office-hud-activity="persistent"] {
+    width: min(540px, calc(100vw - var(--office-hud-rail-width) - 24px)) !important;
+    min-height: 190px;
+    max-height: min(300px, 38vh);
+  }
+}
+
+@media (max-width: 860px) {
+  #ticker[data-office-hud-activity="persistent"] {
+    width: min(500px, calc(100vw - var(--office-hud-rail-width) - 24px)) !important;
+    min-height: 170px;
+    max-height: min(260px, 34vh);
+  }
+}
+
+@media (max-width: 720px) {
+  #ticker[data-office-hud-activity="persistent"],
+  #ticker[data-office-hud-activity="persistent"][data-office-dock] {
+    left: 8px !important;
+    right: 8px !important;
+    bottom: 8px !important;
+    width: auto !important;
+    min-height: 0;
+    max-height: 154px;
+    border-radius: 9px;
+  }
+
+  #ticker[data-office-hud-activity="persistent"] > h3 {
+    min-height: 26px;
+    padding: 6px 9px 5px;
+  }
+
+  #activityTabs { padding: 3px 6px; }
+  #activityTabs [role="tab"] { min-height: 26px; padding: 2px 6px; }
+  #ticker[data-office-hud-activity="persistent"] > #feed { padding: 4px 7px 7px; }
+}
+
+@media (max-width: 430px) {
+  #ticker[data-office-hud-activity="persistent"] { max-height: 146px; }
+  #ticker .ticker-caveat { display: block; margin: 2px 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #ticker[data-office-hud-activity="persistent"],
+  #ticker[data-office-hud-activity="persistent"] * {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,61 @@
+@import url('./office.lounge.showroom.css');
+
+body {
+  background:
+    radial-gradient(circle at 50% 16%, rgba(111, 180, 255, .17), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(101, 148, 135, .13), transparent 34%),
+    #070a12;
+}
+
+.title-card, .meta-card, .controls { border-color: rgba(143, 230, 255, .22); }
+.eyebrow, .metric strong { color: #8fe6ff; }
+.metric.wide { min-width: 128px; }
+
+.controls {
+  position: fixed;
+  z-index: 22;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: calc(100vw - 28px);
+  padding: 7px;
+  border: 1px solid rgba(143, 230, 255, .22);
+  border-radius: 16px;
+  background: rgba(13, 17, 27, .9);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, .34);
+  backdrop-filter: blur(16px);
+}
+
+.controls button {
+  border: 0;
+  border-radius: 11px;
+  padding: 10px 13px;
+  white-space: nowrap;
+  color: #071411;
+  background: #8fe6ff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.controls button + button { color: #9fb0bd; background: rgba(255, 255, 255, .06); }
+.controls button:hover { filter: brightness(1.08); }
+.controls span { padding: 0 10px 0 8px; color: #9fb0bd; font-size: 11px; white-space: nowrap; }
+.controls i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 50%;
+  background: #56d98b;
+  box-shadow: 0 0 12px rgba(86, 217, 139, .8);
+}
+
+@media (max-width: 760px) {
+  .controls { bottom: 10px; }
+  .controls span { display: none; }
+}

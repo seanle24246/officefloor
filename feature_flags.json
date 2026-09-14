@@ -1,0 +1,82 @@
+{
+  "cockpit_chat": {
+    "default": false,
+    "desc": "Enable the founder-to-CEO cockpit chat client."
+  },
+  "store_coming_soon": {
+    "default": false,
+    "desc": "Coming-soon fallback surface when the catalog authority is unavailable."
+  },
+  "costview_live": {
+    "default": false,
+    "desc": "Mount the observed-usage CostView; off = COMING SOON card."
+  },
+  "boxing_in_webdemo": {
+    "default": false,
+    "desc": "Include boxing modules in the public web-demo build."
+  },
+  "iso_basis_scale": {
+    "default": false,
+    "desc": "Scale sprite4 draws from the declared source basis instead of opaque-width fit."
+  },
+  "webgl_floor": {
+    "default": true,
+    "desc": "Render the floor with the WebGL/three.js parallel renderer instead of Canvas-2D."
+  },
+  "webgl_plate_themes": {
+    "default": true,
+    "desc": "Render data-enabled static office plates behind WebGL agents; Manhattan is enabled and Tokyo is parked pending replacement art."
+  },
+  "npc_random_events": {
+    "default": false,
+    "desc": "Enable NPC random events (UFO abduction of a benched seat + activity arbitration)."
+  },
+  "agent_animation": {
+    "default": false,
+    "desc": "Real walk/run gait, 8-way facing, and smoking/drinking/eating animation for WebGL floor agents."
+  },
+  "agent_appearance": {
+    "default": true,
+    "desc": "Apply each browser's saved Agent Manager appearance choices to live floor avatars."
+  },
+  "agent_needs": {
+    "default": false,
+    "desc": "Enable session-only fictional agent vitals and needs-weighted safe idle behavior."
+  },
+  "naughty_mode": {
+    "default": false,
+    "desc": "Permit signed-in, age-attested accounts to activate live-only M2 naughty content."
+  },
+  "store_live": {
+    "default": true,
+    "desc": "Mount the live marketplace store panel (catalog + purchase over /api/customization)."
+  },
+  "npc_vignettes": {
+    "default": true,
+    "desc": "R4 kill-switch: show the live NPC vignette cast. Default ON since the founder ruling of 2026-09-01; set false to hide the cast."
+  },
+  "npc_story_mode": {
+    "default": false,
+    "desc": "Encounters story-state layer: fiction outcomes write per-agent story-state (simulated only)."
+  },
+  "agent_influence": {
+    "default": false,
+    "desc": "Enable bounded, reversible fictional office consequences from vignette and encounter outcomes."
+  },
+  "collector_mechanical_status": {
+    "default": false,
+    "desc": "Derive seat STATUS from observed session activity instead of the self-reported OUTBOX block."
+  },
+  "officefloor_service": {
+    "default": false,
+    "desc": "Wire the shared officefloor.ai floor service into the product surface."
+  },
+  "hosted_sync": {
+    "default": false,
+    "desc": "Enable explicit hosted config sync for a credentialed local floor."
+  },
+  "public_room_creation": {
+    "default": false,
+    "desc": "Let a visitor mint a room from the door without the operator token (guardrailed: rate-limited, capped). Default-flip reverses founder-ruling-13 and is founder-gated."
+  }
+}

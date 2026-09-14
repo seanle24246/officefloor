@@ -1,0 +1,157 @@
+/* Projected room labels, 2D-style agent nameplates, and speech for the WebGL floor. */
+
+#office-webgl-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout style;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+#office-webgl-overlay[hidden] { display: none !important; }
+#office-webgl-overlay .office-webgl-room-label,
+#office-webgl-overlay .office-webgl-agent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+#office-webgl-overlay .office-webgl-room-label {
+  z-index: 0;
+  max-width: 180px;
+  padding: 3px 7px;
+  border: 1px solid rgba(232, 236, 245, .16);
+  border-radius: 3px;
+  color: rgba(232, 236, 245, .62);
+  background: rgba(8, 11, 19, .44);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .24);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: .7px;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#office-webgl-overlay .office-webgl-agent {
+  z-index: 1;
+  width: 0;
+  height: 0;
+}
+#office-webgl-overlay .office-webgl-agent-stack {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: max-content;
+  max-width: 160px;
+  transform: translateX(-50%);
+  transform-origin: 50% 100%;
+}
+#office-webgl-overlay .office-webgl-agent-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  max-width: 160px;
+  padding: 2px 5px 3px;
+  overflow: hidden;
+  pointer-events: auto;
+  border-radius: 3px;
+  color: #dfe6f2;
+  background: rgba(8, 11, 19, .78);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .28);
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 13px;
+  text-align: center;
+  white-space: nowrap;
+}
+#office-webgl-overlay .office-webgl-agent-label {
+  display: block;
+  min-width: 0;
+  max-width: 150px;
+}
+#office-webgl-overlay .office-webgl-agent-name {
+  display: block;
+  min-width: 0;
+  max-width: 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#office-webgl-overlay .office-webgl-agent-stack[hidden],
+#office-webgl-overlay .office-webgl-agent-state-icon[hidden],
+#office-webgl-overlay .office-webgl-agent-context[hidden],
+#office-webgl-overlay .office-webgl-agent-bubble[hidden] { display: none !important; }
+#office-webgl-overlay .office-webgl-agent[data-selected="true"] .office-webgl-agent-chip {
+  color: #ffd166;
+}
+#office-webgl-overlay .office-webgl-agent-state-icon {
+  display: block;
+  font-family: system-ui, "Apple Color Emoji", "Segoe UI Emoji";
+  font-size: 18px;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .6);
+}
+#office-webgl-overlay .office-webgl-agent-context { line-height: 0; }
+#office-webgl-overlay .office-webgl-agent-context[data-band="good"] { color: #56d98b; }
+#office-webgl-overlay .office-webgl-agent-context[data-band="warn"] { color: #ffb454; }
+#office-webgl-overlay .office-webgl-agent-context[data-band="bad"] { color: #ff6b6b; }
+#office-webgl-overlay .office-webgl-agent-context-gauge {
+  display: block;
+  width: 28px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, .55);
+}
+#office-webgl-overlay .office-webgl-agent-context-fill {
+  display: block;
+  height: 100%;
+  background: currentColor;
+}
+#office-webgl-overlay .office-webgl-agent-bubble {
+  position: absolute;
+  left: 0;
+  bottom: 25px;
+  width: max-content;
+  max-width: min(250px, calc(100vw - 24px));
+  transform: translateX(-50%);
+  padding: 6px 9px;
+  border: 1px solid rgba(20, 26, 42, .55);
+  border-radius: 7px;
+  color: #151a26;
+  background: rgba(246, 248, 253, .96);
+  box-shadow: 0 5px 16px rgba(0, 0, 0, .35);
+  font-size: 11px;
+  line-height: 14px;
+  text-align: center;
+}
+#office-webgl-overlay .office-webgl-agent-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+  transform: translateX(-50%) rotate(45deg);
+  border-right: 1px solid rgba(20, 26, 42, .38);
+  border-bottom: 1px solid rgba(20, 26, 42, .38);
+  background: rgba(246, 248, 253, .96);
+}
+#office-webgl-overlay .office-webgl-bubble-line {
+  display: block;
+  white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  #office-webgl-overlay * { will-change: auto; }
+}

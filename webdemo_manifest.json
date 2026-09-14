@@ -1,0 +1,44 @@
+{
+  "_comment": "Public web-demo profile consumed only by build_standalone.py. The live serve.py --demo path does not read this file.",
+  "manifest_exclusions": [
+    "office.boxing.js",
+    "office.boxing.card.js",
+    "office.boxing.wire.js",
+    "office.edit.mode.js",
+    "office.picker.js",
+    "cockpit.chat.js",
+    "store.panel.js"
+  ],
+  "neutered_scripts": [
+    "office.talk.js"
+  ],
+  "render_scripts": [
+    {
+      "name": "office.customization.catalog.js",
+      "side_effect": false
+    },
+    {
+      "name": "office.customization.renderers.js",
+      "side_effect": false
+    },
+    {
+      "name": "office.furnishings.js",
+      "side_effect": true
+    }
+  ],
+  "served_only_exclusions": [
+    "office.market.catalog.js",
+    "office.sku.schema.js",
+    "office.market.placement.js",
+    "office.customization.inventory.js",
+    "office.customization.placement.js",
+    "office.editmode.js",
+    "office.designs.panel.js",
+    "store.render.js",
+    "office.market.adapter.js",
+    "dispatch.board.js",
+    "office.dispatchboard.panel.js",
+    "costview.js",
+    "office.am.placement.wire.js"
+  ]
+}

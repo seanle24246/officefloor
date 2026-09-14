@@ -1,0 +1,52 @@
+# data/quips.txt — founder-authored floor lines. See NAUGHTY.md §2.
+#
+# One row = one possible 🎭 bubble. Edit freely; the floor hot-reloads on save.
+#
+#   format:  event | level | weight | line
+#     event  — a trigger the scheduler fires (NAUGHTY.md §3). Unknown = ignored.
+#     level  — clean   : may fire in any mode
+#              naughty : only fires under ?mode=naughty
+#     weight — relative pick odds within the same (event, allowed-level) set
+#     line   — the bubble text, rendered verbatim. No masking is applied.
+#
+# This seed is deliberately mild so the feature works on first run and so the
+# file is share-safe. It is a starting point, not a ceiling — overwrite any row.
+# Naughty-tagged rows are refused by build_standalone.py and never reach dist/.
+
+# --- raise: a seat returns from the corner office (MODES.md M2-h) ---
+raise    | clean   | 3 | 3%.
+raise    | clean   | 1 | they said "let's revisit in Q3."
+raise    | naughty | 2 | i asked for equity. i got a fucking gift card.
+raise    | naughty | 1 | cost-of-living adjustment. i live in a cost.
+
+# --- espresso: the fourth-espresso arc peaks (CHAOS.md X21) ---
+espresso | clean   | 2 | i can see the build graph. i can SEE it.
+espresso | naughty | 2 | i have done so much cold brew i can hear the linter
+espresso | naughty | 1 | what if the collector polled US
+
+# --- ctx_crit: a seat's context goes critical (never in the 🙋 🪫 group) ---
+ctx_crit | clean   | 2 | i don't feel so good
+ctx_crit | clean   | 1 | ...what was i saying
+
+# --- monday: the morning-after props are out (CHAOS.md X43/X53) ---
+monday   | clean   | 2 | i found a shoe in the fridge and it's mine
+monday   | naughty | 1 | do not ask me about the boardroom chair
+
+# --- lunch: a seat picks an off-duty route (STATS.md X47) ---
+lunch    | clean   | 1 | walking past the API desk. again. carrying a stapler.
+
+# --- scandal: the ticker crawls (MODES.md M2-e), anonymized, names no one ---
+scandal  | clean   | 2 | SOURCES SAY NOBODY ORDERED THE KARAOKE MACHINE
+scandal  | naughty | 2 | SOURCES SAY TWO SEATS SHARE A BRANCH AND A TOOTHBRUSH
+scandal  | naughty | 1 | SOURCES CANNOT AGREE AND HAVE STOPPED TRYING
+
+# --- pursuit: the closet bit's approach beat (NAUGHTY.md §4) ---
+pursuit  | naughty | 2 | does the CFO usually work this late? asking for a promotion.
+pursuit  | naughty | 1 | this is definitely about the sprint. definitely.
+
+# --- closet: the closet door is shut, sound leaks out (off-screen, always) ---
+closet   | naughty | 3 | *thmp — thmp — thmp*
+closet   | naughty | 1 | is that the mop —  don't.
+
+# --- mouth2: the MOUTH-2 seat, once per session, and it regrets it (CHAOS §25) ---
+mouth2   | naughty | 1 | oh — fuck. sorry. that's the last one.

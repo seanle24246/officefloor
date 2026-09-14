@@ -1,0 +1,82 @@
+{
+  "format": 1,
+  "model": "sam2.1-hiera-large",
+  "items": [
+    {
+      "item": "nyc-arcade-cabinet",
+      "plate": "CTO/office-render-engine-packets/manhattan-office-1610x977.png",
+      "prompts": [
+        {"type": "box", "coords": [205, 584, 275, 677]}
+      ],
+      "notes": "Isolated cabinet on the lower-left blue rug. Fallback: replace the box with positive points [235,615] and [237,648] if the rug bleeds."
+    },
+    {
+      "item": "nyc-server-rack",
+      "plate": "CTO/office-render-engine-packets/manhattan-office-1610x977.png",
+      "prompts": [
+        {"type": "point", "coords": [379, 520]},
+        {"type": "point", "coords": [379, 548]}
+      ],
+      "notes": "Points stay on the narrow black rack inside the glass meeting room. Fallback: use box [363,495,395,570] if the first mask omits its feet."
+    },
+    {
+      "item": "nyc-floor-plant",
+      "plate": "CTO/office-render-engine-packets/manhattan-office-1610x977.png",
+      "prompts": [
+        {"type": "box", "coords": [1132, 614, 1183, 704]}
+      ],
+      "notes": "Isolated floor plant and pot near the lower-right railing. Fallback: replace the box with positive points [1158,643] and [1158,680] if railing pixels bleed."
+    },
+    {
+      "item": "nyc-swivel-chair",
+      "plate": "CTO/office-render-engine-packets/manhattan-office-1610x977.png",
+      "prompts": [
+        {"type": "point", "coords": [304, 502]},
+        {"type": "point", "coords": [304, 531]}
+      ],
+      "notes": "Positive points select one partially occluded meeting-room chair without the table. Fallback: use box [287,474,326,550] if the base is incomplete."
+    },
+    {
+      "item": "nyc-standing-pedestal",
+      "plate": "CTO/office-render-engine-packets/manhattan-office-1610x977.png",
+      "prompts": [
+        {"type": "box", "coords": [558, 270, 615, 348]}
+      ],
+      "notes": "Trophy and its freestanding pedestal are isolated along the upper wall. Fallback: replace the box with positive points [586,292] and [586,324] if the floor is included."
+    },
+    {
+      "item": "tokyo-low-table",
+      "plate": "CTO/office-render-engine-packets/tokyo-office-1610x977.png",
+      "prompts": [
+        {"type": "box", "coords": [269, 685, 357, 766]}
+      ],
+      "notes": "Low glowing lounge table is isolated within the lower-left seating group. Fallback: replace the box with positive points [311,713] and [311,741] if the rug bleeds."
+    },
+    {
+      "item": "tokyo-standing-paper-lantern",
+      "plate": "CTO/office-render-engine-packets/tokyo-office-1610x977.png",
+      "prompts": [
+        {"type": "point", "coords": [637, 716]},
+        {"type": "point", "coords": [637, 746]}
+      ],
+      "notes": "Points cover the glowing head and dark stand of the isolated floor lantern. Fallback: use box [620,692,656,760] if the stem is omitted."
+    },
+    {
+      "item": "tokyo-potted-bamboo",
+      "plate": "CTO/office-render-engine-packets/tokyo-office-1610x977.png",
+      "prompts": [
+        {"type": "box", "coords": [596, 354, 638, 412]}
+      ],
+      "notes": "Compact upright plant beside the arcade row is visually isolated. Fallback: replace the box with positive points [617,374] and [617,398] if wall neon bleeds."
+    },
+    {
+      "item": "tokyo-stool",
+      "plate": "CTO/office-render-engine-packets/tokyo-office-1610x977.png",
+      "prompts": [
+        {"type": "point", "coords": [703, 595]},
+        {"type": "point", "coords": [703, 615]}
+      ],
+      "notes": "Points select the low stool between workstation clusters without nearby desks. Fallback: use box [681,578,729,633] if the legs are incomplete."
+    }
+  ]
+}

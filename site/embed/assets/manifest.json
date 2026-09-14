@@ -1,0 +1,73 @@
+{
+  "artifacts": [
+    {
+      "candidateSha256": "sha256:d0beb52a74ec5e16d7729c37f01030c7d624df1e0f7f78ea3f95d1d5187ea293",
+      "demoLabel": {
+        "height": 42,
+        "present": true,
+        "width": 128,
+        "x": 18,
+        "y": 840
+      },
+      "height": 900,
+      "kind": "still",
+      "name": "office-demo.png",
+      "policyReceipt": {
+        "ok": true,
+        "policyId": "rsm-share-policy-v1",
+        "rosterSha256": "sha256:4b11e0a7aa9e0f131ba677ee1e24f6cb443ddb560fbcf0fca29f701b47eb6c36",
+        "source": "DEMO_ROSTER"
+      },
+      "sha256": "sha256:284f3b96186c6c29277a8349fa19df5034d908fdde3b02c3173dfbc7ad02c4cf",
+      "width": 1440
+    },
+    {
+      "candidateSha256": "sha256:d0beb52a74ec5e16d7729c37f01030c7d624df1e0f7f78ea3f95d1d5187ea293",
+      "demoLabel": {
+        "height": 42,
+        "present": true,
+        "width": 128,
+        "x": 18,
+        "y": 615
+      },
+      "height": 675,
+      "kind": "still",
+      "name": "office-demo-poster.png",
+      "policyReceipt": {
+        "ok": true,
+        "policyId": "rsm-share-policy-v1",
+        "rosterSha256": "sha256:4b11e0a7aa9e0f131ba677ee1e24f6cb443ddb560fbcf0fca29f701b47eb6c36",
+        "source": "DEMO_ROSTER"
+      },
+      "sha256": "sha256:5bdebb2e05e1df1d4ae7535e74d9064dff2ac737a376f6a3e22bcc7b3f52c7b7",
+      "width": 1200
+    },
+    {
+      "candidateSha256": "sha256:86c7681c8287d151d8e557ce15c6a7b72e518544e4250937bca9ab270c822d03",
+      "demoLabel": {
+        "height": 42,
+        "present": true,
+        "width": 128,
+        "x": 18,
+        "y": 278
+      },
+      "height": 338,
+      "kind": "thumbnail",
+      "name": "office-demo-thumbnail.png",
+      "policyReceipt": {
+        "ok": true,
+        "policyId": "rsm-share-policy-v1",
+        "rosterSha256": "sha256:4b11e0a7aa9e0f131ba677ee1e24f6cb443ddb560fbcf0fca29f701b47eb6c36",
+        "source": "DEMO_ROSTER"
+      },
+      "sha256": "sha256:eb3e5d56dbab96067ef47b4b4cb54f5588f9d6f40def8135efbd85d32f3b2925",
+      "width": 600
+    }
+  ],
+  "bakeSha256": "sha256:9d7618a0265e473c4636d3a947a8b134765eaee8ec16ee2488eb299ed945a77d",
+  "policyId": "rsm-share-policy-v1",
+  "rosterId": "DEMO_ROSTER",
+  "rosterSha256": "sha256:4b11e0a7aa9e0f131ba677ee1e24f6cb443ddb560fbcf0fca29f701b47eb6c36",
+  "schemaVersion": 1,
+  "sourceKind": "demo"
+}

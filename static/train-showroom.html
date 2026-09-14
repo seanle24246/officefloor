@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Office — Agent Arrival Train</title>
+  <link rel="stylesheet" href="office.train.showroom.css">
+</head>
+<body>
+  <canvas id="showroom-stage" aria-label="Animated isometric WebGL agent arrival train"></canvas>
+  <header class="topbar">
+    <section class="title-card">
+      <div class="eyebrow">The Office · Transit Prototype 01</div>
+      <h1>Agent Arrival Service</h1>
+      <p class="subtitle">Modern electric unit · real rail geometry · sliding doors · five-agent drop-off loop</p>
+    </section>
+    <section class="meta-card" aria-label="Train status">
+      <div class="metric wide"><strong id="phase">Arriving</strong><span>service phase</span></div>
+      <div class="metric"><strong id="clock">00.0</strong><span>seconds</span></div>
+      <div class="metric"><strong>5</strong><span>agents</span></div>
+    </section>
+  </header>
+  <section class="controls" aria-label="Train animation controls">
+    <button id="play-toggle" type="button">Pause service</button>
+    <button id="restart" type="button">Replay arrival</button>
+    <span><i></i> OfficeLink M3 · Platform A</span>
+  </section>
+  <p class="hint">Drag to pan · scroll to zoom · train loops every 20 seconds</p>
+  <script type="module" src="office.train.showroom.js"></script>
+</body>
+</html>

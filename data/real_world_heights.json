@@ -1,0 +1,1075 @@
+{
+  "schema": 1,
+  "kind": "real_world_heights",
+  "generated_by": "RR-03 (CTO-authored data-of-record; deterministic generator)",
+  "mapping": {
+    "contract": "ISOMETRIC-OBJECT-RENDERING-CONTRACT.md#11",
+    "rule": "height_units = real_world_height_m (1:1); 1 tile = 1 m, heightUnitsPerMeter = 1, H = 32 px.",
+    "projected_vertical_px": "height_units * 32",
+    "decal_threshold_units": 0.1
+  },
+  "min_source_resolution_rule": {
+    "id": "RR-15",
+    "supersample_floor": 2,
+    "supersample_target": 3,
+    "dpr_cap": 2,
+    "onscreen_max_px_z1": "max((w+d)*32, (w+d)*16 + height_units*32)",
+    "min_source_px": "supersample_floor * dpr_cap * onscreen_max_px_z1  (= 4x logical)",
+    "rule": "A sprite4 frame's stored source dimension (max of w,h) must be >= min_source_px. Below it the sprite is under-sampled and aliases ('reads as misaligned').",
+    "note": "Floor enforced at zoom 1 / DPR 2. Viewing beyond ~1.5x zoom still softens; hero props may raise source or the max zoom may be capped. See RR-15 in the plan."
+  },
+  "category_envelopes": {
+    "Furniture": {
+      "min_units": 0.6,
+      "max_units": 2.05,
+      "note": "Coarse sanity envelope from member items +/- 0.15u tolerance; the per-item height_units is authoritative."
+    },
+    "Office amenities": {
+      "min_units": 0.35,
+      "max_units": 2.65,
+      "note": "Coarse sanity envelope includes floor-mounted lounge displays; the per-item height_units is authoritative."
+    },
+    "Equipment": {
+      "min_units": 0.4,
+      "max_units": 2.15,
+      "note": "Coarse sanity envelope from member items +/- 0.15u tolerance; the per-item height_units is authoritative."
+    },
+    "Cars": {
+      "min_units": 1.25,
+      "max_units": 3.35,
+      "note": "Coarse sanity envelope from member items +/- 0.15u tolerance; the per-item height_units is authoritative."
+    },
+    "Transit": {
+      "min_units": 0.2,
+      "max_units": 3.5,
+      "note": "Coarse sanity envelope covers rails, platforms, and rolling stock; the per-item height_units is authoritative."
+    },
+    "Outdoor": {
+      "min_units": 0.2,
+      "max_units": 3.0,
+      "note": "Coarse sanity envelope for outdoor placeables; the per-item height_units is authoritative."
+    }
+  },
+  "items": [
+    {
+      "sku_id": "sku-0100",
+      "name": "Executive desk",
+      "category": "Furniture",
+      "footprint": {
+        "w": 2,
+        "d": 2
+      },
+      "real_height_m": 0.75,
+      "height_units": 0.75,
+      "projected_height_px_z1": 24.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 128,
+      "min_source_px": 512,
+      "target_source_px": 768,
+      "provenance": "Standard office desk work-surface height 0.73-0.76 m (ANSI/BIFMA, common ergonomic desk-height spec)."
+    },
+    {
+      "sku_id": "sku-0108",
+      "name": "Task chair",
+      "category": "Furniture",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.1,
+      "height_units": 1.1,
+      "projected_height_px_z1": 35.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 67.2,
+      "min_source_px": 269,
+      "target_source_px": 403,
+      "provenance": "Office task chair overall height incl. backrest 1.0-1.35 m; typical ~1.1 m."
+    },
+    {
+      "sku_id": "sku-0101",
+      "name": "Standing desk",
+      "category": "Furniture",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.15,
+      "height_units": 1.15,
+      "projected_height_px_z1": 36.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Sit-stand desk in raised position 1.05-1.25 m; midpoint ~1.15 m."
+    },
+    {
+      "sku_id": "sku-0114",
+      "name": "Sofa",
+      "category": "Furniture",
+      "footprint": {
+        "w": 3,
+        "d": 1
+      },
+      "real_height_m": 0.85,
+      "height_units": 0.85,
+      "projected_height_px_z1": 27.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 128,
+      "min_source_px": 512,
+      "target_source_px": 768,
+      "provenance": "Three-seat sofa back height 0.80-0.90 m."
+    },
+    {
+      "sku_id": "sku-0700",
+      "name": "Outdoor bench",
+      "category": "Furniture",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 0.85,
+      "height_units": 0.85,
+      "projected_height_px_z1": 27.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Park bench with backrest 0.80-0.90 m."
+    },
+    {
+      "sku_id": "sku-8520",
+      "name": "Cobalt woven rug",
+      "category": "Furniture",
+      "footprint": {
+        "w": 2,
+        "d": 2
+      },
+      "real_height_m": 0.02,
+      "height_units": 0.02,
+      "projected_height_px_z1": 0.6,
+      "is_decal": true,
+      "onscreen_max_px_z1": 128,
+      "min_source_px": 512,
+      "target_source_px": 768,
+      "provenance": "Floor rug pile height ~0.01-0.03 m; treated as a ground decal (near-zero vertical extent)."
+    },
+    {
+      "sku_id": "sku-8540",
+      "name": "Floor lamp",
+      "category": "Furniture",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.6,
+      "height_units": 1.6,
+      "projected_height_px_z1": 51.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 83.2,
+      "min_source_px": 333,
+      "target_source_px": 499,
+      "provenance": "Standing floor lamp 1.5-1.8 m; typical ~1.6 m."
+    },
+    {
+      "sku_id": "sku-8570",
+      "name": "Bookshelf",
+      "category": "Furniture",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.9,
+      "height_units": 1.9,
+      "projected_height_px_z1": 60.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 108.8,
+      "min_source_px": 435,
+      "target_source_px": 653,
+      "provenance": "Five-shelf bookcase 1.8-2.0 m."
+    },
+    {
+      "sku_id": "sku-0106",
+      "name": "Reception desk",
+      "category": "Furniture",
+      "footprint": {
+        "w": 3,
+        "d": 1
+      },
+      "real_height_m": 1.1,
+      "height_units": 1.1,
+      "projected_height_px_z1": 35.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 128,
+      "min_source_px": 512,
+      "target_source_px": 768,
+      "provenance": "Reception transaction counter 1.05-1.15 m (raised front panel)."
+    },
+    {
+      "sku_id": "sku-0710",
+      "name": "Picnic table",
+      "category": "Furniture",
+      "footprint": {
+        "w": 2,
+        "d": 2
+      },
+      "real_height_m": 0.75,
+      "height_units": 0.75,
+      "projected_height_px_z1": 24.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 128,
+      "min_source_px": 512,
+      "target_source_px": 768,
+      "provenance": "Picnic table top 0.74-0.78 m."
+    },
+    {
+      "sku_id": "sku-0204",
+      "name": "Potted rubber tree",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.2,
+      "height_units": 1.2,
+      "projected_height_px_z1": 38.4,
+      "is_decal": false,
+      "onscreen_max_px_z1": 70.4,
+      "min_source_px": 282,
+      "target_source_px": 422,
+      "provenance": "Indoor potted rubber plant 1.0-1.5 m; typical ~1.2 m."
+    },
+    {
+      "sku_id": "sku-0207",
+      "name": "Snake plant",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 0.8,
+      "height_units": 0.8,
+      "projected_height_px_z1": 25.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 64,
+      "min_source_px": 256,
+      "target_source_px": 384,
+      "provenance": "Potted snake plant (Sansevieria) 0.6-1.0 m."
+    },
+    {
+      "sku_id": "sku-0501",
+      "name": "Water cooler",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.05,
+      "height_units": 1.05,
+      "projected_height_px_z1": 33.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 65.6,
+      "min_source_px": 262,
+      "target_source_px": 394,
+      "provenance": "Bottled water dispenser 1.0-1.1 m."
+    },
+    {
+      "sku_id": "sku-0527",
+      "name": "Soda machine",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.8,
+      "height_units": 1.8,
+      "projected_height_px_z1": 57.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 89.6,
+      "min_source_px": 358,
+      "target_source_px": 538,
+      "provenance": "Beverage vending machine 1.7-1.9 m."
+    },
+    {
+      "sku_id": "sku-0503",
+      "name": "Mini fridge",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 0.85,
+      "height_units": 0.85,
+      "projected_height_px_z1": 27.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 64,
+      "min_source_px": 256,
+      "target_source_px": 384,
+      "provenance": "Compact/under-counter refrigerator 0.8-0.9 m."
+    },
+    {
+      "sku_id": "sku-0529",
+      "name": "Recycling bin",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 0.7,
+      "height_units": 0.7,
+      "projected_height_px_z1": 22.4,
+      "is_decal": false,
+      "onscreen_max_px_z1": 64,
+      "min_source_px": 256,
+      "target_source_px": 384,
+      "provenance": "Office recycling/waste bin 0.6-0.9 m."
+    },
+    {
+      "sku_id": "sku-0600",
+      "name": "Arcade cabinet",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.75,
+      "height_units": 1.75,
+      "projected_height_px_z1": 56.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 104.0,
+      "min_source_px": 416,
+      "target_source_px": 624,
+      "provenance": "Upright arcade cabinet 1.7-1.8 m."
+    },
+    {
+      "sku_id": "sku-0770",
+      "name": "Campus mailbox",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.1,
+      "height_units": 1.1,
+      "projected_height_px_z1": 35.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 67.2,
+      "min_source_px": 269,
+      "target_source_px": 403,
+      "provenance": "Standalone pillar/post mailbox 1.0-1.4 m; typical ~1.1 m."
+    },
+    {
+      "sku_id": "sku-0609",
+      "name": "Pinball machine",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.9,
+      "height_units": 1.9,
+      "projected_height_px_z1": 60.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 92.8,
+      "min_source_px": 371,
+      "target_source_px": 557,
+      "provenance": "Pinball machine incl. backbox 1.85-1.95 m."
+    },
+    {
+      "sku_id": "sku-0500",
+      "name": "Espresso machine",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 0.55,
+      "height_units": 0.55,
+      "projected_height_px_z1": 17.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Prosumer/commercial espresso machine 0.4-0.6 m."
+    },
+    {
+      "sku_id": "sku-0613",
+      "name": "Jukebox",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.5,
+      "height_units": 1.5,
+      "projected_height_px_z1": 48.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 80.0,
+      "min_source_px": 320,
+      "target_source_px": 480,
+      "provenance": "Classic jukebox 1.4-1.6 m."
+    },
+    {
+      "sku_id": "sku-0622",
+      "name": "Exercise bike",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.2,
+      "height_units": 1.2,
+      "projected_height_px_z1": 38.4,
+      "is_decal": false,
+      "onscreen_max_px_z1": 70.4,
+      "min_source_px": 282,
+      "target_source_px": 422,
+      "provenance": "Upright exercise bike 1.1-1.4 m."
+    },
+    {
+      "sku_id": "sku-0623",
+      "name": "Treadmill",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.4,
+      "height_units": 1.4,
+      "projected_height_px_z1": 44.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Treadmill with console/handrails 1.3-1.5 m."
+    },
+    {
+      "sku_id": "sku-0624",
+      "name": "Dance arcade",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 2.1,
+      "height_units": 2.1,
+      "projected_height_px_z1": 67.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 115.2,
+      "min_source_px": 461,
+      "target_source_px": 691,
+      "provenance": "Dance/rhythm arcade cabinet with overhead arch 2.0-2.3 m."
+    },
+    {
+      "sku_id": "sku-0625",
+      "name": "Retro console",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 0.55,
+      "height_units": 0.55,
+      "projected_height_px_z1": 17.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 64,
+      "min_source_px": 256,
+      "target_source_px": 384,
+      "provenance": "Low retro TV/console cabinet 0.4-0.6 m."
+    },
+    {
+      "sku_id": "sku-0502",
+      "name": "Snack cart",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.0,
+      "height_units": 1.0,
+      "projected_height_px_z1": 32.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Service/snack cart 0.9-1.1 m."
+    },
+    {
+      "sku_id": "sku-0601",
+      "name": "Pool table",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 3,
+        "d": 2
+      },
+      "real_height_m": 0.8,
+      "height_units": 0.8,
+      "projected_height_px_z1": 25.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 160,
+      "min_source_px": 640,
+      "target_source_px": 960,
+      "provenance": "Billiard/pool table playing height 0.78-0.82 m."
+    },
+    {
+      "sku_id": "sku-0602",
+      "name": "Dartboard",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 0.5,
+      "height_units": 0.5,
+      "projected_height_px_z1": 16.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 64,
+      "min_source_px": 256,
+      "target_source_px": 384,
+      "provenance": "Dartboard face ~0.45 m diameter; as a freestanding prop ~0.5 m (wall-mounted variants sit higher on the wall, not on the floor)."
+    },
+    {
+      "sku_id": "sku-0603",
+      "name": "Foosball table",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 0.9,
+      "height_units": 0.9,
+      "projected_height_px_z1": 28.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Foosball/table-football cabinet 0.85-0.95 m."
+    },
+    {
+      "sku_id": "sku-0604",
+      "name": "Ping-pong table",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 3,
+        "d": 2
+      },
+      "real_height_m": 0.76,
+      "height_units": 0.76,
+      "projected_height_px_z1": 24.3,
+      "is_decal": false,
+      "onscreen_max_px_z1": 160,
+      "min_source_px": 640,
+      "target_source_px": 960,
+      "provenance": "Regulation table-tennis table 0.76 m (ITTF)."
+    },
+    {
+      "sku_id": "sku-0605",
+      "name": "Beanbag nook",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 2
+      },
+      "real_height_m": 0.55,
+      "height_units": 0.55,
+      "projected_height_px_z1": 17.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 128,
+      "min_source_px": 512,
+      "target_source_px": 768,
+      "provenance": "Beanbag lounge chair 0.5-0.7 m."
+    },
+    {
+      "sku_id": "sku-0400",
+      "name": "Computer setup",
+      "category": "Equipment",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 0.55,
+      "height_units": 0.55,
+      "projected_height_px_z1": 17.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Desktop monitor + tower on a surface; visible stack ~0.5-0.6 m."
+    },
+    {
+      "sku_id": "sku-0412",
+      "name": "Printer",
+      "category": "Equipment",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.1,
+      "height_units": 1.1,
+      "projected_height_px_z1": 35.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Floor-standing multifunction copier/printer (MFP) 1.0-1.15 m — matches the 2x1 floor footprint; a desktop printer would be ~0.3-0.5 m. CANARY: even the tall MFP reading is ~1.1u = 35 px, far under the ~90 px it currently renders."
+    },
+    {
+      "sku_id": "sku-0419",
+      "name": "Mobile whiteboard",
+      "category": "Equipment",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.85,
+      "height_units": 1.85,
+      "projected_height_px_z1": 59.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 107.2,
+      "min_source_px": 429,
+      "target_source_px": 643,
+      "provenance": "Mobile whiteboard on rolling stand 1.8-1.9 m."
+    },
+    {
+      "sku_id": "sku-0790",
+      "name": "Utility generator",
+      "category": "Equipment",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 1.0,
+      "height_units": 1.0,
+      "projected_height_px_z1": 32.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 96,
+      "min_source_px": 384,
+      "target_source_px": 576,
+      "provenance": "Portable/standby generator 0.7-1.1 m."
+    },
+    {
+      "sku_id": "sku-0403",
+      "name": "Server rack",
+      "category": "Equipment",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 2.0,
+      "height_units": 2.0,
+      "projected_height_px_z1": 64.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 112.0,
+      "min_source_px": 448,
+      "target_source_px": 672,
+      "provenance": "Full-height 42U server rack ~2.0 m (1.8-2.1 m)."
+    },
+    {
+      "sku_id": "sku-0810",
+      "name": "Pickup",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 4
+      },
+      "real_height_m": 1.9,
+      "height_units": 1.9,
+      "projected_height_px_z1": 60.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 192,
+      "min_source_px": 768,
+      "target_source_px": 1152,
+      "provenance": "Full-size pickup truck 1.85-2.0 m."
+    },
+    {
+      "sku_id": "sku-0812",
+      "name": "SUV",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 4
+      },
+      "real_height_m": 1.8,
+      "height_units": 1.8,
+      "projected_height_px_z1": 57.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 192,
+      "min_source_px": 768,
+      "target_source_px": 1152,
+      "provenance": "Mid/full-size SUV 1.7-1.9 m."
+    },
+    {
+      "sku_id": "sku-0815",
+      "name": "Limousine",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 5
+      },
+      "real_height_m": 1.5,
+      "height_units": 1.5,
+      "projected_height_px_z1": 48.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 224,
+      "min_source_px": 896,
+      "target_source_px": 1344,
+      "provenance": "Stretch limousine ~1.5 m."
+    },
+    {
+      "sku_id": "sku-0823",
+      "name": "School bus",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 5
+      },
+      "real_height_m": 3.0,
+      "height_units": 3.0,
+      "projected_height_px_z1": 96.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 224,
+      "min_source_px": 896,
+      "target_source_px": 1344,
+      "provenance": "School bus 2.9-3.2 m."
+    },
+    {
+      "sku_id": "sku-0825",
+      "name": "Fire truck",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 4
+      },
+      "real_height_m": 3.2,
+      "height_units": 3.2,
+      "projected_height_px_z1": 102.4,
+      "is_decal": false,
+      "onscreen_max_px_z1": 198.4,
+      "min_source_px": 794,
+      "target_source_px": 1190,
+      "provenance": "Fire engine/pumper 3.0-3.3 m."
+    },
+    {
+      "sku_id": "sku-0826",
+      "name": "Tow truck",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 4
+      },
+      "real_height_m": 2.5,
+      "height_units": 2.5,
+      "projected_height_px_z1": 80.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 192,
+      "min_source_px": 768,
+      "target_source_px": 1152,
+      "provenance": "Medium-duty tow truck 2.4-2.8 m."
+    },
+    {
+      "sku_id": "sku-0829",
+      "name": "Camper",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 4
+      },
+      "real_height_m": 2.8,
+      "height_units": 2.8,
+      "projected_height_px_z1": 89.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 192,
+      "min_source_px": 768,
+      "target_source_px": 1152,
+      "provenance": "Class-C camper / camper van 2.6-3.2 m."
+    },
+    {
+      "sku_id": "sku-0806",
+      "name": "Convertible",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 3
+      },
+      "real_height_m": 1.4,
+      "height_units": 1.4,
+      "projected_height_px_z1": 44.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 160,
+      "min_source_px": 640,
+      "target_source_px": 960,
+      "provenance": "Convertible car 1.3-1.45 m."
+    },
+    {
+      "sku_id": "sku-0820",
+      "name": "Muscle car",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 3
+      },
+      "real_height_m": 1.4,
+      "height_units": 1.4,
+      "projected_height_px_z1": 44.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 160,
+      "min_source_px": 640,
+      "target_source_px": 960,
+      "provenance": "Muscle car 1.35-1.45 m."
+    },
+    {
+      "sku_id": "sku-0830",
+      "name": "Beetle",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 3
+      },
+      "real_height_m": 1.5,
+      "height_units": 1.5,
+      "projected_height_px_z1": 48.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 160,
+      "min_source_px": 640,
+      "target_source_px": 960,
+      "provenance": "VW Beetle-style compact 1.5 m."
+    },
+    {
+      "sku_id": "sku-0831",
+      "name": "Jeep",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 3
+      },
+      "real_height_m": 1.8,
+      "height_units": 1.8,
+      "projected_height_px_z1": 57.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 160,
+      "min_source_px": 640,
+      "target_source_px": 960,
+      "provenance": "Jeep-style off-roader 1.8-1.9 m."
+    },
+    {
+      "sku_id": "sku-0832",
+      "name": "Food truck",
+      "category": "Cars",
+      "footprint": {
+        "w": 2,
+        "d": 4
+      },
+      "real_height_m": 2.9,
+      "height_units": 2.9,
+      "projected_height_px_z1": 92.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 192,
+      "min_source_px": 768,
+      "target_source_px": 1152,
+      "provenance": "Food/box truck 2.8-3.2 m."
+    },
+    {
+      "sku_id": "sku-1300",
+      "name": "Bar counter",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 3,
+        "d": 1
+      },
+      "real_height_m": 1.68,
+      "height_units": 1.68,
+      "projected_height_px_z1": 53.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 128,
+      "min_source_px": 512,
+      "target_source_px": 768,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1301",
+      "name": "Back-bar display",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 3,
+        "d": 1
+      },
+      "real_height_m": 2.12,
+      "height_units": 2.12,
+      "projected_height_px_z1": 67.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 131.8,
+      "min_source_px": 528,
+      "target_source_px": 792,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1302",
+      "name": "Beer keg",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.25,
+      "height_units": 1.25,
+      "projected_height_px_z1": 40,
+      "is_decal": false,
+      "onscreen_max_px_z1": 72,
+      "min_source_px": 288,
+      "target_source_px": 432,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1303",
+      "name": "Draft tap tower",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 2,
+        "d": 1
+      },
+      "real_height_m": 2.21,
+      "height_units": 2.21,
+      "projected_height_px_z1": 70.7,
+      "is_decal": false,
+      "onscreen_max_px_z1": 118.7,
+      "min_source_px": 475,
+      "target_source_px": 713,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1304",
+      "name": "Bar stool",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.07,
+      "height_units": 1.07,
+      "projected_height_px_z1": 34.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 66.2,
+      "min_source_px": 265,
+      "target_source_px": 398,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1305",
+      "name": "Television",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 3,
+        "d": 1
+      },
+      "real_height_m": 2.6,
+      "height_units": 2.6,
+      "projected_height_px_z1": 83.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 147.2,
+      "min_source_px": 589,
+      "target_source_px": 884,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1306",
+      "name": "Toilet",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 1.4,
+      "height_units": 1.4,
+      "projected_height_px_z1": 44.8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 76.8,
+      "min_source_px": 308,
+      "target_source_px": 461,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1307",
+      "name": "Urinal",
+      "category": "Office amenities",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 2.25,
+      "height_units": 2.25,
+      "projected_height_px_z1": 72.0,
+      "is_decal": false,
+      "onscreen_max_px_z1": 104.0,
+      "min_source_px": 416,
+      "target_source_px": 624,
+      "provenance": "Production WebGL mesh bounds measured in canonical world units; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1600",
+      "name": "Modern train",
+      "category": "Transit",
+      "footprint": {
+        "w": 15,
+        "d": 3
+      },
+      "real_height_m": 3.35,
+      "height_units": 3.35,
+      "projected_height_px_z1": 107.2,
+      "is_decal": false,
+      "onscreen_max_px_z1": 576,
+      "min_source_px": 2304,
+      "target_source_px": 3456,
+      "provenance": "Production WebGL transit mesh declaration; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1601",
+      "name": "Rail segment",
+      "category": "Transit",
+      "footprint": {
+        "w": 10,
+        "d": 4
+      },
+      "real_height_m": 0.25,
+      "height_units": 0.25,
+      "projected_height_px_z1": 8,
+      "is_decal": false,
+      "onscreen_max_px_z1": 448,
+      "min_source_px": 1792,
+      "target_source_px": 2688,
+      "provenance": "Production WebGL transit mesh declaration; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1602",
+      "name": "Station platform",
+      "category": "Transit",
+      "footprint": {
+        "w": 18,
+        "d": 4
+      },
+      "real_height_m": 2.74,
+      "height_units": 2.74,
+      "projected_height_px_z1": 87.68,
+      "is_decal": false,
+      "onscreen_max_px_z1": 704,
+      "min_source_px": 2816,
+      "target_source_px": 4224,
+      "provenance": "Production WebGL transit mesh declaration; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    },
+    {
+      "sku_id": "sku-1650",
+      "name": "Grass tuft",
+      "category": "Outdoor",
+      "footprint": {
+        "w": 1,
+        "d": 1
+      },
+      "real_height_m": 0.55,
+      "height_units": 0.55,
+      "projected_height_px_z1": 17.6,
+      "is_decal": false,
+      "onscreen_max_px_z1": 64,
+      "min_source_px": 256,
+      "target_source_px": 384,
+      "provenance": "Production WebGL grass tuft mesh declaration; turf 0.08u plus the tallest 0.18u blade scaled 2.6x rounds to 0.55u; 1 unit = 1 metre and 32 projected vertical px at zoom 1."
+    }
+  ]
+}

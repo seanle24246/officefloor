@@ -1,0 +1,373 @@
+{
+  "format": 1,
+  "items": [
+    {
+      "dims": {
+        "h": 138,
+        "w": 119
+      },
+      "file": "nyc-arcade-cabinet.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "nyc-arcade-cabinet",
+      "label": "NYC arcade cabinet",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "overlay": "arcade-face",
+        "prop": "rack",
+        "renderer": "props.core.drawProp",
+        "scale": 1.45,
+        "time": 0
+      },
+      "rect": {
+        "h": 138,
+        "w": 119,
+        "x": 2,
+        "y": 21
+      },
+      "sha256": "4a8c6a6e9411fd772df62e4e7c0e28851a058ae8fe109b52397ee621e72953d9",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.props.office.js",
+        "static/office.sku.pack.rec.js",
+        "static/office.gfx.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 138,
+        "w": 119
+      },
+      "file": "nyc-server-rack.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "nyc-server-rack",
+      "label": "NYC server rack",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "prop": "rack",
+        "renderer": "props.core.drawProp",
+        "scale": 1.45,
+        "time": 0
+      },
+      "rect": {
+        "h": 138,
+        "w": 119,
+        "x": 2,
+        "y": 21
+      },
+      "sha256": "0c1a09779cb9db42f3bf64b1b7a43ee3c7a681131147b70a78bf4ed2b30e7a9f",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.props.office.js",
+        "static/office.sku.pack.tech.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 48,
+        "w": 42
+      },
+      "file": "nyc-floor-plant.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "nyc-floor-plant",
+      "label": "NYC floor plant",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "renderer": "furniture.drawPlant",
+        "scale": 1.45,
+        "x": 0,
+        "y": 0
+      },
+      "rect": {
+        "h": 48,
+        "w": 42,
+        "x": 59,
+        "y": 79
+      },
+      "sha256": "6412cf3e777ccc1f722e8efa4af3c326f64a3047a2db0a91e2cfd8fa2c1a4e23",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.furniture.js",
+        "static/office.sku.pack.greenery.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 81,
+        "w": 54
+      },
+      "file": "nyc-swivel-chair.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "nyc-swivel-chair",
+      "label": "NYC swivel chair",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "exec": true,
+        "overlay": "five-star-base",
+        "renderer": "furniture.drawChair",
+        "scale": 1.45
+      },
+      "rect": {
+        "h": 81,
+        "w": 54,
+        "x": 53,
+        "y": 65
+      },
+      "sha256": "8bf5c6317ba97f972b42e4f2221651717445a196123c9bd66422597f4efe0fc2",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.furniture.js",
+        "static/office.sku.pack.seating.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 76,
+        "w": 47
+      },
+      "file": "nyc-standing-pedestal.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "nyc-standing-pedestal",
+      "label": "NYC standing pedestal",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "overlay": "pedestal-top",
+        "prop": "dummy",
+        "renderer": "props.core.drawProp",
+        "scale": 1.45,
+        "time": 0
+      },
+      "rect": {
+        "h": 76,
+        "w": 47,
+        "x": 58,
+        "y": 46
+      },
+      "sha256": "0dafc5231826282091aa499a69cb7940fcfa4a70096edadab7023680c9b053fe",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.props.naruto.js",
+        "static/office.sku.pack.tech.js",
+        "static/office.gfx.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 75,
+        "w": 100
+      },
+      "file": "tokyo-low-table.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "tokyo-low-table",
+      "label": "Tokyo low table",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "prop": "table",
+        "renderer": "props.core.drawProp",
+        "scale": 1.45,
+        "time": 0,
+        "tint": "#9b6437"
+      },
+      "rect": {
+        "h": 75,
+        "w": 100,
+        "x": 30,
+        "y": 75
+      },
+      "sha256": "e146e25f4ad722809c60edc1475fe7a3d46ea9678127f9006d51da215214c8bf",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.props.office.js",
+        "static/office.furniture.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 98,
+        "w": 50
+      },
+      "file": "tokyo-standing-paper-lantern.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "tokyo-standing-paper-lantern",
+      "label": "Tokyo standing paper lantern",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "edge": "n",
+        "overlay": "floor-stand",
+        "prop": "lantern",
+        "renderer": "props.core.drawProp",
+        "scale": 1.45,
+        "time": 0
+      },
+      "rect": {
+        "h": 98,
+        "w": 50,
+        "x": 78,
+        "y": 29
+      },
+      "sha256": "8da59961ab8add74a517d1e337f2a3efccebad25e29cbd44b4bd3e38a1f40e9c",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.props.naruto.js",
+        "static/office.gfx.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 106,
+        "w": 57
+      },
+      "file": "tokyo-potted-bamboo.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "tokyo-potted-bamboo",
+      "label": "Tokyo potted bamboo",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "overlay": "bamboo-stems",
+        "renderer": "furniture.drawPlant",
+        "scale": 1.45,
+        "x": 0,
+        "y": 0
+      },
+      "rect": {
+        "h": 106,
+        "w": 57,
+        "x": 53,
+        "y": 21
+      },
+      "sha256": "08efd1b622885d1c63450fdec8246d9cbe4e291c4405820765ff04b6b9918af0",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.furniture.js",
+        "static/office.sku.pack.greenery.js",
+        "static/office.gfx.js"
+      ]
+    },
+    {
+      "dims": {
+        "h": 39,
+        "w": 46
+      },
+      "file": "tokyo-stool.png",
+      "footprint": {
+        "d": 1,
+        "w": 1
+      },
+      "id": "tokyo-stool",
+      "label": "Tokyo stool",
+      "params": {
+        "anchor": {
+          "x": 80,
+          "y": 100
+        },
+        "canvas": {
+          "h": 160,
+          "w": 160
+        },
+        "prop": "stool",
+        "renderer": "props.core.drawProp",
+        "scale": 1.45,
+        "time": 0
+      },
+      "rect": {
+        "h": 39,
+        "w": 46,
+        "x": 57,
+        "y": 84
+      },
+      "sha256": "c2afdd855aec77d2a7344d096a3054a1740e13911856e64afb3fffe4b2e2333a",
+      "source": "procedural-in-repo",
+      "sourceFiles": [
+        "static/office.props.naruto.js",
+        "static/office.sku.pack.seating.js"
+      ]
+    }
+  ],
+  "provenance": "procedural-in-repo",
+  "renderContract": {
+    "background": "transparent",
+    "deterministic": true,
+    "paddingPx": 3,
+    "time": 0
+  },
+  "track": "a-procedural"
+}

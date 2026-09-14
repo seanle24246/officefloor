@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Officefloor online, coming soon</title>
+<meta name="description" content="Officefloor's shared online floor is coming soon. Join the opening-invite waitlist.">
+<link rel="canonical" href="https://officefloor.ai/soon">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Office">
+<meta property="og:title" content="Officefloor online, coming soon">
+<meta property="og:description" content="One floor. Your whole org. Live, online. Coming soon.">
+<meta property="og:url" content="https://officefloor.ai/soon">
+<meta property="og:image" content="https://officefloor.ai/og.jpg">
+<meta property="og:image:alt" content="The Office demo floor: an isometric room of 22 synthetic agent seats">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Officefloor online, coming soon">
+<meta name="twitter:description" content="One floor. Your whole org. Live, online. Coming soon.">
+<meta name="twitter:image" content="https://officefloor.ai/og.jpg">
+<meta name="theme-color" content="#15140D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2315140D'/%3E%3Cpath d='M16 5 27 11.5 16 18 5 11.5Z M5 11.5v6L16 24l11-6.5v-6' fill='none' stroke='%23F2EFDA' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="site.css">
+<style>
+  .soon-invite { width: min(100%, 520px); }
+  .soon-invite-copy { margin: 0 0 12px; color: #D9D4BC; font-size: 16px; }
+  .soon-invite-form {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    padding: 5px;
+    border: 1px solid rgba(242, 239, 218, .28);
+    border-radius: 999px;
+    background: rgba(21, 20, 13, .22);
+  }
+  .soon-invite-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .soon-invite-input {
+    min-width: 0;
+    flex: 1;
+    padding: 10px 15px;
+    border: 0;
+    background: transparent;
+    color: var(--cream);
+    font: 15px var(--sans);
+  }
+  .soon-invite-input::placeholder { color: #AAA68D; }
+  .soon-invite-input:focus { outline: 0; }
+  .soon-invite-form:focus-within { outline: 2px solid var(--yellow); outline-offset: 3px; }
+  .soon-invite-submit { cursor: pointer; background: transparent; }
+  .soon-invite-submit:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+  @media (max-width: 560px) {
+    .soon-invite-form { align-items: stretch; flex-direction: column; border-radius: 18px; }
+    .soon-invite-input { min-height: 44px; }
+    .soon-invite-submit { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<nav aria-label="Primary">
+  <a class="wordmark" href="index.html">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><g fill="none" stroke="#F2EFDA" stroke-width="1.8" stroke-linejoin="round"><path d="M15 3 27 10 15 17 3 10Z"></path><path d="M15 9 21 12.5 15 16 9 12.5Z" fill="#F7D24A" stroke="none"></path><path d="M3 10v6l12 7 12-7v-6"></path></g></svg>
+    <span>officefloor</span>
+  </a>
+  <div class="navlinks" data-primary-navlinks></div>
+  <a class="pill" href="demo.html">Demo</a>
+</nav>
+
+<main>
+  <div class="stage-wrap" style="padding-top:40px">
+    <div class="stage night soon-stage">
+      <div class="stars" aria-hidden="true"></div>
+      <div class="soon-inner">
+        <h1>One floor. Your whole org.<br>Live, online.</h1>
+        <p class="sub" style="color:#D9D4BC;max-width:560px">Officefloor is going online for everyone in your real organization. When it opens, you’ll be able to see whose agents are doing what, the real work and the fun, live, from anywhere. Join the opening-invite waitlist.</p>
+        <div class="soon-invite">
+          <p class="soon-invite-copy">Be first to hear when the shared floor opens.</p>
+          <form class="soon-invite-form" action="mailto:hello@officefloor.ai?subject=Opening%20invite&amp;body=Opening%20invite%20email%3A%20" method="post" enctype="text/plain">
+            <label class="soon-invite-label" for="opening-invite-email">Email address</label>
+            <input class="soon-invite-input" id="opening-invite-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+            <button class="soon-label soon-invite-submit" type="submit">Get the opening invite</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="foot-grid">
+    <div><a class="wordmark" href="index.html"><svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true"><g fill="none" stroke="#F1EFDA" stroke-width="1.8" stroke-linejoin="round"><path d="M15 3 27 10 15 17 3 10Z"></path><path d="M15 9 21 12.5 15 16 9 12.5Z" fill="#F7D24A" stroke="none"></path><path d="M3 10v6l12 7 12-7v-6"></path></g></svg><span>officefloor</span></a><div class="tagline">EVERY PIXEL HAS A RECEIPT</div></div>
+    <div class="foot-col"><h2>Product</h2><a href="index.html#how">How it works</a><a href="index.html#receipt">The receipt</a><a href="index.html#afterhours">After hours</a><a href="fun.html">Fun</a></div>
+    <div class="foot-col"><h2>Pages</h2><a href="about.html">About</a><a href="soon.html">Coming soon</a></div>
+    <div class="foot-col"><h2>Company</h2><span>hello@officefloor.ai</span></div>
+  </div>
+  <div class="foot-base"><span>© 2026 OFFICEFLOOR</span><span>HELLO@OFFICEFLOOR.AI</span></div>
+</footer>
+<script defer src="nav.js"></script>
+<script>
+  const inviteForm = document.querySelector('.soon-invite-form');
+  inviteForm?.addEventListener('submit', (event) => {
+    if (!inviteForm.checkValidity()) return;
+    event.preventDefault();
+    const email = inviteForm.elements.email.value.trim();
+    window.location.href = `mailto:hello@officefloor.ai?subject=Opening%20invite&body=${encodeURIComponent(`Opening invite email: ${email}`)}`;
+  });
+</script>
+</body>
+</html>

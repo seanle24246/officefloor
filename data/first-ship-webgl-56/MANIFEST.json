@@ -1,0 +1,562 @@
+[
+  {
+    "sku": "sku-0830",
+    "name": "Beetle",
+    "category": "Cars",
+    "footprint": "2x3",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0830",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0829",
+    "name": "Camper",
+    "category": "Cars",
+    "footprint": "2x4",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0829",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0806",
+    "name": "Convertible",
+    "category": "Cars",
+    "footprint": "2x3",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0806",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0825",
+    "name": "Fire truck",
+    "category": "Cars",
+    "footprint": "2x4",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0825",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0832",
+    "name": "Food truck",
+    "category": "Cars",
+    "footprint": "2x4",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0832",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0831",
+    "name": "Jeep",
+    "category": "Cars",
+    "footprint": "2x3",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0831",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0815",
+    "name": "Limousine",
+    "category": "Cars",
+    "footprint": "2x5",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0815",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0820",
+    "name": "Muscle car",
+    "category": "Cars",
+    "footprint": "2x3",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0820",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0810",
+    "name": "Pickup",
+    "category": "Cars",
+    "footprint": "2x4",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0810",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0823",
+    "name": "School bus",
+    "category": "Cars",
+    "footprint": "2x5",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0823",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0812",
+    "name": "SUV",
+    "category": "Cars",
+    "footprint": "2x4",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0812",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0826",
+    "name": "Tow truck",
+    "category": "Cars",
+    "footprint": "2x4",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "cars",
+    "painter_ref": "webgl.sku-0826",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0400",
+    "name": "Computer setup",
+    "category": "Equipment",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "equipment",
+    "painter_ref": "webgl.sku-0400",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0419",
+    "name": "Mobile whiteboard",
+    "category": "Equipment",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "equipment",
+    "painter_ref": "webgl.sku-0419",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0412",
+    "name": "Printer",
+    "category": "Equipment",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "equipment",
+    "painter_ref": "webgl.sku-0412",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0403",
+    "name": "Server rack",
+    "category": "Equipment",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "equipment",
+    "painter_ref": "webgl.sku-0403",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0790",
+    "name": "Utility generator",
+    "category": "Equipment",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "equipment",
+    "painter_ref": "webgl.sku-0790",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-8570",
+    "name": "Bookshelf",
+    "category": "Furniture",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "shelving",
+    "painter_ref": "webgl.sku-8570",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-8520",
+    "name": "Cobalt woven rug",
+    "category": "Furniture",
+    "footprint": "2x2",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "fixtures",
+    "painter_ref": "webgl.sku-8520",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0100",
+    "name": "Executive desk",
+    "category": "Furniture",
+    "footprint": "2x2",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "desks",
+    "painter_ref": "webgl.sku-0100",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-8540",
+    "name": "Floor lamp",
+    "category": "Furniture",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "equipment",
+    "painter_ref": "webgl.sku-8540",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0700",
+    "name": "Outdoor bench",
+    "category": "Furniture",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "seating",
+    "painter_ref": "webgl.sku-0700",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0710",
+    "name": "Picnic table",
+    "category": "Furniture",
+    "footprint": "2x2",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "seating",
+    "painter_ref": "webgl.sku-0710",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0106",
+    "name": "Reception desk",
+    "category": "Furniture",
+    "footprint": "3x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "desks",
+    "painter_ref": "webgl.sku-0106",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0114",
+    "name": "Sofa",
+    "category": "Furniture",
+    "footprint": "3x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "seating",
+    "painter_ref": "webgl.sku-0114",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0101",
+    "name": "Standing desk",
+    "category": "Furniture",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "desks",
+    "painter_ref": "webgl.sku-0101",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0108",
+    "name": "Task chair",
+    "category": "Furniture",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "seating",
+    "painter_ref": "webgl.sku-0108",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0600",
+    "name": "Arcade cabinet",
+    "category": "Office amenities",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0600",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1301",
+    "name": "Back-bar display",
+    "category": "Office amenities",
+    "footprint": "3x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1301",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1300",
+    "name": "Bar counter",
+    "category": "Office amenities",
+    "footprint": "3x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1300",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1304",
+    "name": "Bar stool",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1304",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0605",
+    "name": "Beanbag nook",
+    "category": "Office amenities",
+    "footprint": "2x2",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "seating",
+    "painter_ref": "webgl.sku-0605",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1302",
+    "name": "Beer keg",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1302",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0770",
+    "name": "Campus mailbox",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "amenities",
+    "painter_ref": "webgl.sku-0770",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0624",
+    "name": "Dance arcade",
+    "category": "Office amenities",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0624",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0602",
+    "name": "Dartboard",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0602",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1303",
+    "name": "Draft tap tower",
+    "category": "Office amenities",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1303",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0500",
+    "name": "Espresso machine",
+    "category": "Office amenities",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "amenities",
+    "painter_ref": "webgl.sku-0500",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0622",
+    "name": "Exercise bike",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "fitness",
+    "painter_ref": "webgl.sku-0622",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0603",
+    "name": "Foosball table",
+    "category": "Office amenities",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0603",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0613",
+    "name": "Jukebox",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0613",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0503",
+    "name": "Mini fridge",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "amenities",
+    "painter_ref": "webgl.sku-0503",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0609",
+    "name": "Pinball machine",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0609",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0604",
+    "name": "Ping-pong table",
+    "category": "Office amenities",
+    "footprint": "3x2",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0604",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0601",
+    "name": "Pool table",
+    "category": "Office amenities",
+    "footprint": "3x2",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0601",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0204",
+    "name": "Potted rubber tree",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "plants",
+    "painter_ref": "webgl.sku-0204",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0529",
+    "name": "Recycling bin",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "amenities",
+    "painter_ref": "webgl.sku-0529",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0625",
+    "name": "Retro console",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "games",
+    "painter_ref": "webgl.sku-0625",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0502",
+    "name": "Snack cart",
+    "category": "Office amenities",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "amenities",
+    "painter_ref": "webgl.sku-0502",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0207",
+    "name": "Snake plant",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "plants",
+    "painter_ref": "webgl.sku-0207",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0527",
+    "name": "Soda machine",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "amenities",
+    "painter_ref": "webgl.sku-0527",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1305",
+    "name": "Television",
+    "category": "Office amenities",
+    "footprint": "3x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1305",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1306",
+    "name": "Toilet",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1306",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0623",
+    "name": "Treadmill",
+    "category": "Office amenities",
+    "footprint": "2x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "fitness",
+    "painter_ref": "webgl.sku-0623",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-1307",
+    "name": "Urinal",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "lounge",
+    "painter_ref": "webgl.sku-1307",
+    "png_frames": 0
+  },
+  {
+    "sku": "sku-0501",
+    "name": "Water cooler",
+    "category": "Office amenities",
+    "footprint": "1x1",
+    "renderer": "WebGL procedural mesh",
+    "mesh_family": "amenities",
+    "painter_ref": "webgl.sku-0501",
+    "png_frames": 0
+  }
+]

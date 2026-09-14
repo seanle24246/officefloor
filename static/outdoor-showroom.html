@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Office — Outdoor WebGL Showroom</title>
+  <link rel="stylesheet" href="office.outdoor.showroom.css">
+</head>
+<body>
+  <canvas id="showroom-stage" aria-label="Isometric WebGL outdoor asset showroom"></canvas>
+  <header class="topbar">
+    <section class="title-card">
+      <div class="eyebrow">The Office · WebGL Doctrine</div>
+      <h1>Outside World Showroom</h1>
+      <p class="subtitle">Procedural meshes · locked 2:1 dimetric camera · live palette materials</p>
+    </section>
+    <section class="meta-card" aria-label="Showroom counts">
+      <div class="metric"><strong id="visible-count">0</strong><span>visible</span></div>
+      <div class="metric"><strong id="total-count">0</strong><span>total</span></div>
+      <div class="metric"><strong>0</strong><span>textures</span></div>
+    </section>
+  </header>
+  <div id="labels" aria-hidden="true"></div>
+  <nav id="filters" class="filters" aria-label="Showroom category filters"></nav>
+  <p class="hint">Drag to pan · scroll to zoom · 2:1 projection remains locked</p>
+  <script type="module" src="office.outdoor.showroom.js"></script>
+</body>
+</html>

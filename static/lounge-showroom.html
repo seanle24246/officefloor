@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Office — Lounge Bar WebGL Showroom</title>
+  <link rel="stylesheet" href="office.lounge.showroom.css">
+</head>
+<body>
+  <canvas id="showroom-stage" aria-label="Isometric WebGL office lounge and bar asset showroom"></canvas>
+  <header class="topbar">
+    <section class="title-card">
+      <div class="eyebrow">The Office · Placeable Collection 01</div>
+      <h1>After Hours Lounge</h1>
+      <p class="subtitle">10 procedural placeables · bar core, games, seating, and screens · locked 2:1 projection</p>
+    </section>
+    <section class="meta-card" aria-label="Showroom counts">
+      <div class="metric"><strong id="visible-count">0</strong><span>visible</span></div>
+      <div class="metric"><strong id="total-count">0</strong><span>total</span></div>
+      <div class="metric"><strong>0</strong><span>textures</span></div>
+    </section>
+  </header>
+  <div id="labels" aria-hidden="true"></div>
+  <nav id="filters" class="filters" aria-label="Showroom category filters"></nav>
+  <p class="hint">Drag to pan · scroll to zoom · append ?item=beer-keg for a close-up</p>
+  <script type="module" src="office.lounge.showroom.js"></script>
+</body>
+</html>

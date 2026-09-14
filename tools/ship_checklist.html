@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>officefloor — ship checklist</title>
+<style>
+  :root {
+    --ink: #101418;
+    --muted: #5b6672;
+    --line: #d8dee6;
+    --panel: #ffffff;
+    --ground: #eef1f5;
+    --on: #1c7a44;
+    --off: #8b95a1;
+    --warn: #a1421f;
+    --sign: #1b4f8f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--ground); color: var(--ink);
+    font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header {
+    position: sticky; top: 0; z-index: 5; background: var(--panel);
+    border-bottom: 1px solid var(--line); padding: 12px 20px;
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+  }
+  header h1 { font-size: 15px; margin: 0; letter-spacing: .01em; }
+  header h1 small { color: var(--muted); font-weight: 400; }
+  .counts { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); }
+  .counts b { color: var(--ink); font-variant-numeric: tabular-nums; }
+  .spacer { flex: 1 1 auto; }
+  label.field { display: flex; align-items: center; gap: 6px; color: var(--muted); }
+  select, input[type="text"] {
+    font: inherit; padding: 4px 7px; border: 1px solid var(--line);
+    border-radius: 5px; background: #fff; color: var(--ink);
+  }
+  input[type="text"] { width: 90px; }
+  button {
+    font: inherit; padding: 6px 13px; border: 1px solid var(--line);
+    border-radius: 5px; background: #fff; cursor: pointer;
+  }
+  button:hover { border-color: #9aa5b1; }
+  button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  button[disabled] { opacity: .45; cursor: not-allowed; }
+  main { padding: 18px 20px 40px; max-width: 1180px; }
+  section {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    margin-bottom: 16px; overflow: hidden;
+  }
+  section > h2 {
+    margin: 0; padding: 10px 16px; font-size: 13px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--line); background: #f7f9fb;
+  }
+  .row {
+    display: grid; grid-template-columns: 62px minmax(0,1fr) 128px 190px;
+    gap: 12px; align-items: start; padding: 11px 16px;
+    border-bottom: 1px solid #eef1f5;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row.blocked { background: #fbf7f4; }
+  .name { font-weight: 600; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .kind {
+    margin-left: 7px; font: 11px/1 ui-sans-serif, system-ui, sans-serif;
+    color: var(--muted); border: 1px solid var(--line); border-radius: 999px;
+    padding: 2px 7px; vertical-align: 1px; text-transform: uppercase;
+  }
+  .desc { color: #2b333b; margin-top: 2px; }
+  .cite {
+    color: var(--muted); font-size: 12px; margin-top: 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-word;
+  }
+  .why { color: var(--warn); font-size: 12px; margin-top: 3px; }
+  .default { color: var(--muted); font-size: 12px; }
+  .default b { color: var(--ink); }
+  .drift { color: var(--warn); font-weight: 600; }
+  .sign { font-size: 12px; color: var(--muted); }
+  .sign label { display: flex; gap: 6px; align-items: center; color: var(--sign); }
+  .sign .stamp { display: block; margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .toggle {
+    appearance: none; -webkit-appearance: none; width: 46px; height: 26px;
+    border-radius: 999px; background: #cfd6de; border: 1px solid #bdc6d0;
+    position: relative; cursor: pointer; transition: background .12s;
+  }
+  .toggle::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+    border-radius: 50%; background: #fff; transition: left .12s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.28);
+  }
+  .toggle:checked { background: var(--on); border-color: var(--on); }
+  .toggle:checked::after { left: 22px; }
+  .toggle:disabled { cursor: not-allowed; opacity: .5; }
+  .state { display: block; font-size: 11px; color: var(--off); margin-top: 3px;
+           text-transform: uppercase; letter-spacing: .06em; }
+  .state.is-on { color: var(--on); }
+  #console {
+    background: #10151b; color: #d7e0ea; border-radius: 8px; padding: 14px 16px;
+    font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+    white-space: pre-wrap; word-break: break-word; min-height: 90px;
+    max-height: 420px; overflow: auto;
+  }
+  #problems { margin: 0 0 16px; padding: 0; list-style: none; }
+  #problems li {
+    background: #fdf3ee; border: 1px solid #f0d6c8; border-left: 4px solid var(--warn);
+    color: #6d2c14; padding: 7px 12px; border-radius: 5px; margin-bottom: 6px;
+  }
+  #toast { color: var(--muted); }
+</style>
+
+<header>
+  <h1>officefloor ship checklist <small id="version"></small></h1>
+  <label class="field">target
+    <select id="target">
+      <option value="public">public wheel</option>
+      <option value="full-internal">full internal wheel</option>
+    </select>
+  </label>
+  <label class="field">signer
+    <input id="signer" type="text" maxlength="12" placeholder="initials">
+  </label>
+  <div class="counts">
+    <span><b id="count-on">0</b> on</span>
+    <span><b id="count-drift">0</b> off default</span>
+    <span><b id="count-unsigned">0</b> unsigned</span>
+  </div>
+  <div class="spacer"></div>
+  <span id="toast"></span>
+  <button id="sign-all">Sign all ON</button>
+  <button id="save">Save manifest</button>
+  <button id="build" class="primary">Build wheel</button>
+</header>
+
+<main>
+  <ul id="problems"></ul>
+  <div id="rows"></div>
+  <h2 style="font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#5b6672">Build output</h2>
+  <pre id="console">Nothing built yet. Save the manifest, then press Build wheel.</pre>
+</main>
+
+<script src="/ship_checklist.js"></script>

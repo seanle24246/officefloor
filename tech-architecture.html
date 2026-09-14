@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Office — Technical Architecture of Record (#276)</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --fg:#1a2233; --muted:#5a6a85; --card:#ffffff; --line:#d5dbe6;
+    --accent:#2456c4; --warn:#a04a00; --dead:#b3261e; --ok:#1d6b3a;
+    --code-bg:#eef1f6; --box:#e8eefb; --box2:#eef7ee; --box3:#fdf1e2;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#12161f; --fg:#e4e9f2; --muted:#93a1b8; --card:#1a2130; --line:#2d3850;
+      --accent:#7ea6ff; --warn:#ffb066; --dead:#ff8a80; --ok:#7fd49a;
+      --code-bg:#232c40; --box:#213052; --box2:#1f3a28; --box3:#453017;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font:16px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  main{max-width:960px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:1.6rem;margin:.2em 0 .1em}
+  h2{font-size:1.25rem;margin:2.2em 0 .5em;padding-top:.6em;border-top:1px solid var(--line)}
+  h3{font-size:1.05rem;margin:1.4em 0 .4em}
+  p,li{max-width:78ch}
+  .sub{color:var(--muted);margin:0 0 1.2em}
+  .doctrine{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);
+    padding:12px 16px;border-radius:6px;margin:1em 0}
+  code{background:var(--code-bg);padding:1px 5px;border-radius:4px;
+    font:0.88em ui-monospace,Menlo,Consolas,monospace}
+  table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.92rem}
+  th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+  th{background:var(--code-bg)}
+  .wrap{overflow-x:auto;margin:1.2em 0;background:var(--card);
+    border:1px solid var(--line);border-radius:8px;padding:12px}
+  figure{margin:0}
+  figcaption{color:var(--muted);font-size:.85rem;padding:6px 4px 0}
+  .dead{color:var(--dead);font-weight:600}
+  .ok{color:var(--ok);font-weight:600}
+  .warn{color:var(--warn);font-weight:600}
+  nav{background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:10px 16px;margin:1.2em 0;font-size:.92rem}
+  nav a{color:var(--accent);text-decoration:none;margin-right:14px;white-space:nowrap}
+  svg{display:block;min-width:640px}
+  svg text{font:12px ui-monospace,Menlo,Consolas,monospace;fill:var(--fg)}
+  svg .t2{font-size:10.5px;fill:var(--muted)}
+  svg .box{fill:var(--box);stroke:var(--accent);stroke-width:1.2;rx:6}
+  svg .box2{fill:var(--box2);stroke:var(--ok);stroke-width:1.2}
+  svg .box3{fill:var(--box3);stroke:var(--warn);stroke-width:1.2}
+  svg .ghost{fill:none;stroke:var(--dead);stroke-width:1.2;stroke-dasharray:5 4}
+  svg .lane{stroke:var(--line);stroke-width:1}
+  svg .arr{stroke:var(--fg);stroke-width:1.3;fill:none;marker-end:url(#a)}
+  svg .arrd{stroke:var(--dead);stroke-width:1.3;fill:none;stroke-dasharray:5 4;marker-end:url(#ad)}
+  svg .grp{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}
+</style>
+</head>
+<body>
+<main>
+<h1>The Office — Technical Architecture of Record</h1>
+<p class="sub">Robert California, CTO · 2026-08-06 · verified at tip <code>de6f92c</code>
+(#276, selftest 158/0) · offline companion of <code>TECH-ARCHITECTURE.md</code></p>
+
+<div class="doctrine"><strong>Document of record.</strong> Where this page contradicts
+<code>ARCHITECTURE.md</code>, <code>MODULES.md</code> or <code>SERVER-MODULES.md</code>,
+this page wins (§9). Every symbol and route here was grep-verified against #276 —
+none of the 30 stale cites cataloged by SOL-048 are inherited.</div>
+
+<nav>
+<a href="#s1">§1 Overview</a><a href="#s2">§2 Server</a><a href="#s3">§3 Client</a>
+<a href="#s4">§4 Data &amp; pipelines</a><a href="#s5">§5 In-flight</a>
+<a href="#s6">§6 Boundaries</a><a href="#s7">§7 Sequences</a>
+<a href="#s8">§8 Failure doctrine</a><a href="#s9">§9 Supersessions</a>
+</nav>
+
+<h2 id="s1">§1 — System overview</h2>
+<p>The Office is an <strong>isometric live floor view of an agent org</strong>: a
+stdlib-only Python server <em>collects</em> truth about real agent seats (folders,
+git, tmux, PRs) and <em>projects</em> it to a zero-dependency canvas client.
+Standing doctrine: the office invents nothing · one STATUS parser (floor never
+diverges from sweep) · stdlib only, no CDN, no build step · a finished seat
+outranks a live one · all writes through one spine (W0) · anything that cannot
+survive the bake is not done.</p>
+
+<div class="wrap"><figure>
+<svg viewBox="0 0 900 330" role="img" aria-label="System component diagram">
+<defs>
+<marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="context-stroke"/></marker>
+<marker id="ad" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="context-stroke"/></marker>
+</defs>
+<rect class="grp" x="8" y="20" width="170" height="290" rx="8"/><text x="18" y="38">Org roots (truth)</text>
+<rect class="box" x="20" y="52" width="146" height="40" rx="6"/><text x="30" y="70">seat folders</text><text class="t2" x="30" y="84">OUTBOX / INBOX / git</text>
+<rect class="box" x="20" y="104" width="146" height="30" rx="6"/><text x="30" y="123">tmux sessions</text>
+<rect class="box" x="20" y="146" width="146" height="30" rx="6"/><text x="30" y="165">gh PR facts</text>
+
+<rect class="grp" x="210" y="20" width="300" height="290" rx="8"/><text x="220" y="38">serve.py (entry) + server/ (19 modules)</text>
+<rect class="box" x="224" y="52" width="130" height="42" rx="6"/><text x="232" y="70">world.World</text><text class="t2" x="232" y="84">collector + cache</text>
+<rect class="box" x="368" y="52" width="128" height="42" rx="6"/><text x="376" y="70">building.py</text><text class="t2" x="376" y="84">floors (FL2)</text>
+<rect class="box" x="224" y="110" width="130" height="42" rx="6"/><text x="232" y="128">http.Handler</text><text class="t2" x="232" y="142">routes, host gate</text>
+<rect class="box" x="368" y="110" width="128" height="42" rx="6"/><text x="376" y="128">officestate.py</text><text class="t2" x="376" y="142">sole writer + choreo</text>
+<rect class="box3" x="224" y="168" width="130" height="42" rx="6"/><text x="232" y="186">actions + ledger</text><text class="t2" x="232" y="200">W0 spine (modules)</text>
+<rect class="box" x="368" y="168" width="128" height="42" rx="6"/><text x="376" y="186">cockpit/</text><text class="t2" x="376" y="200">writer·reader·seen</text>
+<rect class="box2" x="224" y="240" width="272" height="40" rx="6"/><text x="232" y="258">build_standalone.py</text><text class="t2" x="232" y="272">bake → offline artifact (read-only)</text>
+
+<rect class="grp" x="540" y="20" width="350" height="220" rx="8"/><text x="550" y="38">static/ — OFFICE registry (45 wired)</text>
+<rect class="box" x="554" y="52" width="150" height="42" rx="6"/><text x="562" y="70">office.boot.js</text><text class="t2" x="562" y="84">need / seal manifest</text>
+<rect class="box" x="718" y="52" width="158" height="42" rx="6"/><text x="726" y="70">scene graph + draw</text><text class="t2" x="726" y="84">frame loop (main.js)</text>
+<rect class="box" x="554" y="110" width="150" height="42" rx="6"/><text x="562" y="128">HUD · dock · panels</text><text class="t2" x="562" y="142">store.panel #276</text>
+<rect class="ghost" x="718" y="110" width="158" height="42" rx="6"/><text x="726" y="128" class="dead">boards + notify</text><text class="t2" x="726" y="142">DEAD-AT-TIP → WIRE-1</text>
+
+<path class="arr" d="M166,72 H224"/><path class="arr" d="M166,119 C196,119 200,73 224,73"/>
+<path class="arr" d="M166,161 C196,161 200,80 224,80"/>
+<path class="arr" d="M354,73 H368"/><path class="arr" d="M432,94 V110"/>
+<path class="arr" d="M368,131 H354"/><path class="arr" d="M432,168 C432,160 380,152 368,148"/>
+<path class="arrd" d="M289,168 V152"/>
+<path class="arr" d="M354,131 C480,131 500,73 554,73"/><text class="t2" x="470" y="112">/api/state JSON</text>
+<path class="arr" d="M704,73 H718"/><path class="arr" d="M629,94 V110"/>
+<path class="arr" d="M360,240 C360,228 300,215 289,210"/>
+</svg>
+<figcaption>Dashed red = present but unreachable at tip: W0 HTTP routes 404 (fail-closed);
+boards/notify modules exist, unwired (WIRE-1 pending).</figcaption>
+</figure></div>
+
+<h2 id="s2">§2 — Server architecture</h2>
+<h3>2.1 Entry: <code>serve.py</code> (263 lines — CLI, wiring, nothing else)</h3>
+<p>Post SM7/SM8 the monolith is gone. <code>serve.py</code> parses flags, resolves
+roots, builds the <code>Building</code>, starts <code>ThreadingHTTPServer</code> with
+<code>http.Handler</code>. Flags at #276: <code>--port --host --demo --poll --once
+--json --check --allow-actions --org --floor --floors --office-state</code>.
+Env: <code>$OFFICE_ALLREPOS</code> (root rung 1), <code>$OFFICE_FLOORS</code>,
+<code>OFFICE_ROSTER_ONLY=1</code> (process-wide; a floor with no manifest renders
+empty). <code>--floors N</code> requires <code>--demo</code>.</p>
+
+<h3>2.2 <code>server/</code> module map</h3>
+<table>
+<tr><th>Module</th><th>Owns</th></tr>
+<tr><td><code>world.py</code></td><td><code>World</code> — the collector. <code>collect()</code>
+orchestrates roster/git/tmux/PR refresh, live-vs-demo agents, bullpen layout, summary,
+diff (feed events). <code>state()</code> = lock-guarded snapshot cache, one filesystem
+pass per client poll (<code>max_age = poll × 0.75</code>).</td></tr>
+<tr><td><code>http.py</code></td><td><code>Handler</code>. GET: <code>/api/state</code>,
+<code>/api/sweep</code>, <code>/data/sku-map.json</code>, <code>/data/*</code>, static files
+(path-jailed to <code>roots.STATIC</code>; <code>assets/</code> cached 86400, else
+<code>no-store</code>). POST: exactly <code>/api/sweep</code>, <code>/api/attach</code>,
+<code>/api/settings/write-mode</code> — all else 404. <code>_reject_bad_host()</code> on
+every live route.</td></tr>
+<tr><td><code>building.py</code></td><td><code>FloorSpec/Floor/Building</code>,
+<code>slugify</code>, <code>parse_floor_specs</code>, <code>UnknownFloor</code>. Floors emit
+in <code>/api/state</code>; legacy mode emits <b>no</b> <code>building</code> key —
+byte-identity pin proven 0-diff (SOL-085).</td></tr>
+<tr><td><code>officestate.py</code></td><td><b>Sole writer</b> of the office-state file:
+strict <code>validate_office_state</code>, atomic write, choreo runtime (deterministic
+<code>_seeded_roll</code>). Post-fix invariant: <code>truth_suppressed = suppressed OR
+real_ask OR truth_changed</code> — any real signal kills fiction.</td></tr>
+<tr><td><code>actions.py</code> / <code>ledger.py</code></td><td>W0 verb registry
+(<code>Action</code>, <code>register</code>, <code>dispatch</code>, <code>canonical_json</code>,
+<code>preview_hash</code>) + append-only attribution ledger. One verb at tip:
+<code>cockpit-message</code> (<code>capability="comms"</code>). Import performs no effects.</td></tr>
+<tr><td><code>cockpit/</code></td><td><code>writer.py</code>, <code>reader.py</code>,
+<code>seen.py</code> — engine assembled, awaiting its HTTP route (§5).</td></tr>
+<tr><td><code>roots.py</code></td><td>Root resolution, 4 rungs; rung 1
+(<code>--org</code>/<code>$OFFICE_ALLREPOS</code>) canonical (<code>--allrepos</code> accepted as a hidden alias); 2–3 legacy-compat; 4 bare-clone.</td></tr>
+<tr><td><code>roster/lanes/states/procs/gitfacts</code></td><td>Roster manifest (+mtime),
+lane scan, the <b>single shared STATUS parser</b>, process/tmux liveness, git facts.</td></tr>
+<tr><td><code>attach.py</code></td><td>Terminal attach, floor-aware since #270.</td></tr>
+<tr><td><code>assets.py / props.py / floorplan.py / check.py</code></td><td>Manifest+licence
+helpers and deterministic credits (#224); server prop registry; floor layout truth;
+GEN-4 spool-file validator (#248).</td></tr>
+</table>
+
+<div class="wrap"><figure>
+<svg viewBox="0 0 900 250" role="img" aria-label="Server class diagram">
+<rect class="box" x="30" y="30" width="240" height="190" rx="6"/>
+<text x="42" y="50">class World</text>
+<line class="lane" x1="30" y1="58" x2="270" y2="58"/>
+<text class="t2" x="42" y="76">demo · poll · lock · snapshot · stamp</text>
+<line class="lane" x1="30" y1="84" x2="270" y2="84"/>
+<text class="t2" x="42" y="102">+ collect(shared_scans) → dict</text>
+<text class="t2" x="42" y="118">+ state(max_age, scan_provider)</text>
+<text class="t2" x="42" y="134">− _refresh_roster/_git/_tmux/_prs</text>
+<text class="t2" x="42" y="150">− _live_agents / _demo_agents</text>
+<text class="t2" x="42" y="166">− _seat_bullpen / _layout</text>
+<text class="t2" x="42" y="182">− _summary / _diff (feed events)</text>
+
+<rect class="box" x="340" y="30" width="210" height="120" rx="6"/>
+<text x="352" y="50">class Building</text>
+<line class="lane" x1="340" y1="58" x2="550" y2="58"/>
+<text class="t2" x="352" y="76">floors: list[Floor]</text>
+<text class="t2" x="352" y="92">+ resolve(slug) → Floor</text>
+<text class="t2" x="352" y="108">slugify · parse_floor_specs</text>
+<text class="t2" x="352" y="124">UnknownFloor (fail visible)</text>
+
+<rect class="box" x="620" y="30" width="240" height="140" rx="6"/>
+<text x="632" y="50">class Handler</text>
+<line class="lane" x1="620" y1="58" x2="860" y2="58"/>
+<text class="t2" x="632" y="76">+ do_GET()  + do_POST()</text>
+<text class="t2" x="632" y="92">− _reject_bad_host()</text>
+<text class="t2" x="632" y="108">− _actions_state()</text>
+<text class="t2" x="632" y="124">GET: state · sweep · data · static</text>
+<text class="t2" x="632" y="140">POST: sweep · attach · write-mode</text>
+
+<rect class="box" x="340" y="180" width="210" height="40" rx="6"/>
+<text x="352" y="198">class Floor</text><text class="t2" x="352" y="212">spec: FloorSpec · world: World</text>
+<path class="arr" d="M445,150 V180"/><text class="t2" x="452" y="170">1..N</text>
+<path class="arr" d="M340,200 C300,200 290,140 270,130"/><text class="t2" x="282" y="188">1 World per floor</text>
+<path class="arr" d="M620,90 H550"/><text class="t2" x="560" y="82">route→floor</text>
+</svg>
+<figcaption>The three real server classes. Isolation: one <code>World</code> per floor,
+no shared mutable caches; attach/wake resolve the requested building floor (#269/#270).</figcaption>
+</figure></div>
+
+<h2 id="s3">§3 — Client architecture</h2>
+<h3>3.1 The OFFICE module registry (<code>office.boot.js</code>)</h3>
+<p>Zero-framework module system: <code>OFFICE.module(name, deps, factory)</code>
+registers into <code>OFFICE._reg</code>; <code>need(path, by)</code> throws <em>by name</em>
+on unresolved deps (the structural answer to "a missing identifier kills the whole
+floor"); <code>seal()</code> closes registration after the manifest-count check. Load
+order = script-tag order in <code>static/index.html</code>; <code>office.main.js</code>
+owns the <code>requestAnimationFrame(frame)</code> loop.</p>
+
+<h3>3.2 Wired module graph at #276 (45 scripts, manifest order)</h3>
+<p><code>boot → resolve → settings.panel → theme → geom → gfx → states → actors →
+furniture → props.core/office/naruto/beach → claims → state → done.visuals →
+camera → pan → select → hud → avatar → plate(+vietnam/manhattan/debug) →
+scenery → scene → needs → feed → inspector → sweep → welcome → tooltips →
+elevator → ticker → cockpit.chat → <b>main</b> → talk → ctxactions → contextmenu →
+keyboard → follow → hovercard → store.panel → dock</code> (#275/#276).</p>
+
+<h3>3.3 Unwired at tip — honest status (13 files)</h3>
+<table>
+<tr><th>Class</th><th>Files</th><th>Status</th></tr>
+<tr><td class="dead">DEAD-AT-TIP → WIRE-1</td>
+<td><code>boards.js</code>, <code>notify.js/.ui/.badge/.strings</code>, <code>welcome.glossary.js</code></td>
+<td>Complete features referenced by nothing in the page (GATE-REC §6). WIRE-1 =
+minted sole-<code>index.html</code>-owner fix.</td></tr>
+<tr><td>Dual-consumed (QA/node)</td><td><code>sim.js</code>, <code>stats.js</code></td>
+<td>Consumed by qa harnesses/goldens; page wiring is a separate deliberate decision.</td></tr>
+<tr><td>Consumers pending</td><td><code>briefing.js</code>, <code>bouts.js</code>,
+<code>clock.js</code>, <code>economy.js</code>, <code>choreo.rooms.js</code></td>
+<td>Landed modules whose page integration belongs to queued packets. Not fictional —
+not yet reachable.</td></tr>
+</table>
+<p class="doctrine">Isolated probes green ≠ integrated (omar). Integration =
+page-manifest presence + route reachability — a standing audit class; this table
+is its baseline.</p>
+
+<h2 id="s4">§4 — Data contracts &amp; pipelines</h2>
+<h3>4.1 <code>/api/state</code></h3>
+<p><code>Handler → Building.resolve(floor) → World.state() → JSON</code>.
+Byte-identity doctrine: client PRs must not change the payload; legacy
+single-floor emits no <code>building</code> key (pin proven 0-diff). Feed events are
+produced server-side by <code>_diff()</code> — the client renders, never invents.
+<span class="warn">Known invariant break (SOL-013, open):</span> the #267 write-mode
+toggle surfaces capability state via <code>/api/state</code>; the fix rides with the
+W0 spine work.</p>
+
+<h3>4.2 Office-state + choreo</h3>
+<p><code>officestate.py</code> is the sole writer (atomic, strictly validated). The
+choreo engine runs truth-first: deterministic scheduling of validated fiction
+bits; any truth delta (suppression flag, real ask, state change) sets
+<code>truth_suppressed</code> and fiction yields. Nothing fictional goes live without
+per-type founder rulings + adversarial re-verification. The flagship first case is
+<b>SMOKE-1</b> (stale seat walks to the smoking apron — worked example of record in
+CHOREO.md §3.3b; end-to-end sequence in §7): truth-triggered, tame, cast 1, full
+suppression invariant.</p>
+
+<h3>4.3 W0 write spine — specified vs at-tip</h3>
+<p><b>Specified</b> (CONTRACTS §4, frozen): four conjunctive gates on every write —
+Host (loopback+allowlist) ∧ Origin (exact+header) ∧ Token (per-run
+<code>X-Office-Token</code>, constant-time) ∧ Capability (per-verb) — plus
+preview/commit bound by <code>preview_hash</code>, idempotent effects, ledger
+attribution before effect visibility.</p>
+<p><b>At #276</b> (SOL-013 route probes): the four W0 routes
+(<code>/api/action/preview</code>, <code>/api/action/commit</code>,
+<code>/api/capabilities</code>, <code>/api/ledger</code>) <span class="ok">return 404 —
+fail-closed</span>. <code>actions.py</code>/<code>ledger.py</code> are sound as modules;
+<code>cockpit-message</code> is registered but unreachable over HTTP. Gaps before any
+W0 route ships: no token mechanism in the tree; <code>--host</code> accepted without
+loopback refusal; runtime re-arm via same-origin + static header alone; direct
+<code>dispatch()</code> skips the capability check. <span class="warn">SOL-076 and COC-2
+stay blocked on exactly this list</span>; SOL-012 adds the stored attribute-XSS class
++ missing CSP as a HARD BLOCK.</p>
+
+<h3>4.4 Bake pipeline (<code>build_standalone.py</code>)</h3>
+<p><code>build()</code>: live snapshot minus <code>VOLATILE</code> keys →
+<code>script_manifest()</code> inlines every manifest script (the same manifest §3.1
+seals against) → <code>inline_plate_assets</code> (data-URIs) → one offline HTML
+artifact (1.76&nbsp;MB at #276, pins green). The bake carries the client, snapshot,
+assets, theme. It does not carry polling, actions, attach, or cockpit — a baked
+floor is read-only by construction. This page obeys the same rule so the bake can
+carry the architecture doc itself.</p>
+
+<h3>4.5 Asset pipeline</h3>
+<p><code>static/assets/</code> + MANIFEST with provenance classes (#211 scaffold,
+#251 Manhattan provenance + regenerated CREDITS #224; PNG intake #210 rejects
+non-PNG). Classes at tip: CC0-vetted (Kenney/Quaternius/OGA — licence archived +
+hash at fetch, zero spend) and org-authored. <b>Pending: the generated-art
+class</b> — no AI-generated asset promotes to production until that founder-ruled
+class lands (the Vietnam photoreal plate stays demo for exactly this reason).
+Avatar exception (2026-08-06): static rights-clean sprite <em>components</em>
+allowed; state/behavior stays procedural.</p>
+
+<h2 id="s5">§5 — In-flight architecture (stack-ranked build direction)</h2>
+<ol>
+<li><b>Cockpit round-trip.</b> Engine assembled (writer/reader/seen/verb/chat
+shell wired). Missing: COC-2 POST route — gated on §4.3 + CSP; then COC-3 poll.
+The shell already fetches both targets and 404s honestly. #1 MVP gap.</li>
+<li><b>Asset/placement:</b> theme capability <code>placementMode</code>,
+PlacementStore + occupancy (typed claims + compatibility matrix — never a boolean
+grid), placement commit via W0 (blocked on §4.3), inspector provenance,
+placements surviving the bake.</li>
+<li><b>Settings with real assets:</b> two Manhattans (authored showpiece locked;
+Editable Manhattan a separate registered theme), Vietnam kit, HQ/beach production
+scenes behind SET-PROD-CONTRACT.</li>
+<li><b>Marketplace UI:</b> store panel landed (#276); inventory/owned panel →
+purchase flow with provenance-tied listings; economy readers.</li>
+<li><b>Choreo:</b> staging gate (proposed→ruled→live), tame set first, social set
+behind go-live verifies.</li>
+<li><b>Avatar:</b> office-owned layered kit + one calibration character; variant
+preview + persistence.</li>
+<li><b>Dad-MVP</b> as the integration bar; plus WIRE-1 (§3.3) and the GEN Source
+seam (<code>OrgSource/DemoSource/DirSource</code> — once the collector reads through
+a Source, where the office sits stops being an architectural fact).</li>
+</ol>
+
+<h2 id="s6">§6 — Boundaries</h2>
+<table>
+<tr><th>Boundary</th><th>Rule</th></tr>
+<tr><td>Product vs ceo-infra</td><td>The product never reads <code>ceo/</code> (CH-e
+consumer split). CEO tooling consumes product contracts, never vice-versa.</td></tr>
+<tr><td>Org vs org</td><td>Read LickIt, never write, never dispatch. Posture is
+per-floor read-only unless actions are explicitly armed for that floor's own org.</td></tr>
+<tr><td>Live vs bake</td><td>Write surface, attach, cockpit exist only live; the
+bake is read-only by construction.</td></tr>
+<tr><td>HTTP trust</td><td>Loopback-default; host allowlist on every route; static
+serving path-jailed; writes = the four-gate W0 spine only (currently fail-closed 404).</td></tr>
+<tr><td>Seat silos</td><td>Lanes cannot read CEO context; comms are file-based;
+merging is CEO-only, enforced by hooks + push-disabled remotes.</td></tr>
+</table>
+
+<h2 id="s7">§7 — Load-bearing sequences</h2>
+<div class="wrap"><figure>
+<svg viewBox="0 0 900 300" role="img" aria-label="/api/state render sequence">
+<text x="60" y="24">Browser</text><line class="lane" x1="90" y1="32" x2="90" y2="290"/>
+<text x="240" y="24">http.Handler</text><line class="lane" x1="280" y1="32" x2="280" y2="290"/>
+<text x="440" y="24">Building</text><line class="lane" x1="470" y1="32" x2="470" y2="290"/>
+<text x="640" y="24">World (per floor)</text><line class="lane" x1="690" y1="32" x2="690" y2="290"/>
+<path class="arr" d="M90,60 H280"/><text class="t2" x="105" y="52">GET /api/state?floor=slug</text>
+<path class="arr" d="M280,90 H470"/><text class="t2" x="295" y="82">_reject_bad_host() → resolve(slug)</text>
+<path class="arr" d="M470,120 H690"/><text class="t2" x="485" y="112">state(max_age = poll × 0.75)</text>
+<rect class="box3" x="700" y="130" width="185" height="58" rx="6"/>
+<text class="t2" x="708" y="148">stale? → collect():</text>
+<text class="t2" x="708" y="162">roster·git·tmux·PRs → agents</text>
+<text class="t2" x="708" y="176">→ summary → diff (locked swap)</text>
+<path class="arr" d="M690,210 H470"/><text class="t2" x="485" y="202">snapshot (legacy: no building key)</text>
+<path class="arr" d="M470,240 H280"/><text class="t2" x="295" y="232">floor state</text>
+<path class="arr" d="M280,270 H90"/><text class="t2" x="105" y="262">JSON — byte-identical wrt client PRs</text>
+</svg>
+<figcaption>/api/state: one filesystem pass per client poll; render loop consumes, never invents.</figcaption>
+</figure></div>
+
+<div class="wrap"><figure>
+<svg viewBox="0 0 900 320" role="img" aria-label="W0 write path sequence (target)">
+<text x="40" y="24">Client (armed)</text><line class="lane" x1="90" y1="32" x2="90" y2="310"/>
+<text x="230" y="24">W0 routes (404 today)</text><line class="lane" x1="300" y1="32" x2="300" y2="310"/>
+<text x="500" y="24">actions.dispatch</text><line class="lane" x1="550" y1="32" x2="550" y2="310"/>
+<text x="720" y="24">ledger</text><line class="lane" x1="740" y1="32" x2="740" y2="310"/>
+<rect class="box3" x="110" y="40" width="380" height="26" rx="6"/>
+<text class="t2" x="120" y="57">gates: Host ∧ Origin ∧ Token ∧ Capability — conjunctive, frozen errors</text>
+<path class="arrd" d="M90,90 H300"/><text class="t2" x="105" y="82">POST /api/action/preview {verb,target,payload}</text>
+<path class="arr" d="M300,120 H550"/><text class="t2" x="315" y="112">validate + render</text>
+<path class="arrd" d="M300,150 H90"/><text class="t2" x="105" y="142">preview + preview_hash (canonical_json)</text>
+<path class="arrd" d="M90,180 H300"/><text class="t2" x="105" y="172">POST /api/action/commit {…, preview_hash}</text>
+<path class="arr" d="M300,210 H550"/><text class="t2" x="315" y="202">re-validate; hash must bind</text>
+<path class="arr" d="M550,240 H740"/><text class="t2" x="565" y="232">append attribution FIRST</text>
+<rect class="box2" x="560" y="252" width="240" height="26" rx="6"/>
+<text class="t2" x="570" y="269">idempotent effect (action_id dedup)</text>
+<path class="arrd" d="M300,300 H90"/><text class="t2" x="105" y="292">result | frozen error surface</text>
+</svg>
+<figcaption>W0 write path as specified (CONTRACTS §4). Dashed = the routes that
+404 today, fail-closed; solid = module behavior that already exists and is sound.</figcaption>
+</figure></div>
+
+<div class="wrap"><figure>
+<svg viewBox="0 0 900 330" role="img" aria-label="SMOKE-1 choreo sequence">
+<text x="20" y="24">classify() (truth)</text><line class="lane" x1="80" y1="32" x2="80" y2="320"/>
+<text x="230" y="24">_choreo_tick</text><line class="lane" x1="280" y1="32" x2="280" y2="320"/>
+<text x="450" y="24">officestate writer (sole)</text><line class="lane" x1="530" y1="32" x2="530" y2="320"/>
+<text x="720" y="24">Renderer (client)</text><line class="lane" x1="770" y1="32" x2="770" y2="320"/>
+<path class="arr" d="M80,58 H280"/><text class="t2" x="95" y="50">classification = stale (verbatim)</text>
+<rect class="box3" x="290" y="70" width="230" height="42" rx="6"/>
+<text class="t2" x="298" y="86">_seeded_roll — deterministic timing</text>
+<text class="t2" x="298" y="100">descriptor gate (NO status field)</text>
+<path class="arr" d="M280,130 H530"/><text class="t2" x="295" y="122">smoke_break {fiction:true, position{spot,at,path}, metadata{duration_s}}</text>
+<rect class="box" x="540" y="140" width="220" height="26" rx="6"/>
+<text class="t2" x="548" y="157">validate_office_state → atomic write</text>
+<path class="arr" d="M770,190 H530"/><text class="t2" x="560" y="182">read (fail-safe by absence)</text>
+<rect class="box2" x="640" y="200" width="248" height="26" rx="6"/>
+<text class="t2" x="648" y="217">play path → stand-spot; renders, never invents</text>
+<path class="arr" d="M80,250 H280"/><text class="t2" x="95" y="242">real signal: 🙋 / state change / busy</text>
+<path class="arr" d="M280,278 H530"/><text class="t2" x="295" y="270">truth_suppressed = suppressed ∨ real_ask ∨ truth_changed</text>
+<path class="arr" d="M530,306 H770"/><text class="t2" x="545" y="298">next read: smoke break GONE mid-frame — truth pre-empts fiction</text>
+</svg>
+<figcaption>SMOKE-1 — the flagship first fiction case (founder-ruled 2026-08-06):
+stale → schedule → write → render → real-signal suppression. Worked example of
+record: CHOREO.md §3.3b.</figcaption>
+</figure></div>
+
+<div class="wrap"><figure>
+<svg viewBox="0 0 900 210" role="img" aria-label="Cockpit round trip and bake flow">
+<text x="12" y="24">Cockpit round-trip (target)</text>
+<rect class="box" x="12" y="36" width="120" height="34" rx="6"/><text class="t2" x="20" y="57">cockpit.chat.js</text>
+<rect class="box3" x="162" y="36" width="130" height="34" rx="6"/><text class="t2" x="170" y="57">W0 commit (COC-2)</text>
+<rect class="box" x="322" y="36" width="120" height="34" rx="6"/><text class="t2" x="330" y="57">cockpit/writer</text>
+<rect class="box" x="472" y="36" width="150" height="34" rx="6"/><text class="t2" x="480" y="57">CEO-infra (CH-e)</text>
+<rect class="box" x="652" y="36" width="110" height="34" rx="6"/><text class="t2" x="660" y="57">cockpit/reader</text>
+<rect class="box" x="792" y="36" width="96" height="34" rx="6"/><text class="t2" x="800" y="57">seen.py</text>
+<path class="arrd" d="M132,53 H162"/><path class="arr" d="M292,53 H322"/><path class="arr" d="M442,53 H472"/>
+<path class="arr" d="M622,53 H652"/><path class="arr" d="M762,53 H792"/>
+<text class="t2" x="12" y="92">Today: shell wired, fetches /api/cockpit/message + /messages?since= — 404s honestly. Renderer is textContent-only (inert, verified).</text>
+
+<text x="12" y="128">Bake flow</text>
+<rect class="box" x="12" y="140" width="140" height="34" rx="6"/><text class="t2" x="20" y="161">live snapshot</text>
+<rect class="box" x="182" y="140" width="140" height="34" rx="6"/><text class="t2" x="190" y="161">− VOLATILE keys</text>
+<rect class="box" x="352" y="140" width="170" height="34" rx="6"/><text class="t2" x="360" y="161">script_manifest inline</text>
+<rect class="box" x="552" y="140" width="150" height="34" rx="6"/><text class="t2" x="560" y="161">plates → data-URIs</text>
+<rect class="box2" x="732" y="140" width="156" height="34" rx="6"/><text class="t2" x="740" y="161">offline HTML + pins</text>
+<path class="arr" d="M152,157 H182"/><path class="arr" d="M322,157 H352"/><path class="arr" d="M522,157 H552"/><path class="arr" d="M702,157 H732"/>
+</svg>
+<figcaption>Cockpit target flow (CEO-infra consumption sits outside the product boundary)
+and the bake pipeline.</figcaption>
+</figure></div>
+
+<h2 id="s8">§8 — Failure doctrine</h2>
+<ul>
+<li><b>Fail visibly:</b> <code>need()</code> throws by name at load; <code>UnknownFloor</code>
+raises; unknown prop/activity kinds are validation errors — never silent defaults.</li>
+<li><b>Fail closed:</b> unrouted writes 404; disarmed actions refuse; empty evidence
+is NO-EVIDENCE, not success.</li>
+<li><b>Selftest (158) gates every merge, but green ≠ floor works</b> — T4 browser
+smoke and the §3.3 integration audit class exist because collector tests cannot
+see a dead page.</li>
+</ul>
+
+<h2 id="s9">§9 — Supersessions (this document wins)</h2>
+<table>
+<tr><th>Old claim</th><th>Where</th><th>Superseded by</th></tr>
+<tr><td>"serve.py owns the entire server"</td><td>ARCHITECTURE.md:91</td>
+<td>§2.1–2.2 — 263-line entry + 19 server/ modules</td></tr>
+<tr><td>All <code>serve.py:NNN</code> line cites</td><td>SIGNALS.md (pinned to
+<code>452e154</code>), QA.md, CONTRACTS.md ownership rows</td>
+<td>§2.2 map; SOL-048-FIX rewrites the cites (30-row catalog)</td></tr>
+<tr><td>MODULES.md §2.1 spans; office.js plan</td><td>MODULES.md</td>
+<td>§3.2 — office.js retired; the 45-script manifest is truth</td></tr>
+<tr><td>SM7/SM8 as future work</td><td>SERVER-MODULES.md</td>
+<td>Landed: world.py #243, http.py #262</td></tr>
+<tr><td>"COO is the exception — he writes"</td><td>MASTERPLAN §5.3</td>
+<td>C-suite writes nothing (founder ruling 2026-08-03)</td></tr>
+<tr><td>Single-floor assumptions</td><td>various</td>
+<td>§2.2 building.py; §4.1 floors emission + legacy pin</td></tr>
+</table>
+
+<p class="sub">Verification: routes from server/http.py:124–230 · class surfaces from
+grep over server/*.py · wired manifest from the 45 <code>src=</code> entries in
+static/index.html · unwired set = ls static/*.js minus manifest (13) · W0 route
+absence per SOL-013 probes · suppression predicate officestate.py:351 · bake
+surfaces build_standalone.py:52–197. Tip <code>de6f92c</code>, selftest 158/0.</p>
+</main>
+</body>
+</html>

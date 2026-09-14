@@ -1,0 +1,476 @@
+/* office.hud.shell.css — HUD-01 shell geometry and navigation rail. */
+:root {
+  --office-hud-topbar-height: 48px;
+  --office-hud-rail-width: 58px;
+  --office-hud-surface-gap: 10px;
+  --office-hud-shell-bg: rgba(8, 12, 21, .94);
+  --office-hud-shell-border: rgba(140, 165, 210, .22);
+  /* One HUD ladder: floor < cards < utility panels < rail. */
+  --office-z-floor: 1;
+  --office-z-card: 20;
+  --office-z-modal-panel: 30;
+  --office-z-rail: 40;
+}
+
+#office-hud-shell {
+  position: fixed;
+  inset: 0;
+  z-index: var(--office-z-modal-panel);
+  display: grid;
+  grid-template-columns: var(--office-hud-rail-width) minmax(0, 1fr);
+  grid-template-rows: var(--office-hud-topbar-height) minmax(0, 1fr);
+  pointer-events: none;
+}
+
+/* Keep the original producer host and its ID. */
+#office-hud-shell > #topbar {
+  position: relative;
+  inset: auto;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  z-index: var(--office-z-rail);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-width: 0;
+  height: var(--office-hud-topbar-height);
+  padding: 6px 10px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--office-hud-shell-border);
+  background: linear-gradient(180deg, rgba(7, 10, 18, .98), rgba(7, 10, 18, .88));
+  pointer-events: auto;
+}
+
+#office-hud-shell > #topbar > .brand,
+#office-hud-shell > #topbar > #mode,
+#office-hud-shell > #topbar > #counters,
+#office-hud-shell > #topbar > .spacer {
+  flex: 0 0 auto;
+}
+
+/* Capability warnings can be much wider than the ordinary LIVE FLEET label.
+   Keep the full diagnostic in the producer-owned title while the visible chip
+   yields space to the clock and action controls. */
+#office-hud-shell > #topbar > #mode {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: min(220px, 24vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#office-hud-shell > #topbar > #counters {
+  flex: 1 1 auto;
+  min-width: 72px;
+  max-width: 520px;
+}
+
+#office-hud-shell > #topbar > .spacer {
+  flex: 1 1 auto;
+  min-width: 4px;
+}
+
+#office-hud-shell > #topbar > :is(#needsBtn, #sweep, .office-themes-open, .office-edit-open) {
+  flex: 0 0 auto;
+  min-height: 36px;
+}
+
+#office-hud-shell > #topbar > .office-themes-open {
+  letter-spacing: .06em;
+}
+
+#office-hud-shell > #topbar > #sweep[hidden] { display: none !important; }
+
+#office-hud-shell > #topbar .office-picker-toggle {
+  min-width: 26px;
+  min-height: 26px;
+  margin-left: 2px;
+  padding: 3px 6px;
+  color: var(--dim);
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: rgba(20, 26, 42, .82);
+  font: 600 8px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#office-hud-shell > #topbar .office-picker-toggle:hover,
+#office-hud-shell > #topbar .office-picker-toggle[aria-expanded="true"] {
+  color: var(--gold);
+  border-color: rgba(240, 201, 107, .55);
+}
+
+/* office clock pill — visible in the topbar, compact, pushed right */
+#office-hud-shell > #topbar > #officeHudClock {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  padding: 2px 10px;
+  letter-spacing: .2px;
+  white-space: nowrap;
+}
+
+#office-hud-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 7px;
+  color: var(--ink);
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+#office-hud-rail {
+  grid-column: 1;
+  grid-row: 2;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding: 7px 4px;
+  overflow: auto;
+  border-right: 1px solid var(--office-hud-shell-border);
+  background: var(--office-hud-shell-bg);
+  pointer-events: auto;
+  scrollbar-width: none;
+}
+
+#office-hud-rail::-webkit-scrollbar { display: none; }
+
+#office-hud-rail-primary,
+#office-hud-rail-utility {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+#office-hud-rail-utility { margin-top: auto; }
+
+.office-hud-rail-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 49px;
+  min-width: 49px;
+  min-height: 44px;
+  padding: 3px 2px;
+  color: #9aa9c0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.office-hud-rail-button:hover {
+  color: #c7d3e4;
+  background: rgba(120, 150, 200, .14);
+}
+
+.office-hud-rail-button.active {
+  color: #ffd166;
+  border-color: rgba(255, 209, 102, .52);
+  background: rgba(255, 209, 102, .09);
+}
+
+.office-hud-rail-icon {
+  flex: 0 0 auto;
+  font-size: 15px;
+  line-height: 1;
+}
+#office-hud-rail-primary .office-hud-rail-button {
+  gap: 1px;
+  padding-block: 1px;
+}
+#office-hud-rail-primary .office-hud-rail-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+}
+#office-hud-rail-primary .office-hud-rail-icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.office-hud-rail-label {
+  max-width: 45px;
+  overflow: hidden;
+  font-size: 8.5px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: .15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#office-hud-main {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  min-height: 0;
+  pointer-events: none;
+}
+
+#office-hud-contextual-drawer,
+#office-hud-utility-drawer {
+  position: fixed;
+  top: var(--office-hud-topbar-height);
+  bottom: 0;
+  z-index: var(--office-z-modal-panel);
+  width: min(360px, calc(100vw - var(--office-hud-rail-width) - 20px));
+  pointer-events: auto;
+}
+
+#office-hud-contextual-drawer { left: var(--office-hud-rail-width); }
+#office-hud-utility-drawer { right: 0; }
+
+#office-hud-contextual-drawer[hidden],
+#office-hud-utility-drawer[hidden],
+#office-hud-rail-backdrop[hidden],
+#office-hud-control-vault[hidden] {
+  display: none !important;
+}
+
+#office-hud-drawer-surface,
+#office-hud-utility-surface {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  border: 1px solid var(--office-hud-shell-border);
+  background: rgba(14, 18, 30, .97);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .38);
+  backdrop-filter: blur(10px);
+}
+
+#office-hud-drawer-surface { border-width: 0 1px 0 0; }
+#office-hud-utility-surface { border-width: 0 0 0 1px; }
+
+#office-hud-drawer-surface > #people {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  display: flex;
+  width: 100%;
+  max-height: none;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#office-hud-utility-surface > #settingsPanel {
+  position: relative;
+  inset: auto;
+  z-index: var(--office-z-modal-panel);
+  width: 100%;
+  max-height: none;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.office-hud-availability {
+  margin: 0;
+  padding: 18px;
+  color: var(--dim);
+  font-size: 11px;
+}
+
+#office-hud-control-vault,
+.office-hud-adopted-opener,
+.office-hud-pending-anchor { display: none !important; }
+
+/* Theme selection is a top-right peer of Edit Office. The compact Offices
+   entry remains attached to the brand and opens this same registry surface. */
+#office-picker {
+  top: calc(var(--office-hud-topbar-height) + 8px);
+  z-index: 41;
+  max-height: calc(100vh - var(--office-hud-topbar-height) - 16px);
+  overflow: auto;
+  pointer-events: auto;
+}
+
+.office-picker-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.office-picker-heading { margin-right: 42px; text-transform: uppercase; }
+
+.office-picker-about {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin-top: 12px;
+  padding-top: 9px;
+  color: var(--dim);
+  border-top: 1px solid var(--edge);
+  font-size: 9px;
+}
+
+.office-picker-about-title { color: var(--ink); }
+
+#office-picker :focus-visible {
+  outline: 2px solid rgba(160, 190, 240, .95);
+  outline-offset: 2px;
+}
+
+#office-hud-rail-backdrop {
+  position: fixed;
+  inset: var(--office-hud-topbar-height) 0 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, .44);
+  pointer-events: auto;
+}
+
+#office-hud-shell :is(button, select, input, [tabindex]):focus-visible {
+  outline: 2px solid rgba(160, 190, 240, .95);
+  outline-offset: 2px;
+}
+
+.office-tooltip { z-index: 19; }
+
+/* Keep producer-owned follow/recenter controls usable on compact HUDs. */
+body.office-dock-ready #topbar > #follow,
+body.office-dock-ready #topbar > #recenter {
+  cursor: pointer;
+}
+body.office-dock-ready #topbar > #follow:hover,
+body.office-dock-ready #topbar > #recenter:hover {
+  background: rgba(46, 58, 90, .95);
+  border-color: rgba(160, 190, 240, .4);
+}
+
+/* Offset the existing direct-body HUD without changing its owning stylesheet. */
+body > #people,
+body > #needs,
+body > #ticker,
+body > #ticker[data-office-dock] {
+  left: calc(var(--office-hud-rail-width) + 12px) !important;
+}
+
+body > #people,
+body > #needs,
+body > #inspector,
+body > #settingsPanel {
+  top: calc(var(--office-hud-topbar-height) + 10px) !important;
+}
+
+@media (max-width: 680px) {
+  :root {
+    --office-hud-topbar-height: 44px;
+    --office-hud-rail-width: 0px;
+  }
+
+  #office-hud-shell > #topbar {
+    display: flex;
+    gap: 5px;
+    padding: 0 6px;
+  }
+
+  #office-hud-nav-toggle { display: inline-flex; }
+  .office-hud-nav-toggle-label { font-size: 9px; }
+  #office-hud-shell > #topbar > .brand { min-width: 0; }
+  #office-hud-shell > #topbar > #mode,
+  #office-hud-shell > #topbar > .spacer { display: none; }
+  #office-hud-shell > #topbar > #counters {
+    min-width: 0;
+    max-width: none;
+  }
+  #office-hud-shell > #topbar > :is(#needsBtn, #sweep, .office-themes-open, .office-edit-open) {
+    min-width: 44px;
+    max-width: 96px;
+    padding-inline: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #office-hud-rail {
+    position: fixed;
+    top: var(--office-hud-topbar-height);
+    bottom: 0;
+    left: 0;
+    z-index: var(--office-z-rail);
+    width: min(272px, calc(100vw - 48px));
+    padding: 10px 8px;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-102%);
+    transition: transform .18s ease;
+    box-shadow: 12px 0 34px rgba(0, 0, 0, .46);
+  }
+
+  #office-hud-rail.mobile-open {
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .office-hud-rail-button {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 7px 11px;
+  }
+  .office-hud-rail-icon { width: 24px; text-align: center; }
+  .office-hud-rail-label { max-width: none; font-size: 11px; }
+
+  #office-hud-contextual-drawer,
+  #office-hud-utility-drawer {
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
+  #office-picker { left: 8px; right: 8px; width: auto; }
+}
+
+@media (max-width: 430px) {
+  #office-hud-nav-toggle { min-width: 40px; padding-inline: 4px; }
+  .office-hud-nav-toggle-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  #office-hud-shell > #topbar .brand-subtitle { display: none; }
+  #office-hud-shell > #topbar .brand-mark { font-size: 15px; }
+  #office-hud-shell > #topbar .brand-title { font-size: 11px; }
+  #office-hud-shell > #topbar .office-picker-toggle {
+    width: 27px;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0;
+  }
+  #office-hud-shell > #topbar .office-picker-toggle::before {
+    color: var(--dim);
+    content: '⌘';
+    font-size: 11px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #office-hud-rail,
+  #office-picker,
+  #office-hud-contextual-drawer,
+  #office-hud-utility-drawer {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

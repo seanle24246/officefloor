@@ -1,0 +1,6 @@
+.office-keyboard-row:focus {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  background: rgba(120,150,200,.16);
+}
+.office-keyboard-row:focus:not(:focus-visible) { outline: none; }

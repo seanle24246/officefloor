@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+dist-ship/
+dist-full/
+*.egg-info/
+.venv/
+.DS_Store
+*.log
+.officefloor-config/

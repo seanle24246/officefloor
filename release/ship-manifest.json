@@ -1,0 +1,292 @@
+{
+  "schema": "officefloor/ship-manifest@2",
+  "version": "0.2.2",
+  "target": "public",
+  "signed_by": "founder-approved 2026-09-04",
+  "signed_at": "2026-09-04T18:48:55-04:00",
+  "targets": {
+    "public": {
+      "flags": {
+        "cockpit_chat": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "store_coming_soon": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "boxing_in_webdemo": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "iso_basis_scale": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "webgl_floor": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "webgl_plate_themes": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "npc_random_events": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-09T10:00:00-04:00",
+          "note": "founder 2026-09-09: \"yes set npc random events off. we should still have vignettes just no ufo abduction rn.\" \u2014 SUPERSEDES the 2026-09-04 21:44 sign-off that turned this ON. npc_vignettes stays ON; only the random-event/UFO track is off."
+        },
+        "agent_animation": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "agent_appearance": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-10T21:43:57-04:00"
+        },
+        "agent_needs": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "naughty_mode": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "store_live": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "npc_vignettes": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "npc_story_mode": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "agent_influence": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "collector_mechanical_status": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "officefloor_service": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "hosted_sync": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "public_room_creation": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        }
+      },
+      "inclusions": {
+        "hosted_tree": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "sku_packs": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "sku_catalogs": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "premium_demo_plate": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "naughty_catalog": {
+          "on": false,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "agent_protocol_doc": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "credits_doc": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "mvp_manifest": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-09-04T18:48:55-04:00"
+        }
+      }
+    },
+    "full-internal": {
+      "flags": {
+        "cockpit_chat": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "store_coming_soon": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "boxing_in_webdemo": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "iso_basis_scale": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "webgl_floor": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "webgl_plate_themes": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "npc_random_events": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "agent_animation": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "agent_appearance": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "agent_needs": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "naughty_mode": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "store_live": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "npc_vignettes": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "npc_story_mode": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "agent_influence": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "collector_mechanical_status": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "officefloor_service": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        },
+        "hosted_sync": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "public_room_creation": {
+          "on": false,
+          "signed": false,
+          "signed_at": null
+        }
+      },
+      "inclusions": {
+        "hosted_tree": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "sku_packs": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "sku_catalogs": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "premium_demo_plate": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "naughty_catalog": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "agent_protocol_doc": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "credits_doc": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        },
+        "mvp_manifest": {
+          "on": true,
+          "signed": false,
+          "signed_at": null
+        }
+      }
+    }
+  }
+}

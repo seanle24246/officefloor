@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "office-collector"
+version = "0.1.0"
+description = "Observe your local agent session and push measured 12-key STATUS to an officefloor.ai floor. Metadata only - never message content."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+office-collector = "pusher.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["pusher*", "officefloor_vendor*"]
+
+[tool.officefloor]
+ship_modules = ["pusher", "server/lanesource.py", "server/roots.py", "server/engines_manifest.py", "server/feature_flags.py", "server/collector_source.py", "server/procs.py"]

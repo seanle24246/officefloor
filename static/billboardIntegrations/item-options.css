@@ -1,0 +1,47 @@
+.office-billboard-item-options {
+  display: grid;
+  gap: 7px;
+  width: 236px;
+}
+
+.office-billboard-item-options-label {
+  display: grid;
+  gap: 4px;
+  color: var(--dim, #9aa8bd);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+#office-webgl-edit-actions .office-billboard-item-options-input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 7px 8px;
+  border: 1px solid rgba(111, 137, 174, .52);
+  border-radius: 6px;
+  color: var(--ink, #edf3ff);
+  background: rgba(7, 11, 20, .96);
+  font: inherit;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+#office-webgl-edit-actions .office-billboard-item-options-input:focus {
+  outline: 2px solid var(--gold, #f0c96b);
+  outline-offset: 1px;
+}
+
+.office-billboard-item-options-help,
+.office-billboard-item-options-status {
+  color: var(--dim, #9aa8bd);
+  font-weight: 500;
+}
+
+.office-billboard-item-options-status:not(:empty) { color: #79dfa2; }
+
+.office-billboard-item-options-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.office-billboard-item-options-actions > button { flex: 1; }

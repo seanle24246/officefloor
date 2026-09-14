@@ -1,0 +1,1031 @@
+{
+  "agents": [
+    {
+      "alive": false,
+      "blocked": false,
+      "blockers": "",
+      "branch": "",
+      "commits_ahead": 0,
+      "ctx_age_min": null,
+      "ctx_pct": null,
+      "decision_needed": "",
+      "desk": {
+        "kind": "exec",
+        "room": "ceo",
+        "x": 3,
+        "y": 2
+      },
+      "dirty_files": 0,
+      "done": false,
+      "emoji": "👑",
+      "engine": "ceo",
+      "errand": "",
+      "frozen": false,
+      "harvest_exempt": false,
+      "home": {
+        "x": 3.4,
+        "y": 4.0
+      },
+      "lane": "ceo",
+      "last_output_age": null,
+      "liveness_known": true,
+      "look": {
+        "hair": "#4a2c1a",
+        "shirt": "#e8b93b",
+        "skin": "#5a3620"
+      },
+      "model": "claude-opus-5",
+      "name": "Prime",
+      "next": "",
+      "outbox_tail": [],
+      "owed_mins": "<volatile:age>",
+      "owes_reply": false,
+      "pid": "",
+      "present": true,
+      "ready_for_pr": false,
+      "role": "CEO — air traffic control",
+      "room": "ceo",
+      "state": "bench",
+      "station": {
+        "x": 3.4,
+        "y": 4.0
+      },
+      "status_mins": null,
+      "task": "",
+      "tmux_session": ""
+    },
+    {
+      "alive": true,
+      "blocked": true,
+      "blockers": "waiting on contract",
+      "branch": "claude/fixture-jack",
+      "commits_ahead": 0,
+      "ctx_age_min": "<volatile:age>",
+      "ctx_pct": 91,
+      "decision_needed": "DN-QA choose fixture",
+      "desk": {
+        "kind": "table",
+        "room": "csuite",
+        "x": 14,
+        "y": 2
+      },
+      "dirty_files": 0,
+      "done": false,
+      "emoji": "🛡️",
+      "engine": "claude",
+      "errand": "waiting at the founder's door for a decision",
+      "frozen": false,
+      "harvest_exempt": false,
+      "home": {
+        "x": 14.0,
+        "y": 2.0
+      },
+      "lane": "claude-security-cso-jack",
+      "last_output_age": 110.0,
+      "liveness_known": true,
+      "look": {
+        "hair": "#8d6a3f",
+        "shirt": "#38b2c4",
+        "skin": "#7a4a2b"
+      },
+      "model": "claude-opus-5",
+      "name": "Jack",
+      "next": "",
+      "outbox_tail": [
+        "STATUS",
+        "ready_for_pr: false",
+        "branch: claude/fixture-jack",
+        "blockers: waiting on contract",
+        "decision_needed: DN-QA choose fixture"
+      ],
+      "owed_mins": "<volatile:age>",
+      "owes_reply": false,
+      "pid": "<volatile:pid>",
+      "present": true,
+      "ready_for_pr": false,
+      "role": "CSO — security",
+      "room": "csuite",
+      "state": "asking",
+      "station": {
+        "x": 2,
+        "y": 5
+      },
+      "status_mins": "<volatile:age>",
+      "task": "",
+      "tmux_session": ""
+    },
+    {
+      "alive": false,
+      "blocked": false,
+      "blockers": "",
+      "branch": "",
+      "commits_ahead": 0,
+      "ctx_age_min": "<volatile:age>",
+      "ctx_pct": 22,
+      "decision_needed": "",
+      "desk": {
+        "kind": "table",
+        "room": "csuite",
+        "x": 16,
+        "y": 2
+      },
+      "dirty_files": 0,
+      "done": false,
+      "emoji": "🧭",
+      "engine": "claude",
+      "errand": "",
+      "frozen": false,
+      "harvest_exempt": false,
+      "home": {
+        "x": 16.0,
+        "y": 2.0
+      },
+      "lane": "claude-product-cpo-piper",
+      "last_output_age": 110.0,
+      "liveness_known": true,
+      "look": {
+        "hair": "#2b1d16",
+        "shirt": "#b45cf0",
+        "skin": "#5a3620"
+      },
+      "model": "claude-fable-5",
+      "name": "Piper",
+      "next": "",
+      "outbox_tail": [
+        "STATUS",
+        "ready_for_pr: false",
+        "blockers: none",
+        "decision_needed: null"
+      ],
+      "owed_mins": "<volatile:age>",
+      "owes_reply": false,
+      "pid": "",
+      "present": true,
+      "ready_for_pr": false,
+      "role": "CPO — product",
+      "room": "csuite",
+      "state": "bench",
+      "station": {
+        "x": 16.0,
+        "y": 2.0
+      },
+      "status_mins": "<volatile:age>",
+      "task": "",
+      "tmux_session": ""
+    },
+    {
+      "alive": false,
+      "blocked": false,
+      "blockers": "",
+      "branch": "",
+      "commits_ahead": 0,
+      "ctx_age_min": null,
+      "ctx_pct": null,
+      "decision_needed": "",
+      "desk": {
+        "kind": "desk",
+        "room": "bullpen",
+        "x": 6,
+        "y": 12
+      },
+      "dirty_files": 0,
+      "done": false,
+      "emoji": "🧪",
+      "engine": "claude",
+      "errand": "",
+      "frozen": false,
+      "harvest_exempt": false,
+      "home": {
+        "x": 6,
+        "y": 13
+      },
+      "lane": "claude-qa-test-sam",
+      "last_output_age": 120.0,
+      "liveness_known": true,
+      "look": {
+        "hair": "#8d6a3f",
+        "shirt": "#b45cf0",
+        "skin": "#a5663c"
+      },
+      "model": "claude-sonnet-5",
+      "name": "Sam",
+      "next": "",
+      "outbox_tail": [
+        "STATUS",
+        "ready_for_pr: false",
+        "blockers: none",
+        "decision_needed: null"
+      ],
+      "owed_mins": "<volatile:age>",
+      "owes_reply": true,
+      "pid": "",
+      "present": true,
+      "ready_for_pr": false,
+      "role": "IC — QA and regression",
+      "room": "bullpen",
+      "state": "dead",
+      "station": {
+        "x": 6,
+        "y": 13
+      },
+      "status_mins": "<volatile:age>",
+      "task": "",
+      "tmux_session": ""
+    },
+    {
+      "alive": false,
+      "blocked": false,
+      "blockers": "",
+      "branch": "codex/fixture-sara",
+      "commits_ahead": 1,
+      "ctx_age_min": null,
+      "ctx_pct": null,
+      "decision_needed": "",
+      "desk": {
+        "kind": "desk",
+        "room": "bullpen",
+        "x": 2,
+        "y": 12
+      },
+      "dirty_files": 1,
+      "done": false,
+      "emoji": "⚙️",
+      "engine": "codex",
+      "errand": "waiting in review with a finished branch",
+      "frozen": false,
+      "harvest_exempt": false,
+      "history": {
+        "employment": [],
+        "fiction": [],
+        "work": [
+          {
+            "evidence_ref": "<volatile:evidence-ref>",
+            "label": "fixture delivery",
+            "source": "commit",
+            "ts": "<volatile:history-time>",
+            "type": "LANDING"
+          }
+        ]
+      },
+      "home": {
+        "x": 2,
+        "y": 13
+      },
+      "lane": "codex-api-core-dev-sara",
+      "last_output_age": 110.0,
+      "liveness_known": true,
+      "look": {
+        "hair": "#1a1a20",
+        "shirt": "#b45cf0",
+        "skin": "#c98c5e"
+      },
+      "model": "gpt-5.5 high",
+      "name": "Sara",
+      "next": "CEO harvest",
+      "outbox_tail": [
+        "# OUTBOX",
+        "STATUS",
+        "ready_for_pr: true",
+        "branch: codex/fixture-sara",
+        "blockers: none",
+        "decision_needed: null",
+        "next: CEO harvest"
+      ],
+      "owed_mins": "<volatile:age>",
+      "owes_reply": false,
+      "pid": "",
+      "present": true,
+      "ready_for_pr": true,
+      "role": "IC — API core",
+      "room": "bullpen",
+      "state": "delivering",
+      "station": {
+        "x": 29,
+        "y": 2
+      },
+      "status_mins": "<volatile:age>",
+      "task": "",
+      "tmux_session": ""
+    },
+    {
+      "alive": false,
+      "blocked": false,
+      "blockers": "",
+      "branch": "",
+      "commits_ahead": 0,
+      "ctx_age_min": null,
+      "ctx_pct": null,
+      "decision_needed": "",
+      "desk": {
+        "x": 3,
+        "y": 2
+      },
+      "dirty_files": 0,
+      "done": false,
+      "emoji": "📱",
+      "engine": "codex",
+      "errand": "",
+      "frozen": false,
+      "harvest_exempt": false,
+      "home": {
+        "x": 3,
+        "y": 3
+      },
+      "lane": "codex-mobile-home-dev-mike",
+      "last_output_age": null,
+      "liveness_known": true,
+      "look": {
+        "hair": "#8d6a3f",
+        "shirt": "#f2724b",
+        "skin": "#5a3620"
+      },
+      "model": "gpt-5.5 high",
+      "name": "Mike",
+      "next": "",
+      "outbox_tail": [],
+      "owed_mins": "<volatile:age>",
+      "owes_reply": false,
+      "pid": "",
+      "present": false,
+      "ready_for_pr": false,
+      "role": "IC — mobile home",
+      "room": "bullpen",
+      "state": "absent",
+      "station": {
+        "x": 3,
+        "y": 3
+      },
+      "status_mins": null,
+      "task": "",
+      "tmux_session": ""
+    }
+  ],
+  "allrepos": "<volatile:absolute-path>",
+  "architecture_id": "standard-office-v1",
+  "events": [],
+  "evidence": [
+    {
+      "cls": "work",
+      "ref": "<volatile:evidence-ref>",
+      "status": "verified",
+      "verified": true
+    }
+  ],
+  "layout": {
+    "board_table": {
+      "d": 3.0,
+      "w": 5.6,
+      "x": 13.2,
+      "y": 3.0
+    },
+    "bullpen_desks": [
+      {
+        "x": 2,
+        "y": 12
+      },
+      {
+        "x": 6,
+        "y": 12
+      },
+      {
+        "x": 10,
+        "y": 12
+      },
+      {
+        "x": 14,
+        "y": 12
+      },
+      {
+        "x": 18,
+        "y": 12
+      },
+      {
+        "x": 2,
+        "y": 15
+      },
+      {
+        "x": 6,
+        "y": 15
+      },
+      {
+        "x": 10,
+        "y": 15
+      },
+      {
+        "x": 14,
+        "y": 15
+      },
+      {
+        "x": 18,
+        "y": 15
+      }
+    ],
+    "bullpen_room": "bullpen",
+    "ceo_desk": {
+      "x": 3,
+      "y": 2
+    },
+    "ceo_queue": [
+      {
+        "x": 29,
+        "y": 2
+      },
+      {
+        "x": 30,
+        "y": 2
+      },
+      {
+        "x": 29,
+        "y": 4
+      },
+      {
+        "x": 30,
+        "y": 4
+      },
+      {
+        "x": 29,
+        "y": 6
+      },
+      {
+        "x": 30,
+        "y": 6
+      }
+    ],
+    "ceo_seat": {
+      "x": 3.4,
+      "y": 4.0
+    },
+    "corridor_cols": [
+      22
+    ],
+    "corridor_rows": [
+      9,
+      18
+    ],
+    "cto_desk": {
+      "x": 19,
+      "y": 6
+    },
+    "cto_seat": {
+      "x": 19.4,
+      "y": 8.0
+    },
+    "desks": {
+      "ceo": {
+        "kind": "exec",
+        "room": "ceo",
+        "x": 3,
+        "y": 2
+      },
+      "claude-product-cpo-piper": {
+        "kind": "table",
+        "room": "csuite",
+        "x": 16,
+        "y": 2
+      },
+      "claude-security-cso-jack": {
+        "kind": "table",
+        "room": "csuite",
+        "x": 14,
+        "y": 2
+      }
+    },
+    "door_queue": [
+      {
+        "x": 2,
+        "y": 5
+      },
+      {
+        "x": 3,
+        "y": 5
+      },
+      {
+        "x": 4,
+        "y": 5
+      },
+      {
+        "x": 2,
+        "y": 7
+      },
+      {
+        "x": 3,
+        "y": 7
+      },
+      {
+        "x": 4,
+        "y": 7
+      }
+    ],
+    "doors": [
+      {
+        "edge": "s",
+        "label": "TO THE FLOOR",
+        "x": 6,
+        "y": 8
+      },
+      {
+        "edge": "w",
+        "label": "LOUNGE",
+        "x": 23,
+        "y": 13
+      },
+      {
+        "edge": "n",
+        "label": "KITCHEN",
+        "x": 6,
+        "y": 19
+      },
+      {
+        "edge": "n",
+        "label": "REC",
+        "x": 17,
+        "y": 19
+      },
+      {
+        "edge": "s",
+        "label": "OUTSIDE",
+        "x": 26,
+        "y": 24
+      }
+    ],
+    "founder_door": {
+      "x": 1,
+      "y": 6
+    },
+    "offduty_spots": [
+      {
+        "where": "rec",
+        "x": 15,
+        "y": 21
+      },
+      {
+        "where": "rec",
+        "x": 19,
+        "y": 21
+      },
+      {
+        "where": "kitchen",
+        "x": 3.5,
+        "y": 23
+      },
+      {
+        "where": "kitchen",
+        "x": 6.5,
+        "y": 23
+      },
+      {
+        "where": "outside",
+        "x": 24,
+        "y": 26
+      },
+      {
+        "where": "outside",
+        "x": 26,
+        "y": 26
+      },
+      {
+        "where": "lounge",
+        "x": 24,
+        "y": 11
+      },
+      {
+        "where": "lounge",
+        "x": 25,
+        "y": 11
+      },
+      {
+        "where": "lounge",
+        "x": 26,
+        "y": 11
+      },
+      {
+        "where": "lounge",
+        "x": 24,
+        "y": 14
+      },
+      {
+        "where": "lounge",
+        "x": 26,
+        "y": 14
+      },
+      {
+        "where": "lounge",
+        "x": 24,
+        "y": 17
+      },
+      {
+        "where": "lounge",
+        "x": 26,
+        "y": 17
+      },
+      {
+        "where": "lounge",
+        "x": 25,
+        "y": 20
+      },
+      {
+        "where": "kitchen",
+        "x": 4,
+        "y": 21
+      },
+      {
+        "where": "kitchen",
+        "x": 7,
+        "y": 21
+      },
+      {
+        "where": "kitchen",
+        "x": 3,
+        "y": 22
+      },
+      {
+        "where": "kitchen",
+        "x": 5,
+        "y": 22
+      },
+      {
+        "where": "kitchen",
+        "x": 6,
+        "y": 22
+      },
+      {
+        "where": "kitchen",
+        "x": 8,
+        "y": 22
+      },
+      {
+        "where": "kitchen",
+        "x": 2,
+        "y": 21
+      },
+      {
+        "where": "kitchen",
+        "x": 9,
+        "y": 21
+      }
+    ],
+    "pedestrian_paths": [
+      {
+        "h": 1,
+        "id": "front-sidewalk",
+        "kind": "sidewalk",
+        "w": 29,
+        "x": 0,
+        "y": 25
+      },
+      {
+        "h": 5,
+        "id": "parking-east-crosswalk",
+        "kind": "crosswalk",
+        "w": 2,
+        "x": 20,
+        "y": 26
+      },
+      {
+        "h": 2,
+        "id": "outside-entry-walk",
+        "kind": "sidewalk",
+        "w": 2,
+        "x": 25,
+        "y": 24
+      }
+    ],
+    "props": [
+      {
+        "edge": "n",
+        "kind": "crown",
+        "type": "art",
+        "x": 5,
+        "y": 1
+      },
+      {
+        "edge": "n",
+        "type": "whiteboard",
+        "x": 15,
+        "y": 1
+      },
+      {
+        "edge": "n",
+        "type": "clock",
+        "x": 9,
+        "y": 10
+      },
+      {
+        "type": "rack",
+        "x": 1.15,
+        "y": 15.1
+      },
+      {
+        "d": 1.0,
+        "type": "couch",
+        "w": 3.0,
+        "x": 24,
+        "y": 11
+      },
+      {
+        "d": 1.6,
+        "type": "pingpong",
+        "w": 3.0,
+        "x": 16,
+        "y": 21
+      },
+      {
+        "d": 1.0,
+        "type": "counter",
+        "w": 5.0,
+        "x": 3,
+        "y": 20
+      },
+      {
+        "type": "espresso",
+        "x": 3.3,
+        "y": 20.1
+      },
+      {
+        "type": "fridge",
+        "x": 9,
+        "y": 20
+      },
+      {
+        "type": "crate",
+        "x": 10.4,
+        "y": 20.2
+      },
+      {
+        "type": "cooler",
+        "x": 1.1,
+        "y": 20.1
+      },
+      {
+        "type": "table",
+        "x": 4,
+        "y": 22
+      },
+      {
+        "type": "table",
+        "x": 7,
+        "y": 22
+      },
+      {
+        "edge": "n",
+        "type": "smashscreen",
+        "x": 19.1,
+        "y": 19
+      },
+      {
+        "d": 0.7,
+        "type": "smashcouch",
+        "w": 3.2,
+        "x": 18.1,
+        "y": 23.1
+      },
+      {
+        "d": 1.0,
+        "type": "beerpong",
+        "w": 4.0,
+        "x": 4,
+        "y": 22
+      },
+      {
+        "type": "ashcan",
+        "x": 27.4,
+        "y": 26.2
+      },
+      {
+        "model": "fable",
+        "plate": "FABLE 5",
+        "type": "car",
+        "vehicle": "sports",
+        "x": 8.9,
+        "y": 28.0
+      },
+      {
+        "model": "opus",
+        "plate": "OPUS 5",
+        "type": "car",
+        "vehicle": "luxsedan",
+        "x": 11.9,
+        "y": 28.0
+      },
+      {
+        "model": "haiku",
+        "plate": "HAIKU 45",
+        "type": "car",
+        "vehicle": "hatchback",
+        "x": 14.9,
+        "y": 28.0
+      },
+      {
+        "model": "sonnet",
+        "plate": "SONNET 5",
+        "type": "car",
+        "vehicle": "convertible",
+        "x": 17.9,
+        "y": 28.0
+      },
+      {
+        "type": "tree",
+        "x": 33.4,
+        "y": 2.5
+      },
+      {
+        "type": "tree",
+        "x": 34.6,
+        "y": 8.0
+      },
+      {
+        "type": "tree",
+        "x": 33.6,
+        "y": 14.5
+      },
+      {
+        "type": "tree",
+        "x": 34.4,
+        "y": 21.0
+      },
+      {
+        "type": "tree",
+        "x": 29.0,
+        "y": 27.0
+      },
+      {
+        "type": "tree",
+        "x": 30.2,
+        "y": 29.4
+      },
+      {
+        "type": "shrub",
+        "x": 22.5,
+        "y": 30.2
+      },
+      {
+        "type": "shrub",
+        "x": 28.0,
+        "y": 30.6
+      },
+      {
+        "type": "planter",
+        "x": 25.0,
+        "y": 27.0
+      },
+      {
+        "type": "planter",
+        "x": 27.0,
+        "y": 27.0
+      }
+    ],
+    "rooms": [
+      {
+        "h": 9,
+        "id": "ceo",
+        "label": "CEO — CORNER OFFICE",
+        "tint": "#3b2f5e",
+        "w": 10,
+        "x": 0,
+        "y": 0
+      },
+      {
+        "h": 9,
+        "id": "csuite",
+        "label": "THE BOARDROOM",
+        "tint": "#1f4a52",
+        "w": 11,
+        "x": 11,
+        "y": 0
+      },
+      {
+        "desk_cols": 2,
+        "h": 9,
+        "id": "review",
+        "label": "REVIEW + SECURITY",
+        "tint": "#5b2f2f",
+        "w": 9,
+        "x": 23,
+        "y": 0
+      },
+      {
+        "h": 8,
+        "id": "bullpen",
+        "label": "THE BULLPEN",
+        "tint": "#23405e",
+        "w": 22,
+        "x": 0,
+        "y": 10
+      },
+      {
+        "h": 14,
+        "id": "bench",
+        "label": "THE LOUNGE",
+        "tint": "#2c3f2c",
+        "w": 9,
+        "x": 23,
+        "y": 10
+      },
+      {
+        "animal_zone": true,
+        "desk_cols": 0,
+        "h": 24,
+        "id": "paddock",
+        "label": "THE PADDOCK",
+        "outdoor": true,
+        "tint": "#548b38",
+        "w": 4,
+        "x": 32,
+        "y": 0
+      },
+      {
+        "h": 5,
+        "id": "kitchen",
+        "label": "KITCHEN",
+        "tint": "#4a3f2c",
+        "w": 14,
+        "x": 0,
+        "y": 19
+      },
+      {
+        "h": 5,
+        "id": "rec",
+        "label": "REC ROOM",
+        "tint": "#3d2c4a",
+        "w": 7,
+        "x": 15,
+        "y": 19
+      },
+      {
+        "h": 11,
+        "id": "lot",
+        "label": "PARKING LOT",
+        "outdoor": true,
+        "tint": "#202631",
+        "w": 20,
+        "x": 1,
+        "y": 25
+      }
+    ],
+    "seats": {
+      "ceo": {
+        "x": 3.4,
+        "y": 4.0
+      },
+      "claude-product-cpo-piper": {
+        "x": 16.0,
+        "y": 2.0
+      },
+      "claude-security-cso-jack": {
+        "x": 14.0,
+        "y": 2.0
+      }
+    },
+    "smoking": {
+      "h": 3.6,
+      "w": 7.0,
+      "x": 21.5,
+      "y": 25.2
+    },
+    "world": {
+      "building_h": 25,
+      "h": 36,
+      "w": 36
+    }
+  },
+  "liveness_known": true,
+  "mode": "live",
+  "now": "<volatile:time>",
+  "org_found": true,
+  "org_history": [
+    {
+      "actors": [
+        "codex-api-core-dev-sara"
+      ],
+      "impact": {
+        "scope": "lane",
+        "summary": "codex-api-core-dev-sara landed: fixture delivery"
+      },
+      "kind": "landing",
+      "source": {
+        "ref": "<volatile:source-ref>",
+        "type": "commit"
+      },
+      "summary": "fixture delivery",
+      "ts": "<volatile:history-time>"
+    }
+  ],
+  "org_resolution": "flag",
+  "poll_ms": 2000,
+  "pr_known": false,
+  "relationships": [],
+  "social_graph": {},
+  "summary": {
+    "absent": 1,
+    "alive": 1,
+    "asking": 1,
+    "bench": 2,
+    "blocked": 1,
+    "dead_unread": 1,
+    "delivering": 1,
+    "frozen": 0,
+    "seats": 6,
+    "unknown": 0
+  },
+  "tick": "<volatile:tick>"
+}

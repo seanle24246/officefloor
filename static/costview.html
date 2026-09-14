@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark light" />
+<title>CostView</title>
+<link rel="stylesheet" href="costview.css" />
+<script src="costview.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#costview-main">Skip to CostView</a>
+
+<header class="site-header">
+  <div>
+    <p class="eyebrow">OBSERVED USAGE</p>
+    <h1>CostView</h1>
+    <p class="subtitle">Measured tokens and published-rate estimates from admitted transcript events.</p>
+  </div>
+  <p id="connection-status" class="connection" role="status" aria-live="polite">Loading CostView…</p>
+</header>
+
+<main id="costview-main">
+  <section class="filters panel" aria-labelledby="filters-heading">
+    <div>
+      <p class="section-kicker">VIEW</p>
+      <h2 id="filters-heading">Observed dimensions</h2>
+    </div>
+    <label for="model-filter">
+      Model
+      <select id="model-filter" name="model">
+        <option value="">All observed models</option>
+      </select>
+    </label>
+    <label for="provider-filter">
+      Provider
+      <select id="provider-filter" name="provider">
+        <option value="">All observed providers</option>
+      </select>
+    </label>
+    <button id="refresh-view" type="button">Refresh now</button>
+  </section>
+
+  <section class="summary-grid" aria-label="Selected window summary">
+    <article class="metric panel">
+      <span>Selected-window token cost</span>
+      <strong id="summary-cost">—</strong>
+    </article>
+    <article class="metric panel">
+      <span>Agents with usage</span>
+      <strong id="summary-agents">—</strong>
+    </article>
+    <article class="metric panel">
+      <span>Total measured tokens</span>
+      <strong id="summary-tokens">—</strong>
+    </article>
+    <article class="metric panel">
+      <span>Source status</span>
+      <strong id="summary-source">—</strong>
+    </article>
+  </section>
+
+  <section class="chart-grid" aria-label="Cost and token series">
+    <article class="chart-card panel" aria-labelledby="cost-chart-heading">
+      <header>
+        <div>
+          <p class="section-kicker">PUBLISHED TOKEN RATES</p>
+          <h2 id="cost-chart-heading">Cost over time <span class="est">EST</span></h2>
+        </div>
+        <p id="cost-chart-note" class="chart-note">Waiting for source data.</p>
+      </header>
+      <div class="legend" aria-label="Cost series legend">
+        <span><i class="swatch input"></i>Input</span>
+        <span><i class="swatch output"></i>Output</span>
+        <span><i class="swatch cache-create"></i>Cache create</span>
+        <span><i class="swatch cache-read"></i>Cache read</span>
+      </div>
+      <svg id="cost-chart" class="chart" viewBox="0 0 960 300" role="img"
+        aria-labelledby="cost-chart-heading cost-chart-note"></svg>
+    </article>
+
+    <article class="chart-card panel" aria-labelledby="throughput-chart-heading">
+      <header>
+        <div>
+          <p class="section-kicker">ACCEPTED USAGE EVENTS</p>
+          <h2 id="throughput-chart-heading">Tokens and throughput over time</h2>
+        </div>
+        <p id="throughput-chart-note" class="chart-note">Waiting for source data.</p>
+      </header>
+      <div class="legend" aria-label="Token and throughput legend">
+        <span><i class="swatch input"></i>Input tokens</span>
+        <span><i class="swatch output"></i>Output tokens</span>
+        <span><i class="swatch cache-create"></i>Cache create</span>
+        <span><i class="swatch cache-read"></i>Cache read</span>
+        <span><i class="line-swatch"></i>Tokens / minute</span>
+      </div>
+      <svg id="throughput-chart" class="chart" viewBox="0 0 960 300" role="img"
+        aria-labelledby="throughput-chart-heading throughput-chart-note"></svg>
+    </article>
+  </section>
+
+  <section id="budget-panel" class="budget panel" aria-labelledby="budget-heading">
+    <header>
+      <div>
+        <p class="section-kicker">CONFIGURED BUDGET PERIOD</p>
+        <h2 id="budget-heading">Budget and forecast</h2>
+      </div>
+      <p id="budget-period" class="chart-note">—</p>
+    </header>
+    <div class="budget-grid">
+      <div><span>Budget limit</span><strong id="budget-limit">—</strong></div>
+      <div><span>Spent</span><strong id="budget-spent">—</strong></div>
+      <div><span>Remaining</span><strong id="budget-remaining">—</strong></div>
+      <div class="forecast-box">
+        <span id="forecast-label">FORECAST (EST) · projection</span>
+        <strong id="forecast-value">—</strong>
+        <small id="forecast-as-of">—</small>
+      </div>
+    </div>
+    <p id="budget-alert" class="budget-alert" hidden></p>
+  </section>
+
+  <section class="agents panel" aria-labelledby="agents-heading">
+    <header>
+      <div>
+        <p class="section-kicker">EXACT LANE ATTRIBUTION</p>
+        <h2 id="agents-heading">By agent</h2>
+      </div>
+      <p id="agent-count" class="chart-note">—</p>
+    </header>
+    <div class="table-scroll" tabindex="0" aria-label="Scrollable agent usage table">
+      <table id="agent-table">
+        <caption>Observed token usage and estimated token cost by exactly attributed lane</caption>
+        <thead>
+          <tr>
+            <th scope="col">Agent</th>
+            <th scope="col">Observed models / providers</th>
+            <th scope="col">Tokens</th>
+            <th scope="col">Observed interval P95</th>
+            <th scope="col">Token cost</th>
+            <th scope="col">Prompt-window remaining</th>
+            <th scope="col">Last seen</th>
+          </tr>
+        </thead>
+        <tbody id="agent-rows"></tbody>
+      </table>
+      <p id="agent-empty" class="empty-state" hidden>No attributed agent usage in this selection.</p>
+    </div>
+  </section>
+</main>
+
+<footer id="source-footer" class="source-footer">
+  <div>
+    <strong>Source coverage</strong>
+    <span id="coverage-summary">Waiting for source data.</span>
+  </div>
+  <div>
+    <strong>Source freshness</strong>
+    <span id="freshness-summary">Waiting for source data.</span>
+  </div>
+  <p>Token costs and context percentages are estimates. No invoice reconciliation is present.</p>
+</footer>
+</body>
+</html>

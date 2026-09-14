@@ -1,0 +1,23 @@
+include README.md
+include PYPI_README.md
+include LICENSE
+include CREDITS.md
+include AGENT-PROTOCOL.md
+include office_cli.py
+include serve.py
+include qa/tools/wheel_meta_scan.py
+include mvp_manifest.json
+recursive-include server *.py
+recursive-include static *
+recursive-include data *
+recursive-exclude data sku-*
+exclude server/hosted_contract.py
+exclude static/office.vitals.naughty.js
+exclude static/office.npcvig.bank.naughty-cast.js
+exclude static/office.idle.naughty.gate.js
+exclude static/office.sku.generator.js
+exclude static/office.sku.schema.js
+exclude static/office.sweep.js
+recursive-exclude static office.sku.pack.*.js
+prune static/assets/experimental
+global-exclude __pycache__ *.pyc

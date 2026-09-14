@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Office — Modular Dungeon WebGL Showroom</title>
+  <link rel="stylesheet" href="office.dungeon.showroom.css">
+</head>
+<body>
+  <canvas id="showroom-stage" aria-label="Isometric WebGL modular dungeon asset showroom"></canvas>
+  <header class="topbar">
+    <section class="title-card">
+      <div class="eyebrow">The Office · Procedural Collection 02</div>
+      <h1>Modular Dungeon Kit</h1>
+      <p class="subtitle">Flat-shaded stonework · deterministic primitives · locked 2:1 isometric review</p>
+    </section>
+    <section class="meta-card" aria-label="Showroom counts">
+      <div class="metric"><strong id="visible-count">0</strong><span>visible</span></div>
+      <div class="metric"><strong id="total-count">0</strong><span>total</span></div>
+      <div class="metric"><strong id="category-count">0</strong><span>collections</span></div>
+      <div class="metric"><strong>0</strong><span>textures</span></div>
+    </section>
+  </header>
+  <div id="labels" aria-hidden="true"></div>
+  <nav id="filters" class="filters" aria-label="Dungeon asset category filters"></nav>
+  <p class="hint">Drag to pan · scroll to zoom · double-click to refit · append ?item=&lt;kind&gt; for a close-up</p>
+  <script type="module" src="office.dungeon.showroom.js"></script>
+</body>
+</html>

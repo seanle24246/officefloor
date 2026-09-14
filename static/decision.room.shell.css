@@ -1,0 +1,389 @@
+/* decision.room.shell.css — HUD-03 Decision Room shell override stylesheet.
+ *
+ * Loaded AFTER agent.manager.css so it can override shared styles.
+ * Does NOT modify agent.manager.css. Integrates the Decision Room with
+ * the HUD-01 shell: breadcrumb, Back to floor, responsive breakpoints.
+ *
+ * Layout: .dr-app-rail (narrow, left) + .dr-workspace (fills remaining).
+ * Rail derives from OfficeHudShell.routes — no second registry.
+ * Workspace wraps topbar / main / composer.
+ */
+
+/* ── Root: rail + workspace grid ───────────────────────────────────────── */
+.office-decision-room {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  grid-template-rows: 1fr;
+  width: 100vw;
+  height: 100dvh;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+
+/* ── App rail (narrow, left) ───────────────────────────────────────────── */
+.dr-app-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 6px;
+  background: #0a111a;
+  border-right: 1px solid var(--am-edge, #1e2b3c);
+  overflow-y: auto;
+}
+
+.dr-rail-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #71809c;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  transition: background .15s, color .15s;
+}
+
+.dr-rail-btn:hover {
+  background: rgba(120, 150, 200, .12);
+  color: #bdc7d8;
+}
+
+.dr-rail-btn.active {
+  background: rgba(247, 184, 25, .12);
+  color: var(--am-gold, #f7b819);
+}
+
+.dr-rail-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.dr-rail-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+/* Badge on the rail button (inside Decision Room) */
+.dr-rail-badge {
+  margin-top: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  background: var(--am-gold, #f7b819);
+  color: #050a12;
+}
+
+/* ── Workspace (fills remaining) ────────────────────────────────────────── */
+.dr-workspace {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── Topbar ─────────────────────────────────────────────────────────────── */
+.dr-topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: #0d1824;
+  border-bottom: 1px solid var(--am-edge, #1e2b3c);
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+/* ── Breadcrumb in topbar ──────────────────────────────────────────────── */
+.dr-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dr-breadcrumb .dr-btn {
+  min-height: 32px;
+  padding: 5px 10px;
+  font-size: 12px;
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+
+.dr-breadcrumb-sep {
+  color: #617291;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.dr-breadcrumb-label {
+  color: var(--am-gold, #f7b819);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* ── Topbar mirror (canonical truth presentation) ──────────────────────── */
+.dr-topbar-mirror {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dr-brand-mirror {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: ui-monospace, monospace;
+  white-space: nowrap;
+}
+
+.dr-brand-mirror .brand-mark {
+  font-size: 16px;
+}
+
+.dr-brand-mirror .brand-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: #d8e0ec;
+}
+
+.dr-brand-mirror .brand-subtitle {
+  font-size: 9px;
+  color: #7685a2;
+  letter-spacing: .06em;
+}
+
+.dr-mode-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  background: rgba(120, 150, 200, .15);
+  color: #bdc7d8;
+}
+
+.dr-counters-mirror {
+  display: flex;
+  gap: 6px;
+  font-size: 10px;
+  color: #7685a2;
+}
+
+.dr-counter {
+  white-space: nowrap;
+}
+
+/* ── Main content area ──────────────────────────────────────────────────── */
+.dr-main {
+  display: grid;
+  grid-template-columns: 260px minmax(400px, 1fr) 300px;
+  gap: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.dr-list-rail {
+  overflow-y: auto;
+  border-right: 1px solid var(--am-edge, #1e2b3c);
+}
+
+.dr-center {
+  overflow-y: auto;
+}
+
+.dr-context {
+  overflow-y: auto;
+  border-left: 1px solid var(--am-edge, #1e2b3c);
+}
+
+/* ── Composer footer ────────────────────────────────────────────────────── */
+.dr-composer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--am-edge, #1e2b3c);
+  background: #0d1824;
+}
+
+/* ── Rail badge on the shell nav ───────────────────────────────────────── */
+#office-hud-route-decisions {
+  position: relative;
+}
+
+#office-hud-rail .office-hud-route-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: inline-grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  color: #050a12;
+  background: var(--gold, #ffd166);
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 16px;
+}
+
+/* ── Responsive: 1440px+ ───────────────────────────────────────────────── */
+@media (min-width: 1440px) {
+  .office-decision-room {
+    grid-template-columns: 60px 1fr;
+    padding: 0;
+  }
+  .dr-main {
+    grid-template-columns: 280px minmax(500px, 1fr) 360px;
+  }
+  .dr-topbar {
+    padding: 10px 16px;
+  }
+}
+
+/* ── Responsive: 1024px ────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .dr-breadcrumb-label {
+    font-size: 12px;
+  }
+  .dr-main {
+    grid-template-columns: 220px minmax(350px, 1fr) 260px;
+  }
+  .dr-brand-mirror .brand-subtitle {
+    display: none;
+  }
+}
+
+/* ── Responsive: 768px ─────────────────────────────────────────────────── */
+@media (max-width: 860px) {
+  .dr-breadcrumb-label {
+    font-size: 11px;
+  }
+  .dr-breadcrumb .dr-btn {
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+  .dr-main {
+    grid-template-columns: 180px minmax(0, 1fr);
+  }
+  .dr-context {
+    display: none;
+  }
+  .dr-brand-mirror {
+    display: none;
+  }
+  .dr-mode-pill {
+    font-size: 9px;
+    padding: 1px 6px;
+  }
+}
+
+/* ── Responsive: 390px (mobile) ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .office-decision-room {
+    grid-template-columns: 44px 1fr;
+    padding: 0;
+  }
+
+  .dr-app-rail {
+    padding: 8px 3px;
+    gap: 2px;
+  }
+
+  .dr-rail-btn {
+    padding: 6px 2px;
+    font-size: 8px;
+    border-radius: 6px;
+  }
+
+  .dr-rail-icon {
+    font-size: 14px;
+  }
+
+  .dr-rail-label {
+    font-size: 7px;
+  }
+
+  .dr-rail-badge {
+    min-width: 14px;
+    height: 14px;
+    padding: 0 4px;
+    font-size: 8px;
+    line-height: 14px;
+  }
+
+  .dr-breadcrumb {
+    gap: 4px;
+  }
+  .dr-breadcrumb-label {
+    font-size: 10px;
+  }
+  .dr-breadcrumb .dr-btn {
+    min-height: 26px;
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+  .dr-breadcrumb-sep {
+    font-size: 11px;
+  }
+
+  .dr-topbar {
+    padding: 4px 6px;
+    gap: 6px;
+    min-height: 36px;
+  }
+
+  .dr-mode-pill {
+    display: none;
+  }
+
+  .dr-counters-mirror {
+    display: none;
+  }
+
+  .dr-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .dr-list-rail {
+    max-height: 140px;
+    border-right: 0;
+    border-bottom: 1px solid var(--am-edge, #1e2b3c);
+  }
+
+  .dr-context {
+    display: none;
+  }
+
+  .dr-composer {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .dr-compose-actions {
+    grid-template-rows: auto auto;
+  }
+}

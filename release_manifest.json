@@ -1,0 +1,62 @@
+{
+  "_comment": "Release IDs map to the feature flags enabled for that release. _example_next is documentation only. Releases are written from a signed ship manifest.",
+  "0.1.0": [
+    "store_live",
+    "webgl_floor",
+    "webgl_plate_themes",
+    "npc_vignettes",
+    "npc_random_events",
+    "agent_needs",
+    "hosted_sync",
+    "naughty_mode",
+    "agent_animation"
+  ],
+  "0.2.0": [
+    "agent_animation",
+    "agent_appearance",
+    "agent_needs",
+    "npc_vignettes",
+    "store_coming_soon",
+    "webgl_floor",
+    "webgl_plate_themes"
+  ],
+  "0.2.1": [
+    "agent_animation",
+    "agent_appearance",
+    "agent_needs",
+    "npc_vignettes",
+    "store_coming_soon",
+    "webgl_floor",
+    "webgl_plate_themes"
+  ],
+  "0.2.2": [
+    "agent_animation",
+    "agent_appearance",
+    "agent_needs",
+    "npc_vignettes",
+    "store_coming_soon",
+    "webgl_floor",
+    "webgl_plate_themes"
+  ],
+  "_example_next": [
+    "store_coming_soon",
+    "costview_live",
+    "cockpit_chat",
+    "boxing_in_webdemo",
+    "iso_basis_scale",
+    "webgl_floor",
+    "webgl_plate_themes",
+    "agent_animation",
+    "agent_appearance",
+    "naughty_mode",
+    "agent_influence",
+    "agent_needs",
+    "collector_mechanical_status",
+    "npc_random_events",
+    "npc_story_mode",
+    "officefloor_service",
+    "hosted_sync",
+    "public_room_creation",
+    "store_live"
+  ]
+}

@@ -1,0 +1,3087 @@
+{
+  "atlas": {
+    "cellH": 133,
+    "cellW": 133,
+    "columns": 16,
+    "file": "city-sprites.png",
+    "h": 1096,
+    "padding": 2,
+    "w": 2192
+  },
+  "format": 1,
+  "frames": [
+    {
+      "atlas": {
+        "h": 104,
+        "w": 132,
+        "x": 2,
+        "y": 2
+      },
+      "file": "frames/cityTiles_000.png",
+      "id": "cityTiles_000",
+      "source": "cityTiles_000.png",
+      "sourceRect": {
+        "h": 104,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "368cdb678debd67150be14ccc14576b576bdda5b692631577fe7efb379afb6b1",
+      "trim": {
+        "h": 104,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 139,
+        "y": 2
+      },
+      "file": "frames/cityTiles_001.png",
+      "id": "cityTiles_001",
+      "source": "cityTiles_001.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "4c77089c9b9b7a886d75df836fcd18c0a38119860d791610abafbc092ddc4290",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 276,
+        "y": 2
+      },
+      "file": "frames/cityTiles_002.png",
+      "id": "cityTiles_002",
+      "source": "cityTiles_002.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "c9cb8d73ea2d7eed3e2f73a1e0e58711b9ed61f7aebc34466fa0d8ab6f3bd9cd",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 413,
+        "y": 2
+      },
+      "file": "frames/cityTiles_003.png",
+      "id": "cityTiles_003",
+      "source": "cityTiles_003.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "acea5e422195061c07871550aa0fbe87b5356304e6891a14d87b4da226d247d1",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 128,
+        "w": 132,
+        "x": 550,
+        "y": 2
+      },
+      "file": "frames/cityTiles_004.png",
+      "id": "cityTiles_004",
+      "source": "cityTiles_004.png",
+      "sourceRect": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "7d8c700a72feee93f545836d108c793179462defa83bc38b076a78726750c49e",
+      "trim": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 687,
+        "y": 2
+      },
+      "file": "frames/cityTiles_005.png",
+      "id": "cityTiles_005",
+      "source": "cityTiles_005.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "7fc7b9b757f2e86e66d2b309e3971974b740ba89bcd35451e54036ad56be2de3",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 104,
+        "w": 132,
+        "x": 824,
+        "y": 2
+      },
+      "file": "frames/cityTiles_006.png",
+      "id": "cityTiles_006",
+      "source": "cityTiles_006.png",
+      "sourceRect": {
+        "h": 104,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "0b9d4c98c86bd895e3764a2cba78efd3eaca7b1909e3f025682b334cf512baf3",
+      "trim": {
+        "h": 104,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 961,
+        "y": 2
+      },
+      "file": "frames/cityTiles_007.png",
+      "id": "cityTiles_007",
+      "source": "cityTiles_007.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "4f0c1294544269c0451d5688bd12d6e32107a6c3c4495029d7ee91fd7778e699",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1098,
+        "y": 2
+      },
+      "file": "frames/cityTiles_008.png",
+      "id": "cityTiles_008",
+      "source": "cityTiles_008.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "a9898f9a37c2a9701a384a9e1c5f626409d8e07c7f39f32a41e33348f134c608",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1235,
+        "y": 2
+      },
+      "file": "frames/cityTiles_009.png",
+      "id": "cityTiles_009",
+      "source": "cityTiles_009.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "f0a1f887795dee9bc3a7bba16a3698562cde2ba69594f8ba80fe70257c93c9d6",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1372,
+        "y": 2
+      },
+      "file": "frames/cityTiles_010.png",
+      "id": "cityTiles_010",
+      "source": "cityTiles_010.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d9efa1cea04499a069b56638174ac228e076709fde02fc9b66cf9fdd696bc78e",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 128,
+        "w": 132,
+        "x": 1509,
+        "y": 2
+      },
+      "file": "frames/cityTiles_011.png",
+      "id": "cityTiles_011",
+      "source": "cityTiles_011.png",
+      "sourceRect": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "e0f9002ba1098f607b81ebbb4a38606ca869cc034fae690930ec1d3ea92696df",
+      "trim": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 128,
+        "w": 132,
+        "x": 1646,
+        "y": 2
+      },
+      "file": "frames/cityTiles_012.png",
+      "id": "cityTiles_012",
+      "source": "cityTiles_012.png",
+      "sourceRect": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3340f17850ec91a90616eb76d2e11945b63ed2f4004e0629ce9e3f2ad726e0ff",
+      "trim": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 133,
+        "x": 1783,
+        "y": 2
+      },
+      "file": "frames/cityTiles_013.png",
+      "id": "cityTiles_013",
+      "source": "cityTiles_013.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "31f844e7b1856c2f99fc4e26971a386654bb3424905221ee4cb584e392aa7f2c",
+      "trim": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1920,
+        "y": 2
+      },
+      "file": "frames/cityTiles_014.png",
+      "id": "cityTiles_014",
+      "source": "cityTiles_014.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "0fcac7df9923172a593eab6a738cf058f88ea8188bc79eaa4b482f38bec23606",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2057,
+        "y": 2
+      },
+      "file": "frames/cityTiles_015.png",
+      "id": "cityTiles_015",
+      "source": "cityTiles_015.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8f6a742769c921908ade9f0f983908d88672d03af00d9a66ab78f5cda7f233ed",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2,
+        "y": 139
+      },
+      "file": "frames/cityTiles_016.png",
+      "id": "cityTiles_016",
+      "source": "cityTiles_016.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d480ae54b3ddf0a57680e0282e259a58f3daa884d69162a15ce91d1307177f97",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 139,
+        "y": 139
+      },
+      "file": "frames/cityTiles_017.png",
+      "id": "cityTiles_017",
+      "source": "cityTiles_017.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "1325e11ef41462493d6539a6716cec6ac2e1c7f6e0016d5841be6bacfa843e97",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 133,
+        "x": 276,
+        "y": 139
+      },
+      "file": "frames/cityTiles_018.png",
+      "id": "cityTiles_018",
+      "source": "cityTiles_018.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3657bae185e9754af62df033c2623829de92f23387f9cba637674d0a4736a5ea",
+      "trim": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 413,
+        "y": 139
+      },
+      "file": "frames/cityTiles_019.png",
+      "id": "cityTiles_019",
+      "source": "cityTiles_019.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "736774a28e9b060eb26a0412dde076ad6469d0bcaa6a4c22ab358b11e8137ff5",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 550,
+        "y": 139
+      },
+      "file": "frames/cityTiles_020.png",
+      "id": "cityTiles_020",
+      "source": "cityTiles_020.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "015f7a434ab5b8d85d6c5810eed71178fdc9f926c6cf4968170d40f8a09f61a4",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 687,
+        "y": 139
+      },
+      "file": "frames/cityTiles_021.png",
+      "id": "cityTiles_021",
+      "source": "cityTiles_021.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "ac3edf71ae434b4250d6fe6dea9ae07110d78b279195118692ac5ef47592002d",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 824,
+        "y": 139
+      },
+      "file": "frames/cityTiles_022.png",
+      "id": "cityTiles_022",
+      "source": "cityTiles_022.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3253b51000d064047d49c3d219d0ae98a218056fed7dce42f4d326ffbea4d8e7",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 128,
+        "w": 132,
+        "x": 961,
+        "y": 139
+      },
+      "file": "frames/cityTiles_023.png",
+      "id": "cityTiles_023",
+      "source": "cityTiles_023.png",
+      "sourceRect": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "7df734eadafc809168adf13d472cd975d6b855cdbd164ca4dc73cd0cb1a12a18",
+      "trim": {
+        "h": 128,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 132,
+        "x": 1098,
+        "y": 139
+      },
+      "file": "frames/cityTiles_024.png",
+      "id": "cityTiles_024",
+      "source": "cityTiles_024.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "87d90645a202738a73fe9cd00cdbee76ef5f3e9964bce4bca0b1eec36954c409",
+      "trim": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1235,
+        "y": 139
+      },
+      "file": "frames/cityTiles_025.png",
+      "id": "cityTiles_025",
+      "source": "cityTiles_025.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "5056234f224e7ae5fef0560674eecc0e0ce5369a424f09a8b1f2184872a658b8",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 133,
+        "x": 1372,
+        "y": 139
+      },
+      "file": "frames/cityTiles_026.png",
+      "id": "cityTiles_026",
+      "source": "cityTiles_026.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "24e4019bd10ca66d7690b7fd50bee919985cb6b6728eb6ddc91d8f8ba713dff8",
+      "trim": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1509,
+        "y": 139
+      },
+      "file": "frames/cityTiles_027.png",
+      "id": "cityTiles_027",
+      "source": "cityTiles_027.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "bea2354f33ef006f4d946da64cbcebc5db7b4c6ac41282942882792fb09558d8",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1646,
+        "y": 139
+      },
+      "file": "frames/cityTiles_028.png",
+      "id": "cityTiles_028",
+      "source": "cityTiles_028.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "df8e53a96ef53625ad5bad9a0437c03deae76adc089569d6eb5d9bd9ab48ba88",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1783,
+        "y": 139
+      },
+      "file": "frames/cityTiles_029.png",
+      "id": "cityTiles_029",
+      "source": "cityTiles_029.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8bd6221f3f0eafc41f71ddbfa5140a47d1807f76f3f42a9bc272b32ef805065a",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1920,
+        "y": 139
+      },
+      "file": "frames/cityTiles_030.png",
+      "id": "cityTiles_030",
+      "source": "cityTiles_030.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "7544c847daef6e208e750983dc054322e58312d7222b9433be0f804edd23ad8b",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 132,
+        "x": 2057,
+        "y": 139
+      },
+      "file": "frames/cityTiles_031.png",
+      "id": "cityTiles_031",
+      "source": "cityTiles_031.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "6f7b3a1939ca66e9984f2755d04f39f4ba72a263979ef8a9073f68387a6f6c97",
+      "trim": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 2,
+        "y": 276
+      },
+      "file": "frames/cityTiles_032.png",
+      "id": "cityTiles_032",
+      "source": "cityTiles_032.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "54c7ccd8348c1e456539bdf7a9269b2be99dad303b51369db86d1ea4e4ae8834",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 133,
+        "x": 139,
+        "y": 276
+      },
+      "file": "frames/cityTiles_033.png",
+      "id": "cityTiles_033",
+      "source": "cityTiles_033.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8aa56ca8f5accb61a37e7e25a6def75773df8ad428fadebc2393cf4773c96572",
+      "trim": {
+        "h": 133,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 127,
+        "w": 132,
+        "x": 276,
+        "y": 276
+      },
+      "file": "frames/cityTiles_034.png",
+      "id": "cityTiles_034",
+      "source": "cityTiles_034.png",
+      "sourceRect": {
+        "h": 127,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8d5db72e9316c1d2d90dd50eeea4283c3710743a949d7f4fb4df032683104f43",
+      "trim": {
+        "h": 127,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 413,
+        "y": 276
+      },
+      "file": "frames/cityTiles_035.png",
+      "id": "cityTiles_035",
+      "source": "cityTiles_035.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "ca4c9111a9fe17935e0b1b6422efa68f69581f036050a1aaf0ccc631558a2e9c",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 123,
+        "w": 132,
+        "x": 550,
+        "y": 276
+      },
+      "file": "frames/cityTiles_036.png",
+      "id": "cityTiles_036",
+      "source": "cityTiles_036.png",
+      "sourceRect": {
+        "h": 123,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "30d29a922c13313d0c7a347cdbfc1fbfae31181b4fbb9a181e9825ca06569e68",
+      "trim": {
+        "h": 123,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 687,
+        "y": 276
+      },
+      "file": "frames/cityTiles_037.png",
+      "id": "cityTiles_037",
+      "source": "cityTiles_037.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "410974382856243d9919b861d1d2b2c230507fddd3c42b2311bb2be8a35cbe84",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 824,
+        "y": 276
+      },
+      "file": "frames/cityTiles_038.png",
+      "id": "cityTiles_038",
+      "source": "cityTiles_038.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "641fccafd8af0a03cf650cb8d0564e54897fc689930ee769e6abb4f90cb1e0e4",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 961,
+        "y": 276
+      },
+      "file": "frames/cityTiles_039.png",
+      "id": "cityTiles_039",
+      "source": "cityTiles_039.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "271f8e9a14dcf52426b97ac2f01259e2476646bd09d763b0d46a65380c9e0bd6",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1098,
+        "y": 276
+      },
+      "file": "frames/cityTiles_040.png",
+      "id": "cityTiles_040",
+      "source": "cityTiles_040.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "dbfdc571797fbbac3304dbd28a1f3c15e8334a1d9624cdc69ab2ae106b1e1808",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 127,
+        "w": 133,
+        "x": 1235,
+        "y": 276
+      },
+      "file": "frames/cityTiles_041.png",
+      "id": "cityTiles_041",
+      "source": "cityTiles_041.png",
+      "sourceRect": {
+        "h": 127,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "42ea11a60c96d8630f8c09356f2a65b5c6142f94a0f11a021baef1fe5a47545d",
+      "trim": {
+        "h": 127,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1372,
+        "y": 276
+      },
+      "file": "frames/cityTiles_042.png",
+      "id": "cityTiles_042",
+      "source": "cityTiles_042.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "35fccb1cba27e4edbc3c9b04d2a4bb972367bc3afcd373a39a2b164972338957",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1509,
+        "y": 276
+      },
+      "file": "frames/cityTiles_043.png",
+      "id": "cityTiles_043",
+      "source": "cityTiles_043.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3a0dd93fee296e080dbb25d6302caacfe7a6ef81d23215b44569b55135ca2f6f",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 123,
+        "w": 132,
+        "x": 1646,
+        "y": 276
+      },
+      "file": "frames/cityTiles_044.png",
+      "id": "cityTiles_044",
+      "source": "cityTiles_044.png",
+      "sourceRect": {
+        "h": 123,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d5b6fbe6ef5018e3dede06185c48a9615560013e9fd072a76050a1c875def2e6",
+      "trim": {
+        "h": 123,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1783,
+        "y": 276
+      },
+      "file": "frames/cityTiles_045.png",
+      "id": "cityTiles_045",
+      "source": "cityTiles_045.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "a68aaeb263c79f3dbedbd25f2029e32f1add2e729b46214e276a224edec11367",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1920,
+        "y": 276
+      },
+      "file": "frames/cityTiles_046.png",
+      "id": "cityTiles_046",
+      "source": "cityTiles_046.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "fd1663351ccaa39d07cc2b3a22e3c57546825fdf8e73401697ccf4f4de44a915",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 2057,
+        "y": 276
+      },
+      "file": "frames/cityTiles_047.png",
+      "id": "cityTiles_047",
+      "source": "cityTiles_047.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3f528adb1a3af382f8b515686bbf3cb6c12659e7e98f836d99f7dd742822b5a1",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 2,
+        "y": 413
+      },
+      "file": "frames/cityTiles_048.png",
+      "id": "cityTiles_048",
+      "source": "cityTiles_048.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d26c6493aab7d94d459f10aa6544f2e8ab38a3ebef3a9062ca58bbf54145c61c",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 139,
+        "y": 413
+      },
+      "file": "frames/cityTiles_049.png",
+      "id": "cityTiles_049",
+      "source": "cityTiles_049.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "94a37d3a003c918f9b90ad5ce8a762842ee63f244f8992af6c65d98ed67c461b",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 276,
+        "y": 413
+      },
+      "file": "frames/cityTiles_050.png",
+      "id": "cityTiles_050",
+      "source": "cityTiles_050.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "38b9dcf2e99d8301c3c0fe97ea40b1d39da8e8fb45e90c82e94ca4a1de08608d",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 413,
+        "y": 413
+      },
+      "file": "frames/cityTiles_051.png",
+      "id": "cityTiles_051",
+      "source": "cityTiles_051.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "0ebb6da1611164942e248f94889905a7faeb36ea88a8ed0c6fe675bf4a3b48cc",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 550,
+        "y": 413
+      },
+      "file": "frames/cityTiles_052.png",
+      "id": "cityTiles_052",
+      "source": "cityTiles_052.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "25ef1590bf809ebdc489501d54c222970de6d9f74dd80868840540fa7be69e0a",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 687,
+        "y": 413
+      },
+      "file": "frames/cityTiles_053.png",
+      "id": "cityTiles_053",
+      "source": "cityTiles_053.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "15a5741960f7fd985679159155fdde7cd3cf6720d50f9ffed981fefa1e4b1120",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 824,
+        "y": 413
+      },
+      "file": "frames/cityTiles_054.png",
+      "id": "cityTiles_054",
+      "source": "cityTiles_054.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "ba0d4013b586b17368e94f68b82ac9ff5cad235095059673fd7f8bd368aeab21",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 961,
+        "y": 413
+      },
+      "file": "frames/cityTiles_055.png",
+      "id": "cityTiles_055",
+      "source": "cityTiles_055.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "aef8b0ad1e8dfccc3e7f27ef472993da0fcc2fba30b732b68588a6a7720ae7ff",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1098,
+        "y": 413
+      },
+      "file": "frames/cityTiles_056.png",
+      "id": "cityTiles_056",
+      "source": "cityTiles_056.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "cb6a66c8ea0adfc30ef26e96149a065b26e6b3672086639fa0499776cfbef2fc",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 115,
+        "w": 132,
+        "x": 1235,
+        "y": 413
+      },
+      "file": "frames/cityTiles_057.png",
+      "id": "cityTiles_057",
+      "source": "cityTiles_057.png",
+      "sourceRect": {
+        "h": 115,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "ceb316a6a60895f85e909cca950423a8e79adfeef774ccc8855a4aafb46cf792",
+      "trim": {
+        "h": 115,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 131,
+        "w": 132,
+        "x": 1372,
+        "y": 413
+      },
+      "file": "frames/cityTiles_058.png",
+      "id": "cityTiles_058",
+      "source": "cityTiles_058.png",
+      "sourceRect": {
+        "h": 131,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "68954c2c9c23d01dd8c14debf5510f1a4fccf754071580db8f8df391473acb43",
+      "trim": {
+        "h": 131,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1509,
+        "y": 413
+      },
+      "file": "frames/cityTiles_059.png",
+      "id": "cityTiles_059",
+      "source": "cityTiles_059.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "45a0ef556ba84d88fb4c2b4914c2ca6d4057a17391e3effde74ca977855e00d3",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1646,
+        "y": 413
+      },
+      "file": "frames/cityTiles_060.png",
+      "id": "cityTiles_060",
+      "source": "cityTiles_060.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "b629e0473dafedda5901d9f387d471db772d572820cf8a9fd5de5e3a4beee177",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1783,
+        "y": 413
+      },
+      "file": "frames/cityTiles_061.png",
+      "id": "cityTiles_061",
+      "source": "cityTiles_061.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d669820e80a2471193f4d4d5ec227f69191c1f8e866c957bcdbfe179cc1ded0a",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1920,
+        "y": 413
+      },
+      "file": "frames/cityTiles_062.png",
+      "id": "cityTiles_062",
+      "source": "cityTiles_062.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "1ab52fa3993ecf05beabe03a8f7ee6555e23543865390b230eede4f58df25724",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 2057,
+        "y": 413
+      },
+      "file": "frames/cityTiles_063.png",
+      "id": "cityTiles_063",
+      "source": "cityTiles_063.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "b505380b66e7a5cec343e878176066556504d491406f635af664e3da56e73311",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2,
+        "y": 550
+      },
+      "file": "frames/cityTiles_064.png",
+      "id": "cityTiles_064",
+      "source": "cityTiles_064.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8d89292511d1a817ba5a7b25b65e45e942b617f09a02efdb21219ae84b2f77fa",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 116,
+        "w": 132,
+        "x": 139,
+        "y": 550
+      },
+      "file": "frames/cityTiles_065.png",
+      "id": "cityTiles_065",
+      "source": "cityTiles_065.png",
+      "sourceRect": {
+        "h": 116,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "1272f6dde1dea2c717ee52f127d118d862cfae9a39f8576c0d6270214971f8ae",
+      "trim": {
+        "h": 116,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 276,
+        "y": 550
+      },
+      "file": "frames/cityTiles_066.png",
+      "id": "cityTiles_066",
+      "source": "cityTiles_066.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "7697e11354025e4ded8e9a1975126455431c0d3e4fef4439cfd4b4f64f4e716d",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 113,
+        "w": 132,
+        "x": 413,
+        "y": 550
+      },
+      "file": "frames/cityTiles_067.png",
+      "id": "cityTiles_067",
+      "source": "cityTiles_067.png",
+      "sourceRect": {
+        "h": 113,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "ad2c037b9851dc89173b50c80bfdbbb711552aacca51f75fe8b442abf9c9c2b7",
+      "trim": {
+        "h": 113,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 550,
+        "y": 550
+      },
+      "file": "frames/cityTiles_068.png",
+      "id": "cityTiles_068",
+      "source": "cityTiles_068.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "350361bfc2d4d8ead877bdac35d52882fa45d2ea225fc1e8e3ae4d949078cec6",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 687,
+        "y": 550
+      },
+      "file": "frames/cityTiles_069.png",
+      "id": "cityTiles_069",
+      "source": "cityTiles_069.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "939dead098a3db4a7d06e15322f0add2f8351923f429e728053722a431e38be8",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 824,
+        "y": 550
+      },
+      "file": "frames/cityTiles_070.png",
+      "id": "cityTiles_070",
+      "source": "cityTiles_070.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "6f316fc0d8c27b494aaff53f0111290c6de335b8f972aef298dc18bcf830806b",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 961,
+        "y": 550
+      },
+      "file": "frames/cityTiles_071.png",
+      "id": "cityTiles_071",
+      "source": "cityTiles_071.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "c746d5f4c6181aa7f8d778077408a2ddc99af31f71bc6766499471b9efd2c073",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 99,
+        "w": 132,
+        "x": 1098,
+        "y": 550
+      },
+      "file": "frames/cityTiles_072.png",
+      "id": "cityTiles_072",
+      "source": "cityTiles_072.png",
+      "sourceRect": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "164d0cd396c7c0f1441b33a5dbfd84a46bda49b36810ad28049c741cd9dbd0d5",
+      "trim": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1235,
+        "y": 550
+      },
+      "file": "frames/cityTiles_073.png",
+      "id": "cityTiles_073",
+      "source": "cityTiles_073.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "49e6aba3b5128720198f31815dde87afc2e6e794a7373855fc05a90d2a3baa36",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1372,
+        "y": 550
+      },
+      "file": "frames/cityTiles_074.png",
+      "id": "cityTiles_074",
+      "source": "cityTiles_074.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "469fc3ae1398d61cd68f7a02dd32c88de963dfd643878ae54ad7344e2ab2e330",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 113,
+        "w": 132,
+        "x": 1509,
+        "y": 550
+      },
+      "file": "frames/cityTiles_075.png",
+      "id": "cityTiles_075",
+      "source": "cityTiles_075.png",
+      "sourceRect": {
+        "h": 113,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3880290fbab93c41d2467be10824cf2fcbe3bd1b9c84121c7d50e30a3394cda9",
+      "trim": {
+        "h": 113,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1646,
+        "y": 550
+      },
+      "file": "frames/cityTiles_076.png",
+      "id": "cityTiles_076",
+      "source": "cityTiles_076.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "b353af17d3de30d5f412711ff0acabbffc7d4507dc807d6c993d1d26c36fc468",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1783,
+        "y": 550
+      },
+      "file": "frames/cityTiles_077.png",
+      "id": "cityTiles_077",
+      "source": "cityTiles_077.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "15a51f5e89cddb0fb1eb1d392e2c2e68dfc66d4087e8e9bf798d637a0374e573",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1920,
+        "y": 550
+      },
+      "file": "frames/cityTiles_078.png",
+      "id": "cityTiles_078",
+      "source": "cityTiles_078.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "5efa9a85cde916ffd3981fdf8202989269ea2e7b310cbda1b801ff9624df9bac",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2057,
+        "y": 550
+      },
+      "file": "frames/cityTiles_079.png",
+      "id": "cityTiles_079",
+      "source": "cityTiles_079.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "dab5c3914b5dde09ea0832a1a8134e647284564aec97323890bdf246fcbd698d",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 99,
+        "w": 132,
+        "x": 2,
+        "y": 687
+      },
+      "file": "frames/cityTiles_080.png",
+      "id": "cityTiles_080",
+      "source": "cityTiles_080.png",
+      "sourceRect": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d709065bc17fe3f63b32fcf74eb69c420761bbfe05082399418d21e71f4b3120",
+      "trim": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 139,
+        "y": 687
+      },
+      "file": "frames/cityTiles_081.png",
+      "id": "cityTiles_081",
+      "source": "cityTiles_081.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "e648daf0d7f34ab616c00a4e0b8bb08941f0e482f523154a00dbf05ddf34cd28",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 276,
+        "y": 687
+      },
+      "file": "frames/cityTiles_082.png",
+      "id": "cityTiles_082",
+      "source": "cityTiles_082.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "6c6aa3eb534249faafef2b1a05180975e9f93dfbd326fa0c115081a5b0ea5a70",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 113,
+        "w": 132,
+        "x": 413,
+        "y": 687
+      },
+      "file": "frames/cityTiles_083.png",
+      "id": "cityTiles_083",
+      "source": "cityTiles_083.png",
+      "sourceRect": {
+        "h": 113,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8171e2aa4469466f5e8df0d02b9a717976a001c35ca86423269c4f5d56a5d791",
+      "trim": {
+        "h": 113,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 550,
+        "y": 687
+      },
+      "file": "frames/cityTiles_084.png",
+      "id": "cityTiles_084",
+      "source": "cityTiles_084.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "304a40c033d9c0980249001bffcfeeaec56ced08081d069d84aad76a5f8a7181",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 687,
+        "y": 687
+      },
+      "file": "frames/cityTiles_085.png",
+      "id": "cityTiles_085",
+      "source": "cityTiles_085.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "83f15e633ed1cd2375a63315cbcd402c5b9507ffc05695ecfadf399ef5242fae",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 824,
+        "y": 687
+      },
+      "file": "frames/cityTiles_086.png",
+      "id": "cityTiles_086",
+      "source": "cityTiles_086.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "08360ec9e59e020b2dd1bd57d831b595623fb887e0bb221aa87495ee9cd17362",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 99,
+        "w": 132,
+        "x": 961,
+        "y": 687
+      },
+      "file": "frames/cityTiles_087.png",
+      "id": "cityTiles_087",
+      "source": "cityTiles_087.png",
+      "sourceRect": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "a522e4e7ce238b62e0073ec89a2bc9a8011a3ff9538d2adbe292a1678188415c",
+      "trim": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1098,
+        "y": 687
+      },
+      "file": "frames/cityTiles_088.png",
+      "id": "cityTiles_088",
+      "source": "cityTiles_088.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "cac92ce53fa9052271badc8dcc452f4f528d8d286d6d0827a1f160fa3b31aee2",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1235,
+        "y": 687
+      },
+      "file": "frames/cityTiles_089.png",
+      "id": "cityTiles_089",
+      "source": "cityTiles_089.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "2656dd853a1470401c096e5d59c90ce998ffb2f1aa66d20a99d17ad60f8c1b9f",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1372,
+        "y": 687
+      },
+      "file": "frames/cityTiles_090.png",
+      "id": "cityTiles_090",
+      "source": "cityTiles_090.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "cf47e1df44854d8a64edd053d199ee660f34974a6788fb6e0fbdbac8390b17f6",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1509,
+        "y": 687
+      },
+      "file": "frames/cityTiles_091.png",
+      "id": "cityTiles_091",
+      "source": "cityTiles_091.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "fbf4e1000cfe2c29034a070a9230ca822ba179d018e78aa3305f4d56ce53f58a",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1646,
+        "y": 687
+      },
+      "file": "frames/cityTiles_092.png",
+      "id": "cityTiles_092",
+      "source": "cityTiles_092.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "87fa924f95b3c33bcc0642599e1df0ed072b84cc7eb26d26883d3773414f0739",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1783,
+        "y": 687
+      },
+      "file": "frames/cityTiles_093.png",
+      "id": "cityTiles_093",
+      "source": "cityTiles_093.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "67aab5dff690d813632f17cf4586a6574d30a75766a449303c887522dba66319",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 99,
+        "w": 132,
+        "x": 1920,
+        "y": 687
+      },
+      "file": "frames/cityTiles_094.png",
+      "id": "cityTiles_094",
+      "source": "cityTiles_094.png",
+      "sourceRect": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "690f8a6e9a4f06e0a0c84dbaa9254c50dcdfd36b0fa195d1d68c98c69a4ce1d1",
+      "trim": {
+        "h": 99,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2057,
+        "y": 687
+      },
+      "file": "frames/cityTiles_095.png",
+      "id": "cityTiles_095",
+      "source": "cityTiles_095.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "68ede80bdb61d1b7cf5a0e729e0ef9ce3133b36366cb2bf77a8d766e829d95ea",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2,
+        "y": 824
+      },
+      "file": "frames/cityTiles_096.png",
+      "id": "cityTiles_096",
+      "source": "cityTiles_096.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "b491b216611f0b0d133e4d7be48e57293249f142e519c82699ac89b52afbc5f9",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 132,
+        "x": 139,
+        "y": 824
+      },
+      "file": "frames/cityTiles_097.png",
+      "id": "cityTiles_097",
+      "source": "cityTiles_097.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "fd32008abf0cdd82e7d7a89ca69ae2a7d8282aae680181bd5a4f9cb2de3c1381",
+      "trim": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 276,
+        "y": 824
+      },
+      "file": "frames/cityTiles_098.png",
+      "id": "cityTiles_098",
+      "source": "cityTiles_098.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "bff896bec6da1339929392e5c697fcfb9041037ae516a68c9dbed816d4191715",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 413,
+        "y": 824
+      },
+      "file": "frames/cityTiles_099.png",
+      "id": "cityTiles_099",
+      "source": "cityTiles_099.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "9d33aaada40566236a54eae14e1daa93f758c734e0cfc0fea255fe4fe0a1e401",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 550,
+        "y": 824
+      },
+      "file": "frames/cityTiles_100.png",
+      "id": "cityTiles_100",
+      "source": "cityTiles_100.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "0270dec923090c2706aafdefe633515526cd36d1114a2313e523b01abd5b614f",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 99,
+        "w": 133,
+        "x": 687,
+        "y": 824
+      },
+      "file": "frames/cityTiles_101.png",
+      "id": "cityTiles_101",
+      "source": "cityTiles_101.png",
+      "sourceRect": {
+        "h": 99,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "fd5a786e36269d5b4d7c5c28972462d28a45a819377e6d647fb0c4a44e344a4f",
+      "trim": {
+        "h": 99,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 824,
+        "y": 824
+      },
+      "file": "frames/cityTiles_102.png",
+      "id": "cityTiles_102",
+      "source": "cityTiles_102.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "b2ed6f2db423292ffe96dc9e89bc3f4f2d06cf7ef41ad7a78abdc7002c9b3831",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 961,
+        "y": 824
+      },
+      "file": "frames/cityTiles_103.png",
+      "id": "cityTiles_103",
+      "source": "cityTiles_103.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "cba19b81749bb0a16c38cfe236f25b931a2bc73c564f8ec1ce2c69f4bd7e967b",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1098,
+        "y": 824
+      },
+      "file": "frames/cityTiles_104.png",
+      "id": "cityTiles_104",
+      "source": "cityTiles_104.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "f74e230ea2b4f0d8492a25cc19b5c8d303d5151207008cfda16838cd066f64d4",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 132,
+        "x": 1235,
+        "y": 824
+      },
+      "file": "frames/cityTiles_105.png",
+      "id": "cityTiles_105",
+      "source": "cityTiles_105.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d863b09be3a04bae676df24f5b58d4ca7c613a81ddb5889736ef7c8b06a38770",
+      "trim": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 1372,
+        "y": 824
+      },
+      "file": "frames/cityTiles_106.png",
+      "id": "cityTiles_106",
+      "source": "cityTiles_106.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "6a3d3a3a5f11293d00333fcaf4db8c5508c38e35fef9e4d1ad4e2e7bf7fa7556",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 99,
+        "w": 133,
+        "x": 1509,
+        "y": 824
+      },
+      "file": "frames/cityTiles_107.png",
+      "id": "cityTiles_107",
+      "source": "cityTiles_107.png",
+      "sourceRect": {
+        "h": 99,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "6bf054eaac2e928a29ff5a29479d5c58c841826f178e59e2947e05569edf5f4c",
+      "trim": {
+        "h": 99,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 132,
+        "x": 1646,
+        "y": 824
+      },
+      "file": "frames/cityTiles_108.png",
+      "id": "cityTiles_108",
+      "source": "cityTiles_108.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "86984fdebffa3dde6beac72cf9ef4544e904d7c33b8f9fcc44ae677b7fc95336",
+      "trim": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1783,
+        "y": 824
+      },
+      "file": "frames/cityTiles_109.png",
+      "id": "cityTiles_109",
+      "source": "cityTiles_109.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3c64b3411b2edb39d6e7b641b3cc6897dfaf9726c4dbe2066cfa2cc5002781fb",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1920,
+        "y": 824
+      },
+      "file": "frames/cityTiles_110.png",
+      "id": "cityTiles_110",
+      "source": "cityTiles_110.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "a95a0af683928cc2565ce23fbd112dd9f5e3457c3854f641622494b4b9c77b8a",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2057,
+        "y": 824
+      },
+      "file": "frames/cityTiles_111.png",
+      "id": "cityTiles_111",
+      "source": "cityTiles_111.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "144f7710613c1b9c5252cca5ad3e9ef2183b3da751f7c832944f9b5877ec0e23",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 2,
+        "y": 961
+      },
+      "file": "frames/cityTiles_112.png",
+      "id": "cityTiles_112",
+      "source": "cityTiles_112.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8ad2bb13d5a4b38e7eb85d29707c85c90017f1d44a7303317c5fc69d7966a794",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 139,
+        "y": 961
+      },
+      "file": "frames/cityTiles_113.png",
+      "id": "cityTiles_113",
+      "source": "cityTiles_113.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "754f60cdf998f25a391ed59fb809b64e4fcca7cc49dbecffe7ce16385e34db1d",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 133,
+        "w": 132,
+        "x": 276,
+        "y": 961
+      },
+      "file": "frames/cityTiles_114.png",
+      "id": "cityTiles_114",
+      "source": "cityTiles_114.png",
+      "sourceRect": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "4c325d2a728d47fe64a444ad7317db029e311c9a027fb3530dfb0a186d00759b",
+      "trim": {
+        "h": 133,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 413,
+        "y": 961
+      },
+      "file": "frames/cityTiles_115.png",
+      "id": "cityTiles_115",
+      "source": "cityTiles_115.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "7e883c0c1da65702cdc79ba91621c222c4bf204663446c3f9bd0f8f7ed1ef0ad",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 550,
+        "y": 961
+      },
+      "file": "frames/cityTiles_116.png",
+      "id": "cityTiles_116",
+      "source": "cityTiles_116.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "e8cf6c41ca7c5a634c4c0a82b8ea6b8f1a2a70c16af7d6e9823a899852baeece",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 133,
+        "x": 687,
+        "y": 961
+      },
+      "file": "frames/cityTiles_117.png",
+      "id": "cityTiles_117",
+      "source": "cityTiles_117.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "2a42f7f3c6d9897779518f658bd29160e00b3a5b2d37f1f669d9fd191143b919",
+      "trim": {
+        "h": 101,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 824,
+        "y": 961
+      },
+      "file": "frames/cityTiles_118.png",
+      "id": "cityTiles_118",
+      "source": "cityTiles_118.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "cc74b9bfa63bae67ef44b3e183b9169ab614dbd0c8424bdfe7964bdf403fa011",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 129,
+        "w": 132,
+        "x": 961,
+        "y": 961
+      },
+      "file": "frames/cityTiles_119.png",
+      "id": "cityTiles_119",
+      "source": "cityTiles_119.png",
+      "sourceRect": {
+        "h": 129,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "533f7be1131755b34f5c32a69b7519ac0bcd69945d4e490b4712bbbffaeacb17",
+      "trim": {
+        "h": 129,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1098,
+        "y": 961
+      },
+      "file": "frames/cityTiles_120.png",
+      "id": "cityTiles_120",
+      "source": "cityTiles_120.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "3fd8d8e924ed16607d8df399e7f2608d90977e33c7fa62580adceadbc7521a13",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 99,
+        "w": 133,
+        "x": 1235,
+        "y": 961
+      },
+      "file": "frames/cityTiles_121.png",
+      "id": "cityTiles_121",
+      "source": "cityTiles_121.png",
+      "sourceRect": {
+        "h": 99,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "e79d9cba5ddc1d3b9601be60e5dcf64a3fd5d234d1ae0e670a7a1e11d8191082",
+      "trim": {
+        "h": 99,
+        "w": 133,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1372,
+        "y": 961
+      },
+      "file": "frames/cityTiles_122.png",
+      "id": "cityTiles_122",
+      "source": "cityTiles_122.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "8c897987dc900cd6a5fb9a63eec52b65a1515f4800dfc26861fb067ab5f8b78c",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 129,
+        "w": 132,
+        "x": 1509,
+        "y": 961
+      },
+      "file": "frames/cityTiles_123.png",
+      "id": "cityTiles_123",
+      "source": "cityTiles_123.png",
+      "sourceRect": {
+        "h": 129,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "b6229106ecb6e627a4322cee024cfb60da3d0baded002ee28ad4acbfdb72578e",
+      "trim": {
+        "h": 129,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1646,
+        "y": 961
+      },
+      "file": "frames/cityTiles_124.png",
+      "id": "cityTiles_124",
+      "source": "cityTiles_124.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "9e5c50a51c25fddb90b2afe678132948156401910338f0eea76c97e9d8811292",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1783,
+        "y": 961
+      },
+      "file": "frames/cityTiles_125.png",
+      "id": "cityTiles_125",
+      "source": "cityTiles_125.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "fc73caaf8f80cafffa992e53dbdd0c7113a979af3136f1959f242f8feca681bb",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 1920,
+        "y": 961
+      },
+      "file": "frames/cityTiles_126.png",
+      "id": "cityTiles_126",
+      "source": "cityTiles_126.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "d80899723f19acbc65bf5a112da68e5fb8233cd343f8db42c4c9bee1234a452a",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "atlas": {
+        "h": 101,
+        "w": 132,
+        "x": 2057,
+        "y": 961
+      },
+      "file": "frames/cityTiles_127.png",
+      "id": "cityTiles_127",
+      "source": "cityTiles_127.png",
+      "sourceRect": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      },
+      "sourceSha256": "73ba9481cf7e1629bd0e9e89a806c8fc157bce8f9b759ecbe048106a52482052",
+      "trim": {
+        "h": 101,
+        "w": 132,
+        "x": 0,
+        "y": 0
+      }
+    }
+  ],
+  "source": "Kenney Isometric City (CC0)"
+}

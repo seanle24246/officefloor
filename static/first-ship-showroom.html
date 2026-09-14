@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The Office — WebGL-Only First Ship Showroom</title>
+  <link rel="stylesheet" href="./first-ship-showroom.css">
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">The Office · ship review</p>
+      <h1>WebGL-Only First Ship</h1>
+      <p class="lede" id="showroom-lede">Loading the shipped placeable catalog…</p>
+    </div>
+    <dl class="totals" aria-label="First ship totals">
+      <div><dt>Included</dt><dd id="included-total">—</dd></div>
+      <div><dt>WebGL meshes</dt><dd id="mesh-total">—</dd></div>
+      <div><dt>Sprite sets</dt><dd>0</dd></div>
+      <div><dt>PNG source</dt><dd>0 B</dd></div>
+    </dl>
+  </header>
+
+  <main>
+    <section class="controls" aria-label="Showroom controls">
+      <label>
+        <span>Search assets</span>
+        <input id="search" type="search" placeholder="Search name or SKU" autocomplete="off">
+      </label>
+      <div class="filters" id="filters" aria-label="Asset category filters"></div>
+      <p class="status" id="status" role="status">Loading the shipped procedural meshes…</p>
+    </section>
+    <section>
+      <div class="section-heading">
+        <h2>Admitted placeables</h2>
+        <span id="shown-count">Loading assets…</span>
+      </div>
+      <div class="asset-grid" id="asset-grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>Catalog: <code>data/first-ship-webgl-catalog.json</code></span>
+    <span>Inventory: <code>MANIFEST.csv</code></span>
+  </footer>
+  <script type="module" src="./first-ship-showroom.js"></script>
+</body>
+</html>

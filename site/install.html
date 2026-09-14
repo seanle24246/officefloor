@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install Officefloor: one pip install, then point it at your agents</title>
+<meta name="description" content="pip install officefloor, run the demo, point it at your agent lanes, and give your agents the reporting protocol so the floor can read them.">
+<link rel="canonical" href="https://officefloor.ai/install">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Officefloor">
+<meta property="og:title" content="Install Officefloor">
+<meta property="og:description" content="One pip install. Python 3.10 or newer. Runs on your machine, binds 127.0.0.1, sends nothing anywhere.">
+<meta property="og:url" content="https://officefloor.ai/install">
+<meta property="og:image" content="https://officefloor.ai/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Install Officefloor">
+<meta name="twitter:description" content="One pip install. Python 3.10 or newer. Runs on your machine, binds 127.0.0.1, sends nothing anywhere.">
+<meta name="twitter:image" content="https://officefloor.ai/og.jpg">
+<meta name="theme-color" content="#15140D">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2315140D'/%3E%3Cpath d='M16 5 27 11.5 16 18 5 11.5Z M5 11.5v6L16 24l11-6.5v-6' fill='none' stroke='%23F2EFDA' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<nav aria-label="Primary">
+  <a class="wordmark" href="index.html">
+    <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+      <g fill="none" stroke="#F2EFDA" stroke-width="1.8" stroke-linejoin="round">
+        <path d="M15 3 27 10 15 17 3 10Z"></path>
+        <path d="M15 9 21 12.5 15 16 9 12.5Z" fill="#F7D24A" stroke="none"></path>
+        <path d="M3 10v6l12 7 12-7v-6"></path>
+      </g>
+    </svg>
+    <span>officefloor</span>
+  </a>
+  <div class="navlinks" data-primary-navlinks></div>
+  <a class="pill" href="demo.html">Demo</a>
+</nav>
+
+<main>
+  <header class="hero center" style="padding-bottom:0">
+    <h1>Install Officefloor.</h1>
+    <p class="sub">One pip install. Python 3.10 or newer. It runs on your machine,
+      binds 127.0.0.1, and sends nothing anywhere.</p>
+  </header>
+
+  <section class="section center" id="run" style="padding-top:40px">
+    <h2>Run it.</h2>
+    <div class="quickstart" aria-label="Install and run">
+      <div class="command"><span>Install</span><code>pip install officefloor</code></div>
+      <div class="command"><span>Open the demo</span><code>officefloor --demo<br>http://127.0.0.1:8788</code></div>
+      <div class="command"><span>Point it at your agents</span><code>officefloor --allrepos ~/your/agents</code></div>
+    </div>
+  </section>
+
+  <section class="section center" id="lanes" style="padding-top:20px">
+    <h2>Give it a folder of lanes.</h2>
+    <p class="sub">Officefloor reads a directory where each agent has its own folder.
+      A lane is any folder with an <code class="inline">OUTBOX.md</code>; engine prefixes are never required. Names with leading/trailing whitespace or control characters, starting with <code>.</code> or containing <code>:</code>, <code>/</code>, or <code>\</code> are skipped (<code>skipped: reserved character</code>). Experimental <code>--session-discovery</code> (default off) also discovers git repositories with exact-path agent session evidence.
+      The floor infers an engine badge from agent metadata and shows <b>unknown</b> when it cannot.</p>
+    <div class="install-block">
+      <pre class="codeblock"><code>~/your/agents/
+  frontend/
+    INBOX.md      directives you write to the agent
+    OUTBOX.md     the agent's reports, ending in a STATUS block
+  backend/
+    INBOX.md
+    OUTBOX.md</code></pre>
+      <p class="install-note">The floor also reads what it can measure on its own: the
+        agent's process, its git branch and last commit, and how long ago each file was
+        written. If it cannot measure something, the seat says <b>unknown</b>.</p>
+    </div>
+  </section>
+
+  <section class="section center" id="agents" style="padding-top:20px">
+    <h2>Tell your agents how to report.</h2>
+    <p class="sub">Append the reporting protocol to each agent's instruction file. The
+      package ships it, so the text on your machine is always the version your floor
+      parses.</p>
+    <div class="install-block">
+      <pre class="codeblock"><code>officefloor --agent-md &gt;&gt; ~/your/agents/frontend/CLAUDE.md</code></pre>
+      <p class="install-note">The whole contract is one rule: end every report to
+        <code class="inline">OUTBOX.md</code> with this block. The floor reads from the last
+        line that is exactly <code class="inline">STATUS</code> to the end of the file.</p>
+      <pre class="codeblock"><code>STATUS
+branch: &lt;your working branch&gt;
+ready_for_pr: true|false
+decision_needed: &lt;short question, or null&gt;
+blockers: &lt;one line, or none&gt;
+task: &lt;what you are doing&gt;
+next: &lt;one line&gt;</code></pre>
+      <div class="install-rules">
+        <div class="rule"><span>ready_for_pr</span>true, yes, or 1 lights the seat as holding finished work for you to collect.</div>
+        <div class="rule"><span>decision_needed</span>anything other than null, none, or no renders the agent as asking you a question.</div>
+        <div class="rule"><span>blockers</span>same rule. A blocked seat shows as blocked, never as idle.</div>
+        <div class="rule"><span>INBOX newer than OUTBOX</span>the agent owes you a reply, and the floor says so.</div>
+      </div>
+      <p class="install-note">A prompt you can paste as-is, for any harness:</p>
+      <pre class="codeblock"><code>You report to a floor that reads your OUTBOX.md. Log status and findings
+there as you go. End EVERY report with the literal STATUS block: a line that
+is exactly STATUS, then branch, ready_for_pr, decision_needed, blockers,
+task, next, one per line. Report truthfully or not at all; the floor
+never invents facts about you. When you need a decision, write a DECISION
+NEEDED &lt;id&gt; paragraph and put the question in decision_needed too. Read
+INBOX.md for directives and answer each one in OUTBOX.md.</code></pre>
+    </div>
+  </section>
+
+  <section class="section center" id="source" style="padding-top:20px">
+    <h2>Read the source.</h2>
+    <p class="sub">The package is plain Python and static files, no build step and no
+      third-party runtime dependencies. Everything the floor does is in the wheel you
+      installed.</p>
+    <div class="quickstart" aria-label="Source">
+      <div class="command"><span>Package</span><code>pypi.org/project/officefloor</code></div>
+      <div class="command"><span>Repository</span><code><!-- REPO-URL: the public curated repo (S2) does not exist yet; site audit forbids external href and the founder handle. CEO fills when it lands. -->source files are included in the installed wheel</code></div>
+      <div class="command"><span>Contact</span><code>hello@officefloor.ai</code></div>
+    </div>
+  </section>
+
+  <div class="about-cta">
+    <div class="micro">right now: pip install officefloor &amp;&amp; officefloor --demo</div>
+  </div>
+</main>
+
+<footer>
+  <div class="foot-grid">
+    <div>
+      <a class="wordmark" href="index.html">
+        <svg width="26" height="26" viewBox="0 0 30 30" aria-hidden="true"><g fill="none" stroke="#F1EFDA" stroke-width="1.8" stroke-linejoin="round"><path d="M15 3 27 10 15 17 3 10Z"></path><path d="M15 9 21 12.5 15 16 9 12.5Z" fill="#F7D24A" stroke="none"></path><path d="M3 10v6l12 7 12-7v-6"></path></g></svg>
+        <span>officefloor</span>
+      </a>
+      <div class="tagline">EVERY PIXEL HAS A RECEIPT</div>
+    </div>
+    <div class="foot-col"><h2>Product</h2><a href="index.html#how">How it works</a><a href="index.html#receipt">The receipt</a><a href="index.html#afterhours">After hours</a><a href="fun.html">Fun</a></div>
+    <div class="foot-col"><h2>Pages</h2><a href="about.html">About</a><a href="soon.html">Coming soon</a></div>
+    <div class="foot-col"><h2>Company</h2><span>hello@officefloor.ai</span></div>
+  </div>
+  <div class="foot-base"><span>© 2026 OFFICEFLOOR</span><span>HELLO@OFFICEFLOOR.AI</span></div>
+</footer>
+<script defer src="nav.js"></script>
+</body>
+</html>

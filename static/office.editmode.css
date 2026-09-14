@@ -1,0 +1,438 @@
+/* SOC-05 editor/design shell. Loaded only when SOC-10 mounts the modules. */
+.office-edit-open,
+.office-themes-open,
+.office-edit-shell button,
+.office-design-manager button,
+.office-edit-shell select,
+.office-design-manager select,
+.office-design-manager input {
+  min-height: 44px;
+  border: 1px solid var(--edge, #344158);
+  border-radius: 6px;
+  color: var(--ink, #edf3ff);
+  background: rgba(17, 23, 37, .94);
+  font: 600 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.office-edit-open,
+.office-themes-open,
+.office-edit-shell button,
+.office-design-manager button {
+  min-width: 44px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.office-edit-open:hover,
+.office-themes-open:hover,
+.office-edit-shell button:hover:not(:disabled),
+.office-design-manager button:hover:not(:disabled) {
+  border-color: var(--good, #56d68b);
+  background: rgba(34, 61, 55, .96);
+}
+
+.office-edit-open:focus-visible,
+.office-themes-open:focus-visible,
+.office-edit-shell :focus-visible,
+.office-design-manager :focus-visible {
+  outline: 2px solid var(--gold, #f0c96b);
+  outline-offset: 2px;
+}
+
+.office-edit-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  display: block;
+  overflow: visible;
+  color: var(--ink, #edf3ff);
+  background: transparent;
+  pointer-events: none;
+  font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.office-edit-shell[hidden] { display: none; }
+
+.office-edit-header,
+.office-edit-header-actions,
+.office-edit-controls,
+.office-design-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.office-edit-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 2;
+  min-height: 58px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--edge, #344158);
+  background: rgba(11, 16, 27, .98);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .38);
+  pointer-events: auto;
+}
+
+.office-edit-title-group {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.office-edit-building { font-size: 22px; }
+
+.office-edit-header h2,
+.office-edit-shell h3 {
+  margin: 0;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.office-edit-header h2 { font-size: 14px; }
+
+.office-edit-header-actions {
+  flex: 1 1 0;
+  justify-content: flex-end;
+}
+
+.office-edit-save-status {
+  min-width: 48px;
+  color: var(--dim, #9aa8bd);
+  text-align: right;
+}
+
+.office-edit-save-status[data-status="Saved"] { color: var(--good, #56d68b); }
+.office-edit-save-status[data-status="Saving"] { color: var(--gold, #f0c96b); }
+.office-edit-save-status[data-status="Failed"] { color: var(--bad, #ff7272); }
+
+.office-edit-options-toggle[aria-expanded="true"] {
+  border-color: var(--gold, #f0c96b);
+  color: var(--gold, #f0c96b);
+  background: rgba(86, 63, 20, .94);
+}
+
+.office-edit-options-panel {
+  position: fixed;
+  z-index: 3;
+  inset: 66px 12px auto auto;
+  display: grid;
+  gap: 8px;
+  width: min(260px, calc(100vw - 24px));
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid rgba(240, 201, 107, .54);
+  border-radius: 10px;
+  background: rgba(11, 16, 27, .98);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, .54);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.office-edit-options-panel[hidden] { display: none; }
+
+.office-edit-options-panel h3 {
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(111, 137, 174, .28);
+  color: var(--gold, #f0c96b);
+}
+
+.office-edit-layout-setting {
+  display: grid;
+  gap: 7px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(111, 137, 174, .28);
+}
+
+.office-edit-layout-setting .settings-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(100px, auto);
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  color: var(--ink, #edf3ff);
+}
+
+.office-edit-layout-setting select {
+  min-width: 100px;
+  padding: 6px 8px;
+}
+
+.office-edit-layout-unavailable {
+  margin: 0;
+  color: var(--dim, #9aa8bd);
+}
+
+.office-edit-option-coming-soon { cursor: help; }
+.office-edit-option-coming-soon .office-edit-option { width: 100%; }
+
+.office-edit-shell .office-edit-option {
+  width: 100%;
+  min-height: 44px;
+  text-align: left;
+}
+
+.office-edit-shell .office-edit-option[role="switch"][aria-checked="true"]:not(:disabled) {
+  border-color: var(--gold, #f0c96b);
+  color: #fff2c8;
+  background: rgba(86, 63, 20, .72);
+}
+
+.office-edit-shell .office-edit-delete-selected:not(:disabled) {
+  border-color: rgba(255, 114, 114, .64);
+  color: #ffd7d7;
+}
+
+.office-edit-shell .office-edit-delete-selected:hover:not(:disabled) {
+  border-color: var(--bad, #ff7272);
+  background: rgba(101, 28, 34, .96);
+}
+
+.office-edit-controls {
+  justify-content: space-between;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.office-edit-room-label {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr);
+  align-items: center;
+  gap: 7px;
+  color: var(--dim, #9aa8bd);
+}
+
+.office-edit-room,
+.office-design-select,
+.office-design-name { padding: 6px 8px; }
+
+.office-edit-tray-section,
+.office-edit-selection,
+.office-edit-designs {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--edge, #344158);
+}
+
+.office-edit-tray-section {
+  position: fixed;
+  inset: 70px auto 12px 12px;
+  display: grid;
+  grid-template-rows: auto auto auto minmax(120px, 1fr) auto auto;
+  gap: 10px;
+  width: min(306px, calc(100vw - 24px));
+  margin: 0;
+  padding: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(111, 137, 174, .58);
+  border-radius: 10px;
+  background: rgba(11, 16, 27, .96);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.office-edit-search {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--edge, #344158);
+  border-radius: 6px;
+  color: var(--ink, #edf3ff);
+  background: rgba(17, 23, 37, .94);
+  font: inherit;
+}
+
+.office-edit-search::placeholder { color: var(--dim, #9aa8bd); }
+
+.office-edit-categories {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.office-edit-shell .office-edit-category {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px 3px;
+  color: var(--dim, #9aa8bd);
+  font-size: 9px;
+}
+
+.office-edit-shell .office-edit-category[data-active="true"] {
+  border-color: var(--good, #56d68b);
+  color: #eafff2;
+  background: rgba(34, 82, 62, .95);
+}
+
+.office-edit-tray {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding: 1px 3px 8px 1px;
+}
+
+/* Keep the card geometry above the generic 44px shell-button floor. */
+.office-edit-shell .office-edit-item-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: 72px minmax(2.7em, auto);
+  gap: 6px;
+  min-width: 0;
+  min-height: 116px;
+  padding: 7px;
+  border: 1px solid rgba(111, 137, 174, .32);
+  border-radius: 8px;
+  color: inherit;
+  background: rgba(23, 31, 49, .78);
+  text-align: left;
+}
+
+.office-edit-item-entry { min-width: 0; }
+.office-edit-item-entry > .office-edit-item-card { width: 100%; height: 100%; }
+
+.office-edit-shell button.office-edit-item-card { cursor: pointer; }
+.office-edit-item-card[data-selected="true"] {
+  border-color: var(--good, #56d68b);
+  background: rgba(31, 80, 60, .76);
+  box-shadow: inset 0 0 0 1px rgba(86, 214, 139, .35);
+}
+.office-edit-item-card[data-readiness="loading"] { opacity: .72; }
+.office-edit-item-card[data-readiness="unavailable/retry"] { border-color: var(--bad, #ff7272); }
+
+.office-edit-item-thumb {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 4px 6%;
+  border: 1px solid rgba(111, 137, 174, .22);
+  border-radius: 6px;
+  background: radial-gradient(circle at 50% 40%, rgba(86, 214, 139, .10), rgba(8, 13, 23, .82));
+}
+
+.office-edit-item-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.office-edit-item-glyph {
+  color: rgba(185, 231, 203, .82);
+  font-size: 10px;
+  letter-spacing: .16em;
+}
+
+.office-edit-item-name {
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.office-edit-item-count {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  min-width: 25px;
+  padding: 2px 5px;
+  border: 1px solid rgba(86, 214, 139, .66);
+  border-radius: 999px;
+  color: #eafff2;
+  background: rgba(16, 47, 36, .96);
+  text-align: center;
+  font-size: 9px;
+}
+
+.office-edit-tray-hint {
+  margin: 0;
+  color: var(--dim, #9aa8bd);
+  text-align: center;
+  font-size: 9px;
+}
+
+.office-edit-more {
+  border-top: 1px solid rgba(111, 137, 174, .28);
+  color: var(--dim, #9aa8bd);
+}
+
+.office-edit-more-label {
+  padding-top: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.office-edit-more[open] {
+  max-height: 36vh;
+  overflow: auto;
+}
+
+.office-edit-renderer,
+.office-edit-upkeep,
+.office-edit-operational,
+.office-design-impact,
+.office-design-statuses { color: var(--dim, #9aa8bd); }
+.office-edit-renderer { text-transform: uppercase; letter-spacing: .08em; }
+
+.office-design-manager {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.office-design-manager h3,
+.office-design-actions,
+.office-design-impact,
+.office-design-statuses,
+.office-design-live { grid-column: 1 / -1; }
+.office-design-actions { flex-wrap: wrap; }
+.office-design-actions button { flex: 1 1 62px; }
+.office-design-statuses { margin: 0; padding-left: 18px; }
+.office-design-live { min-height: 1.45em; margin: 0; }
+
+.office-edit-shell button:disabled,
+.office-design-manager button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+body.office-editing { --office-edit-quiet-agents: 1; }
+body.office-edit-grid-visible { --office-edit-grid-overlay: 1; }
+
+/* Edit Office is a deliberately isolated workspace. The floor canvases and
+   the edit chrome remain; every ordinary direct-body HUD mount disappears and
+   returns automatically when the lifecycle class is removed. */
+body.office-editing > :is(div, aside, section, header, nav, dialog):not(.office-edit-shell):not(#office-webgl-edit-actions):not(#office-webgl-edit-placement) {
+  display: none !important;
+}
+
+@media (max-width: 620px) {
+  .office-edit-header { min-height: 52px; padding-inline: 8px; }
+  .office-edit-header { gap: 4px; }
+  .office-edit-title-group { flex-basis: auto; }
+  .office-edit-building { display: none; }
+  .office-edit-tray-section { inset: 62px 8px 8px; width: auto; }
+  .office-edit-options-panel { inset: 62px 8px auto auto; }
+  .office-edit-tray { grid-template-columns: 1fr; }
+  .office-edit-controls { align-items: stretch; flex-direction: column; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .office-edit-shell,
+  .office-edit-shell *,
+  .office-design-manager * {
+    scroll-behavior: auto !important;
+    transition-duration: .001ms !important;
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

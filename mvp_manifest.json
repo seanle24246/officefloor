@@ -1,0 +1,10 @@
+{
+  "_comment": "Canonical MVP script exclusions consumed by build_standalone.py and the serve-path MVP filter.",
+  "excluded_scripts": [
+    "office.relationship.board.js",
+    "office.relationship.floor.core.js",
+    "office.relationship.floor.glue.js",
+    "office.idle.gamble.js",
+    "office.wager.js"
+  ]
+}

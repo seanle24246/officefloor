@@ -1,0 +1,87 @@
+#needsCard {
+  position: fixed; width: min(360px, calc(100vw - 24px)); height: 276px;
+  overflow: auto; color: var(--ink); background: var(--panel);
+  border: 1px solid var(--edge); border-radius: 10px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .34); backdrop-filter: blur(8px);
+}
+#selectedAgentCard {
+  position: fixed; width: min(360px, calc(100vw - 24px)); height: 276px;
+  overflow: auto; color: var(--ink); background: var(--panel);
+  border: 1px solid var(--edge); border-radius: 10px;
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .34); backdrop-filter: blur(8px);
+}
+#selectedAgentCard .office-needs-card-head {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 3px 9px;
+  align-items: center; min-height: 54px; padding: 8px 10px; border-bottom: 1px solid var(--edge);
+}
+#selectedAgentCard .office-needs-avatar { grid-row: 1 / span 2; font-size: 24px; text-align: center; }
+#selectedAgentCard .office-needs-name { grid-column: 2; grid-row: 1; color: var(--ink); font-size: 13px; font-weight: 700; }
+#selectedAgentCard .office-needs-badges { grid-column: 2; grid-row: 2; display: flex; gap: 5px; }
+#selectedAgentCard .office-needs-attention, #selectedAgentCard .office-needs-state { padding: 1px 5px; border: 1px solid var(--edge); border-radius: 4px; font-size: 9px; font-weight: 700; }
+#selectedAgentCard .office-needs-attention { color: var(--gold); border-color: var(--gold); }
+#selectedAgentCard .office-needs-body { padding: 8px 11px 7px; }
+#selectedAgentCard .office-needs-why { margin: 0; color: var(--ink); font-size: 11.5px; font-weight: 700; }
+#selectedAgentCard .office-needs-context { margin: 3px 0 0; color: #b9c4da; font-size: 10px; }
+#selectedAgentCard .office-needs-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 11px 9px; }
+#selectedAgentCard .office-needs-actions .btn { min-width: 0; padding: 5px 7px; }
+#selectedAgentCard .office-needs-talk, #selectedAgentCard .office-needs-memory { grid-column: 1 / -1; }
+#selectedAgentCard .office-needs-memory { margin: 0; padding: 5px 7px; color: var(--dim); border: 1px solid var(--edge); border-radius: 4px; font-size: 10px; }
+#needsCard .office-needs-card-head {
+  display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 3px 9px;
+  align-items: center; min-height: 54px; padding: 8px 10px;
+  border-bottom: 1px solid var(--edge);
+}
+#needsCard.new-highest .office-needs-card-head {
+  border-color: var(--gold); background: rgba(255, 209, 102, .1);
+}
+#needsCard .office-needs-avatar { grid-row: 1 / span 2; font-size: 24px; text-align: center; }
+#needsCard .office-needs-name {
+  grid-column: 2; grid-row: 1;
+  min-width: 0; overflow: hidden; color: var(--ink); font-size: 13px;
+  font-weight: 700; text-overflow: ellipsis; white-space: nowrap;
+}
+#needsCard .office-needs-badges {
+  grid-column: 2; grid-row: 2; display: flex; align-items: center; gap: 5px;
+}
+#needsCard .office-needs-attention, #needsCard .office-needs-state {
+  display: inline-block; padding: 1px 5px; border: 1px solid var(--edge);
+  border-radius: 4px; font-size: 9px; font-weight: 700; letter-spacing: .5px;
+  white-space: nowrap;
+}
+#needsCard .office-needs-attention { color: var(--gold); border-color: var(--gold); }
+#needsCard .office-needs-state.good { color: var(--good); border-color: rgba(86, 217, 139, .45); }
+#needsCard .office-needs-state.warn { color: var(--warn); border-color: rgba(255, 180, 84, .45); }
+#needsCard .office-needs-state.bad { color: var(--bad); border-color: rgba(255, 107, 107, .5); }
+#needsCard .office-needs-state.cool { color: var(--cool); border-color: rgba(111, 180, 255, .45); }
+#needsCard .office-needs-state.dim { color: var(--dim); }
+#needsCard .office-needs-nav {
+  grid-column: 3; grid-row: 1 / span 2; display: flex; align-items: center; gap: 4px;
+}
+#needsCard .office-needs-nav .btn { padding: 2px 7px; }
+#needsCard .office-needs-position { min-width: 48px; color: var(--dim); font-size: 9px; text-align: center; }
+#needsCard .office-needs-body { padding: 8px 11px 7px; }
+#needsCard .office-needs-why { margin: 0; color: var(--ink); font-size: 11.5px; font-weight: 700; }
+#needsCard .office-needs-context { margin: 3px 0 0; color: #b9c4da; font-size: 10px; }
+#needsCard .office-needs-caveat {
+  margin: 6px 0 0; padding: 4px 6px; color: var(--warn); background: rgba(255, 180, 84, .09);
+  border: 1px solid rgba(255, 180, 84, .3); border-radius: 5px; font-size: 9px;
+}
+#needsCard .office-needs-caveat[hidden] { display: none; }
+#needsCard .office-needs-meta { margin-top: 5px; color: var(--dim); font-size: 9px; }
+#needsCard .office-needs-actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 11px 9px;
+}
+#needsCard .office-needs-actions .btn { min-width: 0; padding: 5px 7px; }
+#needsCard .office-needs-talk { grid-column: 1 / -1; color: var(--gold); }
+#needsCard .office-needs-talk[hidden] { display: none; }
+#needsCard .office-needs-memory {
+  grid-column: 1 / -1; margin: 0; padding: 5px 7px; color: var(--dim);
+  border: 1px solid var(--edge); border-radius: 4px; font-size: 10px;
+}
+#needsCard .office-needs-live {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  #needsCard.new-highest .office-needs-card-head { background: transparent; }
+}

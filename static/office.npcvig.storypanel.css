@@ -1,0 +1,90 @@
+#npc-story-beat-banner {
+  left: 50%; bottom: 116px; width: min(620px, calc(100vw - 32px));
+  padding: 10px 14px; transform: translateX(-50%); pointer-events: none;
+  color: var(--ink); background: rgba(8, 12, 22, .94);
+  border: 1px solid rgba(255, 209, 102, .48); border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .48);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+}
+
+#npc-story-beat-banner[hidden], #npc-story-panel[hidden] {
+  display: none !important;
+}
+
+.npc-story-banner-meta {
+  color: var(--gold); font-size: 9px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase;
+}
+
+.npc-story-banner-text {
+  margin: 4px 0 0; color: #dce5f5; font-size: 12px; line-height: 1.45;
+}
+
+#npc-story-panel-toggle {
+  min-width: 36px; padding-inline: 9px; font-size: 15px;
+}
+
+#npc-story-panel {
+  top: 58px; right: 12px; width: min(390px, calc(100vw - 24px));
+  max-height: calc(100vh - 76px); overflow: auto; padding: 14px;
+  color: var(--ink); background: rgba(8, 12, 22, .97);
+  border: 1px solid rgba(255, 209, 102, .42); border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .55);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  pointer-events: auto;
+}
+
+.npc-story-panel-kicker {
+  margin: 0 0 3px; color: var(--gold); font-size: 9px;
+  font-weight: 700; letter-spacing: .09em;
+}
+
+#npc-story-panel h2 { margin: 0; color: #eef3ff; font-size: 15px; }
+
+.npc-story-progress {
+  margin: 4px 0 10px; color: var(--dim); font-size: 10px;
+}
+
+.npc-story-current {
+  margin: 0; padding: 9px 10px; color: #d6dfef;
+  border-left: 2px solid rgba(255, 209, 102, .52); line-height: 1.5;
+}
+
+.npc-story-focus { margin: 7px 0 0; color: #b9c7dc; font-size: 10px; }
+
+.npc-story-section {
+  margin-top: 13px; padding-top: 10px;
+  border-top: 1px solid rgba(140, 165, 210, .22);
+}
+
+.npc-story-section h3 {
+  margin: 0 0 6px; color: var(--dim); font-size: 9px;
+  letter-spacing: .08em; text-transform: uppercase;
+}
+
+.npc-story-cast, .npc-story-history {
+  display: grid; gap: 6px; margin: 0; padding: 0; list-style: none;
+}
+
+.npc-story-cast-item, .npc-story-history-item {
+  display: grid; gap: 1px; padding: 6px 8px;
+  background: rgba(111, 137, 174, .08); border-radius: 6px;
+}
+
+.npc-story-cast-item small, .npc-story-history-item small {
+  color: var(--dim); font-size: 9px;
+}
+
+.npc-story-history-item p {
+  margin: 2px 0 0; color: #c8d3e6; font-size: 10px; line-height: 1.4;
+}
+
+.npc-story-empty { margin: 0; color: var(--dim); font-size: 10px; }
+
+@media (max-width: 720px) {
+  #npc-story-beat-banner { bottom: 126px; }
+  #npc-story-panel {
+    top: 48px; right: 8px; width: calc(100vw - 16px);
+    max-height: calc(100vh - 60px);
+  }
+}

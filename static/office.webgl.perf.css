@@ -1,0 +1,45 @@
+/* office.webgl.perf.css — CSP-safe presentation for the opt-in rendering HUD. */
+
+#office-webgl-perf {
+  position: fixed;
+  right: 12px;
+  bottom: 74px;
+  z-index: 18;
+  min-width: 288px;
+  padding: 9px 11px;
+  pointer-events: none;
+  color: #dce8f7;
+  background: rgba(5, 9, 16, .88);
+  border: 1px solid rgba(116, 224, 180, .38);
+  border-radius: 7px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .34);
+  font: 10px/1.42 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: pre;
+}
+
+#office-webgl-perf[hidden] { display: none !important; }
+
+#office-webgl-perf .office-webgl-perf-title {
+  margin-bottom: 5px;
+  color: #74e0b4;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+#office-webgl-perf pre {
+  margin: 0;
+  color: inherit;
+  font: inherit;
+}
+
+@media (max-width: 720px) {
+  #office-webgl-perf {
+    right: 8px;
+    bottom: 8px;
+    min-width: 268px;
+    font-size: 9px;
+  }
+}

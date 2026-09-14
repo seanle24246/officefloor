@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "officefloor"
+version = "0.2.2"
+description = "A live, local office floor for teams of coding agents"
+readme = "PYPI_README.md"
+license = { text = "FSL-1.1-ALv2" }
+authors = [
+    { name = "Sean Le" },
+]
+keywords = ["agents", "dashboard", "monitoring", "visualization"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business",
+    "Topic :: System :: Monitoring",
+]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.urls]
+Homepage = "https://officefloor.ai"
+
+[project.scripts]
+officefloor = "office_cli:main"
+officefloor-emit = "server.emit_cli:main"
+
+[tool.setuptools]
+py-modules = ["office_cli", "serve"]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["server*", "static*", "data*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+static = ["*.css", "*.html", "*.js"]
+"static.assets" = ["*"]
+data = ["*.json", "*.txt"]
+
+[tool.setuptools.exclude-package-data]
+server = ["hosted_contract.py", "__pycache__/*"]
+static = [
+    "office.vitals.naughty.js",
+    "office.npcvig.bank.naughty-cast.js",
+    "office.idle.naughty.gate.js",
+    "office.sku.generator.js",
+    "office.sku.schema.js",
+    "office.sweep.js",
+    "office.sku.pack.*.js",
+    "__pycache__/*",
+]
+"static.assets" = [
+    "experimental/*",
+    "experimental/*/*",
+    "experimental/*/*/*",
+]
+data = ["sku-*", "__pycache__/*"]
+
+[tool.setuptools.data-files]
+"share/officefloor" = ["CREDITS.md", "AGENT-PROTOCOL.md", "mvp_manifest.json", "feature_flags.json", "release_manifest.json"]
