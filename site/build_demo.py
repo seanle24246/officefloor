@@ -154,6 +154,11 @@ LEAK_PATTERNS = [
     (re.compile(r"\bseanle[0-9]+\b", re.I), "the founder's github handle"),
 ]
 
+# The one place the handle is allowed: the PUBLIC source repo, which the install
+# page links on purpose (2026-09-14, founder). Stripped from the text before the
+# leak scan so the handle pattern above still refuses every other occurrence.
+PUBLIC_REPO_RE = re.compile(r"github\.com/seanle24246/officefloor\b", re.I)
+
 # Org vocabulary that is product copy, not a fact about anybody. Worth seeing
 # in a public artifact; not worth failing a build over.
 NOTE_PATTERNS = [
@@ -283,8 +288,9 @@ def audit_doc(path: Path) -> tuple[list[str], list[str]]:
         hits = sorted(set(EXTERNAL_RE.findall(scan)))[:3]
         leaks.append(f"{path.name}: external src/href — the site must open offline {hits}")
 
+    leak_scan = PUBLIC_REPO_RE.sub("", doc)
     for pattern, what in LEAK_PATTERNS:
-        for hit in sorted(set(pattern.findall(doc))):
+        for hit in sorted(set(pattern.findall(leak_scan))):
             leaks.append(f"{path.name}: {what} in a public file: {hit!r}")
     for pattern, what in NOTE_PATTERNS:
         for hit in sorted(set(pattern.findall(doc))):
