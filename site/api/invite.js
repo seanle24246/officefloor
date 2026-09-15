@@ -39,9 +39,9 @@ async function kv(command, ...args) {
       Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
     },
   });
-  const payload = await response.json();
+  const payload = await response.json().catch(() => ({}));
   if (!response.ok || Object.hasOwn(payload, "error")) {
-    throw new Error("KV command failed");
+    throw new Error(`KV ${command} → ${response.status} ${payload.error || ""}`.trim());
   }
   return payload.result;
 }
@@ -90,8 +90,8 @@ export default async function handler(req, res) {
     );
 
     return json(res, 200, { ok: true, already: added === 0 });
-  } catch {
-    console.warn("Opening-invite waitlist store is unavailable");
+  } catch (err) {
+    console.warn("Opening-invite waitlist store is unavailable:", err && err.message);
     return json(res, 502, { ok: false, error: "store_unavailable" });
   }
 }
