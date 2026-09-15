@@ -56,7 +56,11 @@
   .soon-invite-input:focus { outline: 0; }
   .soon-invite-form:focus-within { outline: 2px solid var(--yellow); outline-offset: 3px; }
   .soon-invite-submit { cursor: pointer; background: transparent; }
+  .soon-invite-submit:disabled { cursor: wait; opacity: .62; }
   .soon-invite-submit:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+  .soon-invite-status { margin: 14px 0 0; color: #F2EFDA; font-size: 15px; }
+  .soon-invite-status:focus { outline: none; }
+  .soon-invite-status a { color: var(--yellow); }
   @media (max-width: 560px) {
     .soon-invite-form { align-items: stretch; flex-direction: column; border-radius: 18px; }
     .soon-invite-input { min-height: 44px; }
@@ -83,11 +87,12 @@
         <p class="sub" style="color:#D9D4BC;max-width:560px">Officefloor is going online for everyone in your real organization. When it opens, you’ll be able to see whose agents are doing what, the real work and the fun, live, from anywhere. Join the opening-invite waitlist.</p>
         <div class="soon-invite">
           <p class="soon-invite-copy">Be first to hear when the shared floor opens.</p>
-          <form class="soon-invite-form" action="mailto:hello@officefloor.ai?subject=Opening%20invite&amp;body=Opening%20invite%20email%3A%20" method="post" enctype="text/plain">
+          <form class="soon-invite-form" action="/api/invite" method="post">
             <label class="soon-invite-label" for="opening-invite-email">Email address</label>
             <input class="soon-invite-input" id="opening-invite-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required>
             <button class="soon-label soon-invite-submit" type="submit">Get the opening invite</button>
           </form>
+          <p class="soon-invite-status" tabindex="-1" aria-live="polite" hidden></p>
         </div>
       </div>
     </div>
@@ -106,11 +111,41 @@
 <script defer src="nav.js"></script>
 <script>
   const inviteForm = document.querySelector('.soon-invite-form');
-  inviteForm?.addEventListener('submit', (event) => {
-    if (!inviteForm.checkValidity()) return;
+  const inviteStatus = document.querySelector('.soon-invite-status');
+  const inviteButton = inviteForm?.querySelector('.soon-invite-submit');
+
+  inviteForm?.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (!inviteForm.checkValidity()) {
+      inviteForm.reportValidity();
+      return;
+    }
+
     const email = inviteForm.elements.email.value.trim();
-    window.location.href = `mailto:hello@officefloor.ai?subject=Opening%20invite&body=${encodeURIComponent(`Opening invite email: ${email}`)}`;
+    inviteButton.disabled = true;
+    inviteStatus.hidden = true;
+
+    try {
+      const response = await fetch('/api/invite', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const result = await response.json();
+      if (response.status !== 200 || !result.ok) throw new Error('Invite request failed');
+
+      inviteForm.hidden = true;
+      inviteStatus.replaceChildren("You're on the list — we'll email you when the floor opens.");
+    } catch {
+      const fallback = document.createElement('a');
+      fallback.href = 'mailto:hello@officefloor.ai';
+      fallback.textContent = 'hello@officefloor.ai';
+      inviteStatus.replaceChildren('Something went wrong — email ', fallback, " and we'll add you.");
+      inviteButton.disabled = false;
+    }
+
+    inviteStatus.hidden = false;
+    inviteStatus.focus();
   });
 </script>
 </body>
