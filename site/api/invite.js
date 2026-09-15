@@ -31,13 +31,16 @@ function clientIp(req) {
 }
 
 async function kv(command, ...args) {
-  const baseUrl = process.env.KV_REST_API_URL.replace(/\/+$/, "");
-  const path = [command, ...args].map((part) => encodeURIComponent(String(part))).join("/");
-  const response = await fetch(`${baseUrl}/${path}`, {
+  // Send the command as a JSON array to the REST root, not as URL path segments:
+  // path segments break on empty args (e.g. a missing Referer) and on values
+  // containing "/", producing "ERR wrong number of arguments".
+  const response = await fetch(process.env.KV_REST_API_URL, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify([command, ...args].map(String)),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || Object.hasOwn(payload, "error")) {
