@@ -17,12 +17,14 @@
     { label: 'About', href: 'about.html', page: 'about.html' },
     { label: 'Coming soon', href: 'soon.html', page: 'soon.html' },
     { label: 'Fun', href: 'fun.html', page: 'fun.html' },
+    { label: 'GitHub', href: 'https://github.com/seanle24246/officefloor', external: true },
   ]);
 
   document.querySelectorAll('[data-primary-navlinks]').forEach((host) => {
-    host.innerHTML = NAV_ITEMS.map(({ label, href, page }) => {
+    host.innerHTML = NAV_ITEMS.map(({ label, href, page, external }) => {
       const active = page === pageName ? ' class="active" aria-current="page"' : '';
-      return `<a${active} href="${href}">${label}</a>`;
+      const ext = external ? ' rel="noopener"' : '';
+      return `<a${active}${ext} href="${href}">${label}</a>`;
     }).join('');
   });
 }());

@@ -99,7 +99,7 @@ SCREENSHOT_HTML = """<!doctype html>
     </div>
     <div class="foot-col"><h2>Product</h2><a href="index.html#how">How it works</a><a href="index.html#receipt">The receipt</a><a href="index.html#afterhours">After hours</a><a href="fun.html">Fun</a></div>
     <div class="foot-col"><h2>Pages</h2><a href="about.html">About</a><a href="soon.html">Coming soon</a></div>
-    <div class="foot-col"><h2>Company</h2><span>hello@officefloor.ai</span></div>
+    <div class="foot-col"><h2>Company</h2><a href="https://github.com/seanle24246/officefloor" rel="noopener">GitHub</a><span>hello@officefloor.ai</span></div>
   </div>
   <nav class="foot-legal" aria-label="Legal links"><a href="about.html">About</a><span aria-hidden="true">·</span><a href="legal.html">Legal &amp; privacy</a><span aria-hidden="true">·</span><a href="legal.html#license">FSL-1.1-ALv2 license</a><span aria-hidden="true">·</span><a href="legal.html#security">Security</a></nav>
   <div class="foot-base"><span>© 2026 OFFICEFLOOR</span><span>HELLO@OFFICEFLOOR.AI</span></div>
@@ -158,6 +158,15 @@ LEAK_PATTERNS = [
 # page links on purpose (2026-09-14, founder). Stripped from the text before the
 # leak scan so the handle pattern above still refuses every other occurrence.
 PUBLIC_REPO_RE = re.compile(r"github\.com/seanle24246/officefloor\b", re.I)
+
+# The only two off-site NAVIGATION links the site may carry: the public source
+# repo and the PyPI project (2026-09-24, founder). They are plain anchors, not
+# resources the page fetches, so they do not break offline opening. Stripped
+# before the external-resource scan; any other absolute href/src still fails.
+SANCTIONED_ANCHOR_RE = re.compile(
+    r"""<a\b[^>]*\bhref\s*=\s*["']https://(?:github\.com/seanle24246/officefloor|pypi\.org/project/officefloor)/?["'][^>]*>""",
+    re.I,
+)
 
 # Org vocabulary that is product copy, not a fact about anybody. Worth seeing
 # in a public artifact; not worth failing a build over.
@@ -283,7 +292,7 @@ def audit_doc(path: Path) -> tuple[list[str], list[str]]:
 
     # Metadata links (canonical/icon/social) legitimately carry absolute URLs
     # without breaking offline opening — drop them before the resource scan.
-    scan = META_LINK_RE.sub("", doc)
+    scan = SANCTIONED_ANCHOR_RE.sub("", META_LINK_RE.sub("", doc))
     if EXTERNAL_RE.search(scan):
         hits = sorted(set(EXTERNAL_RE.findall(scan)))[:3]
         leaks.append(f"{path.name}: external src/href — the site must open offline {hits}")
