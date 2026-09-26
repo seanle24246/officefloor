@@ -211,17 +211,19 @@ h2 em { font-style: italic; font-weight: inherit; }
   filter: drop-shadow(0 26px 44px rgba(0, 0, 10, .45));
   object-fit: contain;
 }
-.demo-screenshot {
+.demo-live {
   margin: 0;
   background: #070a12;
-  line-height: 0;
 }
-.demo-screenshot img {
+.demo-live iframe {
   display: block;
   width: 100%;
-  height: auto;
+  height: calc(100vh - 72px);
+  height: calc(100dvh - 72px);
+  min-height: 420px;
+  border: 0;
 }
-.demo-screenshot .micro { margin: 0; padding: 12px 18px; line-height: 1.5; text-align: center; }
+.demo-live .micro { margin: 0; padding: 12px 18px; line-height: 1.5; text-align: center; }
 .live-chip {
   position: absolute;
   top: 30px;
