@@ -21,11 +21,15 @@ const THEMES_BUTTON_ID = 'office-themes-button';
 const ASSETS = Object.freeze({
   manhattan: 'assets/manhattan-clustered-office.png',
   tokyo: 'assets/tokyo-office.png',
+  tokyo3d: 'assets/blender-offices/tokyo3d/preview.png',
+  manhattan3d: 'assets/blender-offices/manhattan3d/preview.png',
 });
 const LABELS = Object.freeze({
   default: 'The Office',
   manhattan: 'NYC — Manhattan',
   tokyo: 'Tokyo',
+  tokyo3d: 'TOKYO3d office',
+  manhattan3d: 'NYC3D office',
 });
 let panel = null;
 let officeToggle = null;
@@ -40,7 +44,10 @@ function labelFor(theme) {
 function selectableThemeIds(root = globalThis) {
   const configured = root?.__OFFICE_SELECTABLE_THEMES__;
   if (!Array.isArray(configured)) return null;
-  return new Set(['default', ...configured]);
+  const served = root?.__OFFICE_SNAPSHOT__ == null;
+  const available = served ? String(root?.document?.querySelector?.('meta[name="office-blender-offices"]')?.content || '')
+    .split(',').filter((key) => key === 'tokyo3d' || key === 'manhattan3d') : [];
+  return new Set(['default', ...configured, ...available]);
 }
 
 function choices(root = globalThis) {
@@ -51,7 +58,7 @@ function choices(root = globalThis) {
     .map((theme) => Object.freeze({
     id: theme.id,
     label: labelFor(theme),
-    fidelity: theme.fidelity,
+    fidelity: theme.fidelity === 'world3d' ? '3D office' : theme.fidelity,
     color: Object.values(theme.palette || {})[0] || '#24324a',
     asset: ASSETS[theme.id] || null,
   })));

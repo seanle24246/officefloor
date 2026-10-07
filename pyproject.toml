@@ -66,6 +66,8 @@ static = [
     "experimental/*",
     "experimental/*/*",
     "experimental/*/*/*",
+    "blender-offices/*",
+    "blender-offices/*/*",
 ]
 data = ["sku-*", "__pycache__/*"]
 

@@ -1,0 +1,45 @@
+{
+  "sceneKey": "tokyo3d",
+  "sourceBlendSha256": "70c548a697d1f401747f70edb170ca5da11b812a812910d50e328221b5c3dd59",
+  "sourceRevision": "TOK-BLEND-05",
+  "authoring": "Procedurally authored local Blender geometry commissioned for officefloor; no downloaded third-party models.",
+  "coordinateSystem": "Y-up meters; x,z,-y conversion from Blender",
+  "totalBinaryBytes": 110337288,
+  "chunks": [
+    {
+      "file": "scene-bfda45a3f7da-00.bin",
+      "bytes": 16777216,
+      "sha256": "bfda45a3f7da18992b92c93d02b2ca8cad20bb72e31aaad2d58475f75e1a89a0"
+    },
+    {
+      "file": "scene-1ec0759b708f-01.bin",
+      "bytes": 16777216,
+      "sha256": "1ec0759b708f02e7508f8f671e70ce924c984ad4536e1ba8ab1b8f6f383962cf"
+    },
+    {
+      "file": "scene-45147814fd5a-02.bin",
+      "bytes": 16777216,
+      "sha256": "45147814fd5afe117cf7b1fb3427a2a6ed6280816b9f77a3e3665e4da97281d9"
+    },
+    {
+      "file": "scene-9b1577256a29-03.bin",
+      "bytes": 16777216,
+      "sha256": "9b1577256a2925625a3168033c3228d9b53ec5a76f46243e7573dae84068e783"
+    },
+    {
+      "file": "scene-86552a08b846-04.bin",
+      "bytes": 16777216,
+      "sha256": "86552a08b846e6304b486ab285da8892d63af4a4c4a8f1bedbc8ed87ad8a815e"
+    },
+    {
+      "file": "scene-d542d03ff352-05.bin",
+      "bytes": 16777216,
+      "sha256": "d542d03ff35275c9b4938440bdc53bd458b88cd2c368616b1cc5274698671cf1"
+    },
+    {
+      "file": "scene-2d01fe60c7e8-06.bin",
+      "bytes": 9673992,
+      "sha256": "2d01fe60c7e80e2f526f861e03fc7b4cfebea697b582925219f5d8484dab1967"
+    }
+  ]
+}

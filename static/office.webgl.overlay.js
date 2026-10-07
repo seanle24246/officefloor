@@ -373,19 +373,21 @@ export function createOverlay(options = {}) {
 
   function renderAgents(
     agents, actorMap, bubbleMap, iconMap, selected, nowSeconds,
-    editModeActive, labelScale, plateMode,
+    editModeActive, labelScale, plateMode, world3d,
   ) {
     seenAgents.clear();
     for (const agent of agents) {
       const lane = normalizeAgentLane(agent?.lane);
       if (!lane) continue;
-      const position = plateMode ? null : agentWorldPosition(
+      const position = plateMode || world3d ? null : agentWorldPosition(
         agent,
         actorMap,
         entityOverride('agent', lane),
       );
-      if (!plateMode && !position) continue;
-      const point = plateMode
+      if (!plateMode && !world3d && !position) continue;
+      const point = world3d
+        ? world3d.screenPoint(lane, AGENT_LABEL_HEIGHT)
+        : plateMode
         ? plateAgentScreenPoint(lane, AGENT_LABEL_HEIGHT)
         : projectPoint(position.x, position.y, AGENT_LABEL_HEIGHT);
       if (!finiteProjection(point)) continue;
@@ -417,7 +419,9 @@ export function createOverlay(options = {}) {
     const rooms = Array.isArray(snapshot?.layout?.rooms) ? snapshot.layout.rooms : [];
     const agents = Array.isArray(snapshot?.agents) ? snapshot.agents : [];
     const plateMode = plateWebGLEnabled(root);
-    renderRooms(plateMode ? [] : rooms);
+    const world3d = root.OfficeWebGLMount?.worldTheme?.isWorld3d
+      ? root.OfficeWebGLMount.worldTheme : null;
+    renderRooms(plateMode || world3d ? [] : rooms);
     renderAgents(
       agents,
       actors(),
@@ -428,6 +432,7 @@ export function createOverlay(options = {}) {
       editorActive(),
       agentLabelScale(cameraZoom()),
       plateMode,
+      world3d,
     );
     return layer;
   }

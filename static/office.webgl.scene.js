@@ -57,7 +57,7 @@ export {
 let runtime = null;
 
 function staticAgentPlate(capabilities) {
-  return capabilities?.editMode === false
+  return capabilities?.world3d !== true && capabilities?.editMode === false
     && capabilities.vignettes === false
     && capabilities.cars === false
     && capabilities.trains === false;
@@ -183,13 +183,14 @@ export function buildScene(
   if (typeof worldTheme.buildScene !== 'function') {
     throw new TypeError('themed world runtime must provide buildScene(sceneSpec)');
   }
+  if (worldTheme.isWorld3d && target.getObjectByName('office-blender-world')) return target;
   clearGroup(target);
   const themed = worldTheme.buildScene(sceneSpec);
   if (themed?.isObject3D !== true) {
     throw new TypeError('themed world builder must return a THREE.Object3D');
   }
   target.add(themed);
-  updateRegisteredAgents(sceneSpec.agents || [], {
+  if (!worldTheme.isWorld3d) updateRegisteredAgents(sceneSpec.agents || [], {
     content: target,
     actorMap: null,
     sceneSpec,
@@ -363,14 +364,14 @@ export function createScene(input = {}) {
   scene.add(content);
   const plateCapabilities = Object.hasOwn(options, 'plateCapabilities')
     ? options.plateCapabilities : capabilitiesForPlate(root);
-  const airAds = options.airAds === false || staticAgentPlate(plateCapabilities)
+  const airAds = options.airAds === false || staticAgentPlate(plateCapabilities) || options.worldTheme?.isWorld3d
     ? null : createAirAdsController({
     THREE,
     scene,
     camera,
     ...(options.airAdsOptions || {}),
   });
-  const billboard = options.billboard === false || staticAgentPlate(plateCapabilities)
+  const billboard = options.billboard === false || staticAgentPlate(plateCapabilities) || options.worldTheme?.isWorld3d
     || typeof root.document?.createElement !== 'function'
     ? null : createBillboardController({
     THREE,
@@ -414,6 +415,7 @@ export function createScene(input = {}) {
     perf: null,
     renderFailureMessages: new Set(),
   };
+  options.worldTheme?.configureScene?.(scene, runtime.lights);
   runtime.perf = createPerfOverlay({ getState: () => runtime });
   resizeRuntime(runtime);
   if (options.sceneSpec) setSceneSpec(options.sceneSpec);
@@ -605,7 +607,7 @@ export function renderFrame(now = 0) {
     runtime.customizationSignature = customizationSignature;
   }
   const effectiveWorld = runtime.floorFrozen ? (runtime.sourceWorld || world) : world;
-  applyDayNight(
+  if (!runtime.options.worldTheme?.isWorld3d) applyDayNight(
     runtime.lights,
     runtime.scene,
     runtime.renderer,
@@ -613,7 +615,10 @@ export function renderFrame(now = 0) {
   );
   const viewport = resizeRuntime(runtime);
   const camera2d = liveCamera(runtime);
-  syncCamera(camera2d, viewport.width, viewport.height);
+  if (runtime.options.worldTheme?.isWorld3d) runtime.options.worldTheme.syncCamera({
+    camera: runtime.camera, camera2d, viewport,
+  });
+  else syncCamera(camera2d, viewport.width, viewport.height);
   const wallDeltaMs = !justThawed && Number.isFinite(frameAt) && Number.isFinite(runtime.lastFrameAt)
     ? Math.min(MAX_WALL_DELTA_MS, Math.max(0, frameAt - runtime.lastFrameAt)) : 0;
   runtime.lastFrameAt = Number.isFinite(frameAt) ? frameAt : runtime.lastFrameAt;
@@ -627,6 +632,11 @@ export function renderFrame(now = 0) {
   if (!runtime.floorFrozen && typeof actorMap?.get === 'function') {
     for (const agent of runtime.sceneSpec?.agents || []) actorMap.get(agent.lane)?.update?.(delta);
   }
+  runtime.options.worldTheme?.prepareFrame?.({
+    agents: Array.isArray(effectiveWorld?.agents)
+      ? effectiveWorld.agents : (runtime.sceneSpec?.agents || []), actorMap, dt: delta,
+    frozen: runtime.floorFrozen,
+  });
   const plateNavigation = plateNavigationFrame(root, {
     agents: runtime.sceneSpec?.agents || [], actorMap, dt: delta,
     worldMode: effectiveWorld?.mode,
@@ -644,6 +654,8 @@ export function renderFrame(now = 0) {
     actorMap,
     plateNavigation,
     sceneSpec: runtime.sceneSpec,
+    world3dPlacement: runtime.options.worldTheme?.isWorld3d
+      ? (lane) => runtime.options.worldTheme.placement(lane) : null,
   };
   if (!applyAgentSuppression(runtime, agentFrame)) {
     agentUpdater(runtime.sceneSpec?.agents || [], agentFrame);
@@ -737,6 +749,7 @@ function polledWorldChanged(state) {
 }
 
 function activeAgentAnimation(state) {
+  if (state.options.worldTheme?.isAnimating?.()) return true;
   if (state.airAds?.active === true) return true;
   if (state.plateCapabilities?.cars !== false && carsRoadMoving(state.content)) return true;
   const root = rootObject();
@@ -840,7 +853,7 @@ export function start(input = {}) {
 
 export function stop() {
   if (!runtime) return runtime;
-  runtime.perf.stop();
+  runtime.perf?.stop();
   if (!runtime.running) return runtime;
   const root = rootObject();
   runtime.running = false;
@@ -857,11 +870,12 @@ export function dispose() {
   const state = runtime;
   stop();
   (state.options.disposePlateFrame || disposePlateFrame)();
-  state.perf.destroy();
+  state.perf?.destroy();
   state.airAds?.dispose?.();
   state.billboard?.dispose?.();
+  if (state.options.worldTheme?.isWorld3d) state.options.worldTheme.dispose?.();
   clearGroup(state.content);
-  state.options.worldTheme?.dispose?.();
+  if (!state.options.worldTheme?.isWorld3d) state.options.worldTheme?.dispose?.();
   state.renderer.dispose?.();
   runtime = null;
   return null;

@@ -17,7 +17,7 @@ OFFICE.module('theme.contract', [], () => {
 const SCHEMA_VERSION = 1;
 const ID = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
-const FIDELITY_TIERS = Object.freeze(['procedural', 'hybrid', 'plate']);
+const FIDELITY_TIERS = Object.freeze(['procedural', 'hybrid', 'plate', 'world3d']);
 const PROVENANCE_KINDS = Object.freeze(['authored', 'generated', 'legacy']);
 const DRAW_HOOKS = Object.freeze(['backdrop', 'ground', 'overlay', 'decor']);
 const REQUIRED_FIELDS = Object.freeze([
@@ -140,13 +140,13 @@ function validate(theme) {
   if (plateRef !== null && !stableId(plateRef)) {
     return fail('format', 'render.plateRef', 'plateRef must be null or a registered lowercase-kebab scene key');
   }
-  if (theme.fidelity === 'procedural' && plateRef !== null) {
-    return fail('invariant', 'render.plateRef', 'procedural themes cannot reference a plate');
+  if ((theme.fidelity === 'procedural' || theme.fidelity === 'world3d') && plateRef !== null) {
+    return fail('invariant', 'render.plateRef', 'procedural/world3d themes cannot reference a plate');
   }
-  if (theme.fidelity !== 'procedural' && plateRef === null) {
+  if (theme.fidelity !== 'procedural' && theme.fidelity !== 'world3d' && plateRef === null) {
     return fail('required', 'render.plateRef', `${theme.fidelity} themes require a registered plate reference`);
   }
-  if (theme.fidelity !== 'plate' && hookCount === 0) {
+  if (theme.fidelity !== 'plate' && theme.fidelity !== 'world3d' && hookCount === 0) {
     return fail('required', 'render.hooks', `${theme.fidelity} themes require at least one draw hook`);
   }
 

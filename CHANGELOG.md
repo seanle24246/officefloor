@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- New optional theme **TOKYO3d office**: a real 3D Blender-authored Japanese office (10 developer desks,
+  5 review desks, CEO desk, animated conveyor) with agents walking real navigation. Pick it from the theme
+  picker. The ~110 MB scene geometry lives in `static/assets/blender-offices/tokyo3d/` in this repository and
+  is not in the PyPI wheel; run from a source checkout to use it.
+
 - The Canvas-2D floor renderer is deleted; the floor renders with WebGL/three.js only,
   and a WebGL failure shows the requirement notice instead of falling back to 2D.
 - Docs collapsed: 73 root documents moved into `docs/design/`,

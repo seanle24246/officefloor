@@ -100,6 +100,10 @@ function stop() {
 }
 
 function toggle(targetLane) {
+  if (root.OfficeWebGLMount?.worldTheme?.isWorld3d) {
+    root.OFFICE?.hud?.toast?.('Inspector Follow is unavailable in 3D offices. Select an agent in People to center them.');
+    return false;
+  }
   const follow = follower();
   if (!follow) {
     clearLocal();

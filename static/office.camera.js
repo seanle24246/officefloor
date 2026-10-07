@@ -164,6 +164,8 @@ function centerOnPlate() {
 
 function centerOnWorld() {
   if (!OFFICE.state.world) return;
+  const authoredWorld = globalThis.OfficeWebGLMount?.worldTheme;
+  if (authoredWorld?.isWorld3d && authoredWorld.resetCamera2d?.(cam)) return;
   if (centerOnPlate()) return;
   const { w, h, building_h: buildingH } = OFFICE.state.world.layout.world;
   // Frame the indoor building, not the deeper outdoor apron. The 2D floor's
@@ -202,6 +204,20 @@ if (typeof MutationObserver === 'function' && document.body) {
   }).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['hidden'] });
 }
 function panTo(tileX, tileY) {
+  const authoredWorld = globalThis.OfficeWebGLMount?.worldTheme;
+  if (authoredWorld?.isWorld3d) {
+    const actors = OFFICE.state?.actors;
+    const target = tileX && typeof tileX === 'object' ? tileX : null;
+    const x = target ? target.x : tileX;
+    const y = target ? target.y : tileY;
+    const matches = [...(typeof actors?.entries === 'function' ? actors.entries() : [])]
+      .filter(([, actor]) => actor === target || (Number.isFinite(x) && Number.isFinite(y)
+        && Math.abs(actor?.x - x) < 1e-6 && Math.abs(actor?.y - y) < 1e-6));
+    const lane = matches.find(([id]) => id === selected)?.[0]
+      || (matches.length === 1 ? matches[0][0] : null);
+    if (lane) authoredWorld.centerLane?.(lane, cam);
+    return;
+  }
   const p = iso(tileX, tileY);
   const x = innerWidth / 2 - p.x * cam.zoom;
   const y = innerHeight / 2 - p.y * cam.zoom;

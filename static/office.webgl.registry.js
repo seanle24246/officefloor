@@ -1198,13 +1198,19 @@ export function updateAgents(agents, frame = {}) {
     if (!lane) continue;
     const actor = actorFor(lane, frame.actorMap);
     const entry = agentEntry(lane, agent, actor);
+    const worldPlacement = frame.world3dPlacement?.(lane) || null;
+    if (frame.world3dPlacement) {
+      if (!worldPlacement) continue;
+      entry.x = worldPlacement.position[0];
+      entry.y = worldPlacement.position[2];
+    }
     if (globalThis.OfficeFeatureFlags?.enabled?.('agent_appearance') === true) {
       const model = globalThis.OFFICE?.appearance?.appearanceFor?.(entry)?.model;
       if (['oscar', 'june', 'bear'].includes(model)) entry.avatarVariant = model;
     }
     const legacyActivity = activitiesAnimated ? derivedActivity(agent, actor) : null;
     const outdoors = outsideBuildingFootprint(entry, frame.sceneSpec);
-    if (!insideRenderedFloor(entry, frame.sceneSpec)) continue;
+    if (!frame.world3dPlacement && !insideRenderedFloor(entry, frame.sceneSpec)) continue;
     const signature = riggedSignature(entry);
     active.add(lane);
     let current = record.objects.get(lane);
@@ -1215,6 +1221,7 @@ export function updateAgents(agents, frame = {}) {
       object.userData.agentLane = lane;
       object.userData.agentState = entry.state;
       object.userData.footprint = Object.freeze({ w: 0.8, d: 0.8 });
+      if (frame.world3dPlacement) object.scale.setScalar(.78);
       record.layer.add(object);
       current = { object, signature, anim: animationState(entry, actor) };
       record.objects.set(lane, current);
@@ -1259,7 +1266,8 @@ export function updateAgents(agents, frame = {}) {
     current.anim.px = entry.x;
     current.anim.py = entry.y;
     const platePose = frame.plateNavigation?.get(lane);
-    const moving = platePose ? platePose.moving === true : actor?.moving === true;
+    const moving = frame.world3dPlacement ? worldPlacement.moving === true
+      : platePose ? platePose.moving === true : actor?.moving === true;
     applyGait(current, moving, dt, frame.now);
     if (platePose) {
       current.anim.dir = directionForFacing(platePose.facing);
@@ -1280,9 +1288,10 @@ export function updateAgents(agents, frame = {}) {
       record.batchDirty = true;
     }
     if (current.rig.figure && Number.isFinite(FACING_YAW[current.anim.dir])) {
-      current.rig.figure.rotation.y = FACING_YAW[current.anim.dir];
+      current.rig.figure.rotation.y = frame.world3dPlacement
+        ? worldPlacement.facing : FACING_YAW[current.anim.dir];
     }
-    current.object.position.set(entry.x, 0, entry.y);
+    current.object.position.set(entry.x, frame.world3dPlacement ? worldPlacement.position[1] : 0, entry.y);
   }
 
   for (const [lane, current] of [...record.objects]) {

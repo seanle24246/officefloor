@@ -193,14 +193,6 @@ class PublicWheelBuildPy(_build_py):
                     "their billboards.",
                 ),
             ),
-            "static/office.webgl.mount.js": (
-                (
-                    "GL-S5 may expose a factory-backed controller or own the "
-                    "controller itself.",
-                    "The scene module may expose a factory-backed controller or "
-                    "own the controller itself.",
-                ),
-            ),
         }
         for relative, edits in replacements.items():
             path = stage / relative

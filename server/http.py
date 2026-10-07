@@ -17,7 +17,7 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from server import actions, attach, audit_read, building, customization_api, decision_writer, dispatch_projection, floor_config, ledger, procs, roots, roster, usage_ingest, world
+from server import actions, attach, audit_read, blender_offices, building, customization_api, decision_writer, dispatch_projection, floor_config, ledger, procs, roots, roster, usage_ingest, world
 from server.cockpit import reader as cockpit_reader
 
 
@@ -1636,6 +1636,12 @@ class Handler(BaseHTTPRequestHandler):
         body = target.read_bytes()
         if rel == "index.html" and type(self).index_override is not None:
             body = type(self).index_override
+        if rel == "index.html":
+            available = blender_offices.available_keys(roots.STATIC)
+            if available:
+                names = html.escape(",".join(available), quote=True).encode("ascii")
+                meta = b'<meta name="office-blender-offices" content="' + names + b'" />\n'
+                body = body.replace(b"</head>", meta + b"</head>", 1)
         if rel == "index.html" and (type(self).allow_comms or self.allow_actions or self.world.demo) \
                 and type(self).office_token:
             token = html.escape(type(self).office_token, quote=True).encode("ascii")

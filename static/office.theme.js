@@ -328,16 +328,39 @@ const THEMES = {
     sweeper: { icon: '🌃', label: 'Closing bell' },
     faceGlow: true,
   },
+  tokyo3d: {
+    brand: 'TOKYO3d office', sub: 'Modeled Tokyo office · live agents',
+    bg: '#101925', rooms: {},
+    worldManifest: { sceneKey: 'tokyo3d', builder: {
+      module: './office.webgl.blender-world.js', export: 'createBlenderWorld',
+    } },
+  },
+  manhattan3d: {
+    brand: 'NYC3D office', sub: 'Modeled Manhattan office · live agents',
+    bg: '#101925', rooms: {},
+    worldManifest: { sceneKey: 'manhattan3d', builder: {
+      module: './office.webgl.blender-world.js', export: 'createBlenderWorld',
+    } },
+  },
 };
+const availableBlenderOffices = new Set(
+  (document.querySelector?.('meta[name="office-blender-offices"]')?.content || '').split(',').filter(Boolean),
+);
+const servedBlenderOffice = window.__OFFICE_SNAPSHOT__ == null;
 const configuredThemes = Array.isArray(window.__OFFICE_SELECTABLE_THEMES__)
   ? window.__OFFICE_SELECTABLE_THEMES__
   : Object.keys(THEMES);
 const isSelectableTheme = (key) => {
   const theme = THEMES[key];
   // Tokyo remains registered for review; public controls must not offer it.
-  return key !== 'tokyo' && !!theme && (!theme.plateScene || plate?.hasTheme?.(key) === true);
+  return key !== 'tokyo' && !!theme && (!theme.worldManifest
+    || (servedBlenderOffice && availableBlenderOffices.has(key)))
+    && (!theme.plateScene || plate?.hasTheme?.(key) === true);
 };
-const selectableThemes = Object.freeze([...new Set(configuredThemes)]
+const selectableThemes = Object.freeze([...new Set([
+  ...configuredThemes,
+  ...(servedBlenderOffice ? [...availableBlenderOffices] : []),
+])]
   .filter(isSelectableTheme));
 // The base floor and beach are procedural WebGL floors, but register a strict
 // candidate at runtime so discovery and validation share the same seam as
@@ -381,6 +404,15 @@ if (themeRegistry) {
       license: 'project-authored',
     },
   });
+  if (servedBlenderOffice) for (const key of ['tokyo3d', 'manhattan3d'].filter((value) => availableBlenderOffices.has(value))) {
+    themeRegistry.register({
+      schemaVersion: themeRegistry.SCHEMA_VERSION,
+      id: key, key, label: THEMES[key].brand, fidelity: 'world3d',
+      zones: [], palette: { background: THEMES[key].bg },
+      render: { hooks: {}, plateRef: null },
+      provenance: { kind: 'authored', source: `static/assets/blender-offices/${key}/scene.json`, license: 'project-authored' },
+    });
+  }
 }
 // The standalone build can bake a choice, but that is only the registered
 // default: URL, HUD, and remembered choices all outrank it in the shared chain.

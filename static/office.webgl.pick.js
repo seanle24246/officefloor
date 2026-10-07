@@ -43,6 +43,10 @@ function hitsAt(clientX, clientY) {
   unprojectNdc(ndc, rt.camera, -1, nearPoint);
   unprojectNdc(ndc, rt.camera, 1, farPoint);
   raycaster.ray.set(nearPoint, farPoint.sub(nearPoint).normalize());
+  if (rt.options?.worldTheme?.isWorld3d) {
+    const hits = raycaster.intersectObjects(rt.content.children, true);
+    return world3dAgentHits(hits);
+  }
   const capabilities = globalThis.OfficeWebGLMount?.plateCapabilities;
   if (capabilities) {
     if (capabilities.agentPicking !== true) return [];
@@ -53,6 +57,18 @@ function hitsAt(clientX, clientY) {
     object !== rt.content && object?.userData?.officeEditPickRoot === true
   ));
   return raycaster.intersectObjects([...rt.content.children, ...editRoots], true);
+}
+
+export function world3dAgentHits(hits) {
+  const first = hits.find((hit) => {
+    const object = hit.object;
+    const lane = laneFromObject3D(object);
+    // Instanced avatar batches render the geometry, while the hidden source
+    // meshes retain their lane ancestry for raycasting.
+    if (object?.visible === false && !(lane && object.userData?.agentBatchSource)) return false;
+    return !(object?.material?.transparent && object.material.opacity < .5);
+  });
+  return first && laneFromObject3D(first.object) ? [first] : [];
 }
 
 export function laneAt(clientX, clientY) {

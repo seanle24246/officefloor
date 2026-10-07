@@ -20,4 +20,5 @@ exclude static/office.sku.schema.js
 exclude static/office.sweep.js
 recursive-exclude static office.sku.pack.*.js
 prune static/assets/experimental
+prune static/assets/blender-offices
 global-exclude __pycache__ *.pyc

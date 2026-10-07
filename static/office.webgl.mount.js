@@ -104,8 +104,58 @@ function loadBoutModule(capabilities) {
 
 async function stopRuntime(target) {
   if (!target) return;
-  if (typeof target.stop === 'function') await target.stop();
-  if (typeof target.dispose === 'function') await target.dispose();
+  try {
+    if (typeof target.stop === 'function') await target.stop();
+  } finally {
+    if (typeof target.dispose === 'function') await target.dispose();
+  }
+}
+
+export function runtimeState(controller) {
+  return controller?.getRuntime?.() || controller || null;
+}
+
+export async function initializeSceneController(sceneApi, sceneOptions) {
+  const priorState = sceneApi.getRuntime?.() || null;
+  let controller = null;
+  let owner = null;
+  try {
+    if (typeof sceneApi.createScene === 'function') {
+      controller = await sceneApi.createScene(sceneOptions);
+      if (controller && typeof controller.start === 'function') {
+        owner = controller;
+        await controller.start();
+        return controller;
+      }
+      if (typeof sceneApi.start === 'function') {
+        owner = sceneApi;
+        await sceneApi.start(sceneOptions);
+        return sceneApi;
+      }
+      throw new Error('OFFICE.webgl.createScene() returned no startable controller');
+    }
+    if (typeof sceneApi.start === 'function') {
+      owner = sceneApi;
+      await sceneApi.start(sceneOptions);
+      return sceneApi;
+    }
+    throw new Error('OFFICE.webgl scene controller has no start boundary');
+  } catch (error) {
+    const currentState = sceneApi.getRuntime?.() || null;
+    const newModuleState = currentState && currentState !== priorState;
+    const newFactoryController = owner && owner !== sceneApi && owner !== priorState;
+    const cleanupTarget = newFactoryController ? owner
+      : newModuleState ? sceneApi
+        : controller && controller !== priorState && (controller.stop || controller.dispose)
+          ? controller : null;
+    try {
+      if (cleanupTarget) await stopRuntime(cleanupTarget);
+      else sceneOptions.worldTheme?.dispose?.();
+    } catch (cleanupError) {
+      console.warn('[office.webgl] activation cleanup failed', cleanupError);
+    }
+    throw error;
+  }
 }
 
 async function loadWorldTheme(gltf, THREE) {
@@ -136,27 +186,11 @@ async function buildRuntime(sceneApi, THREE, canvas, capabilities) {
   const gltf = await import(GLTF_MODULE);
   await gltf.registerManifestMeshes(sceneApi, { THREE });
   const worldTheme = await loadWorldTheme(gltf, THREE);
-  const sceneOptions = Object.freeze({ THREE, canvas, worldTheme, plateCapabilities: capabilities });
+  const sceneOptions = Object.freeze({ THREE, canvas, worldTheme,
+    plateCapabilities: worldTheme?.capabilities || capabilities });
 
-  // GL-S5 may expose a factory-backed controller or own the controller itself.
-  // Both forms receive the same bounded mount context and own their GL rAF.
-  if (typeof sceneApi.createScene === 'function') {
-    const controller = await sceneApi.createScene(sceneOptions);
-    if (controller && typeof controller.start === 'function') {
-      await controller.start();
-      return controller;
-    }
-    if (typeof sceneApi.start === 'function') {
-      await sceneApi.start(sceneOptions);
-      return sceneApi;
-    }
-    throw new Error('OFFICE.webgl.createScene() returned no startable controller');
-  }
-  if (typeof sceneApi.start === 'function') {
-    await sceneApi.start(sceneOptions);
-    return sceneApi;
-  }
-  throw new Error('OFFICE.webgl scene controller has no start boundary');
+  // A failed controller start must release the just-loaded authored world.
+  return initializeSceneController(sceneApi, sceneOptions);
 }
 
 export async function start() {
@@ -195,26 +229,27 @@ export async function start() {
     }
 
     runtime = nextRuntime;
-    platePolicy = capabilities;
+    const effectiveCapabilities = runtimeState(nextRuntime)?.options?.plateCapabilities || capabilities;
+    platePolicy = effectiveCapabilities;
     active = true;
     presentWebGL(true);
     try {
-      if (capabilities?.agentPicking !== false) {
+      if (effectiveCapabilities?.agentPicking !== false) {
         pickerRuntime = pickApi;
         pickerRuntime.start();
         laneAt = pickerRuntime.laneAt;
-        if (editModeEnabled) {
+        if (effectiveCapabilities?.editMode !== false) {
           moveableAt = pickerRuntime.moveableAt;
           pickableAt = pickerRuntime.pickableAt;
         }
       }
-      editSelectionRuntime = editSelectionApi || null;
+      editSelectionRuntime = effectiveCapabilities?.editMode !== false ? editSelectionApi : null;
       editSelectionRuntime?.start?.();
       overlayRuntime = overlayApi.start();
-      vigRuntime = vigApi?.start?.() || null;
-      if (ufoApi) ensureUfoGlue();
-      ufoRuntime = ufoApi?.start?.() || null;
-      boutRuntime = boutApi?.start?.() || null;
+      vigRuntime = effectiveCapabilities?.vignettes !== false ? vigApi?.start?.() || null : null;
+      if (ufoApi && effectiveCapabilities?.vignettes !== false) ensureUfoGlue();
+      ufoRuntime = effectiveCapabilities?.vignettes !== false ? ufoApi?.start?.() || null : null;
+      boutRuntime = effectiveCapabilities?.vignettes !== false ? boutApi?.start?.() || null : null;
     } catch (error) {
       const failedPicker = pickerRuntime;
       const failedEditSelection = editSelectionRuntime;
@@ -344,6 +379,7 @@ const api = Object.freeze({
   get moveableAt() { return moveableAt; },
   get pickableAt() { return pickableAt; },
   get plateCapabilities() { return platePolicy; },
+  get worldTheme() { return runtimeState(runtime)?.options?.worldTheme || null; },
 });
 
 globalThis.OfficeWebGLMount = api;

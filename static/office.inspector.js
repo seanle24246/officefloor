@@ -66,8 +66,10 @@ function renderInspector() {
   followButton.textContent = following ? 'Following…' : '🎥 Follow';
   followButton.setAttribute('aria-pressed', following ? 'true' : 'false');
   const vignetteActive = OFFICE.follow?.vignetteActive?.() === true;
-  followButton.disabled = vignetteActive;
-  followButton.title = vignetteActive ? 'A vignette is controlling the camera.' : '';
+  const authoredWorld = globalThis.OfficeWebGLMount?.worldTheme?.isWorld3d === true;
+  followButton.disabled = vignetteActive || authoredWorld;
+  followButton.title = authoredWorld ? 'Inspector Follow is unavailable in 3D offices; use People to center an agent.'
+    : vignetteActive ? 'A vignette is controlling the camera.' : '';
   followButton.onclick = () => {
     OFFICE.follow?.card?.toggle(a.lane);
     renderInspector();
