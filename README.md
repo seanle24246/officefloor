@@ -59,8 +59,9 @@ evidence.
 
 ## Who sits where (roles and rooms)
 
-Seats come from the `ROSTER` heredoc in `ceo/bootstrap.sh`, rows in
-`roster-extra.txt`, and automatic walk-ins. Roster rows have this exact order:
+Seats come from the `ROSTER` heredoc in `<org>/ceo/bootstrap.sh` (written as
+`cat <<'ROSTER'` … `ROSTER`), rows in `roster-extra.txt` beside `serve.py` in a
+source checkout, and automatic walk-ins. Roster rows have this exact order:
 
 ```text
 engine | lane | name | emoji | role | model | appearance-note (optional)
@@ -207,17 +208,14 @@ probes need Node and Chromium; wheel probes need build-capable setuptools.
 
 ## The docs
 
-- [`STATUS.md`](STATUS.md): current product status and open rulings.
-- [`SIGNALS.md`](SIGNALS.md): every signal and its precedence.
 - [`AGENT-PROTOCOL.md`](AGENT-PROTOCOL.md): the shipped reporting contract.
+- [`SIGNALS.md`](SIGNALS.md): every signal and its precedence.
 - [`TECH-ARCHITECTURE.md`](TECH-ARCHITECTURE.md): architecture of record.
-- [`CONTRACTS.md`](CONTRACTS.md), [`SECURITY.md`](SECURITY.md), and
-  [`QA.md`](QA.md): frozen contracts, threat model, and test plan.
+- [`CONTRACTS.md`](CONTRACTS.md) and [`SECURITY.md`](SECURITY.md): frozen
+  contracts and threat model.
 - [`RELEASE.md`](RELEASE.md), [`CHANGELOG.md`](CHANGELOG.md),
   [`CREDITS.md`](CREDITS.md), and [`PYPI_README.md`](PYPI_README.md): release,
   history, asset credits, and the package page.
-- [`docs/design/`](docs/design/), [`docs/business/`](docs/business/), and
-  [`docs/org/`](docs/org/): designs, business material, and org process.
 
 A document's own status header and the current tree are authoritative.
 License: FSL-1.1-ALv2.
