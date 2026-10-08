@@ -296,7 +296,10 @@ export function selectionView(options = {}) {
 
   const family = item ? familyForSku(item)
     : typeof object?.userData?.vehicle === 'string' ? 'cars' : null;
-  const editLocked = family === 'cars' || object?.userData?.officeEditMovable === false;
+  // Cars are visual office scenery, not editor furniture. Pick normally
+  // prevents this path; retain the guard for a stale or injected selection.
+  if (family === 'cars') return null;
+  const editLocked = object?.userData?.officeEditMovable === false;
   return Object.freeze({
     placementId,
     selection,

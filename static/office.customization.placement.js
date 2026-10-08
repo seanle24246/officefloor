@@ -285,6 +285,11 @@ function createPlacementController(options = {}) {
   function proposalFor(input, { existing = false } = {}) {
     const item = catalogBySku.get(String(input?.sku_id || ''));
     if (!item) return Object.freeze({ ok: false, reason: 'unknown_sku' });
+    // Cars render as authored parking-lot scenery. They remain catalogued for
+    // ownership/market data, but no placement transaction may admit them.
+    if (item.category === 'Cars' || item.source?.category === 'Cars') {
+      return Object.freeze({ ok: false, reason: 'unknown_sku' });
+    }
     if (!existing && options.isEntitled(item.sku_id) !== true) {
       // This mirror is only an early preview gate. The save request carries no
       // entitlement assertion; server authority must re-check durable ownership.

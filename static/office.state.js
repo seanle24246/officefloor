@@ -30,6 +30,11 @@ let lastIdleActivitySync = null;
 function collectorOwnsMotion(agent, activity) {
   if (agent?.blocked === true || agent?.decision_needed || agent?.ready_for_pr) return true;
   if (activity?.fiction === true) return true;
+  // Legacy rec-end labels identify idle people, not a separate motion owner.
+  // Let the object-bound idle loop walk them to the actual (possibly moved) table.
+  if (activity?.fiction === false && activity.kind === 'ping_pong'
+      && agent?.state === 'bench' && agent?.desk?.kind === 'none'
+      && agent?.alive !== false) return false;
   return activity?.fiction === false && activity.kind !== 'off_duty';
 }
 
@@ -486,33 +491,55 @@ function createCustomizationCoordinator() {
         ...baseDesign,
         placements: saved.placements,
       });
-      // The persistence schema cannot validate the live catalog, room claims,
-      // or authored scene. Validate that reconciliation here before allowing
-      // the saved placements to supersede the authority/baked defaults.
       const candidateModel = buildEffective(candidate);
+      if (!candidateModel) {
+        throw new Error('customization action conflicts with current state');
+      }
+
+      const pendingOverrides = new Map();
+      for (const [stableId, raw] of Object.entries(saved.authored_overrides)) {
+        const override = normalizedAuthoredOverride(stableId, raw);
+        const row = candidateModel.furnishings.find((entry) =>
+          entry.stable_furnishing_id === stableId && entry.source?.kind !== 'placement');
+        if (!stableId || !override || !row) {
+          throw new Error(`invalid authored furnishing override: ${stableId || '<missing>'}`);
+        }
+        pendingOverrides.set(stableId, override);
+      }
+
       const placementIds = new Set(candidate.placements.flatMap((row) => [
         String(row.placement_id), `placement:${row.placement_id}`,
       ]));
-      const savedConflicts = (candidateModel?.conflicts || []).filter((conflict) => {
+      const savedConflicts = (candidateModel.conflicts || []).filter((conflict) => {
         const conflictIds = [
           ...(conflict.stable_furnishing_ids || []),
           conflict.stable_furnishing_id,
         ].filter(Boolean).map(String);
-        return conflictIds.some((id) => [...placementIds].some((placementId) =>
-          id === placementId || id.startsWith(`${placementId}:`)));
+        const involvesPlacement = conflictIds.some((id) => [...placementIds]
+          .some((placementId) => id === placementId || id.startsWith(`${placementId}:`)));
+        const involvesProjectedAuthoredRow = conflictIds.some((id) => pendingOverrides.has(id));
+        return involvesPlacement && !involvesProjectedAuthoredRow;
       });
-      if (!candidateModel || savedConflicts.length) {
+      if (savedConflicts.length) {
         throw new Error('customization action conflicts with current state');
       }
+
+      // The persistence schema cannot validate the live catalog, room claims,
+      // or authored scene. Validate that reconciliation here before allowing
+      // the saved placements to supersede the authority/baked defaults. Saved
+      // authored overrides are part of that same candidate state: removals no
+      // longer claim their old tiles, while moves claim their projected tiles.
       const spatial = root.OfficeSpatial;
       if ((candidate.placements.length || Object.keys(saved.authored_overrides).length)
           && (!spatial?.buildSnapshot || !spatial?.validatePlacement)) {
         throw new Error('OfficeSpatial authority is unavailable');
       }
+      const projectedRows = projectSpatialFurnishingRows(
+        candidateModel.furnishings, pendingOverrides);
       if (candidate.placements.length) {
         const candidateSnapshot = spatial.buildSnapshot({
           layout: currentState.layout,
-          furnishings: candidateModel.furnishings,
+          furnishings: projectedRows,
           claims: OFFICE.claims?.activeClaims || null,
         });
         for (const placementRow of candidate.placements) {
@@ -533,20 +560,7 @@ function createCustomizationCoordinator() {
         }
       }
 
-      const pendingOverrides = new Map();
-      for (const [stableId, raw] of Object.entries(saved.authored_overrides)) {
-        const override = normalizedAuthoredOverride(stableId, raw);
-        const row = candidateModel.furnishings.find((entry) =>
-          entry.stable_furnishing_id === stableId && entry.source?.kind !== 'placement');
-        if (!stableId || !override || !row) {
-          throw new Error(`invalid authored furnishing override: ${stableId || '<missing>'}`);
-        }
-        pendingOverrides.set(stableId, override);
-      }
-
       if (pendingOverrides.size) {
-        const projectedRows = projectSpatialFurnishingRows(
-          candidateModel.furnishings, pendingOverrides);
         const projectedSnapshot = spatial.buildSnapshot({
           layout: currentState.layout,
           furnishings: projectedRows,
@@ -1969,8 +1983,8 @@ function syncActors(mode = idleContentMode()) {
     if (!currentLanes.has(actor.lane)) actors.delete(actor.lane);
   }
 
-  // Truth `off_duty` is precisely the idle pool. All richer fiction, real
-  // table play, and explicit work signals own their actor's motion instead.
+  // Idle/off-duty and legacy ping-pong seats can use the idle planner.
+  // Other choreography and explicit work signals retain their motion.
   const occupiedSeats = new Set(Object.entries(world.office_state?.seats || {})
     .filter(([lane, seat]) => collectorOwnsMotion(
       agentsByLane.get(lane), seat?.activity))

@@ -1,6 +1,7 @@
 /* office.webgl.scene.js — WebGL runtime lifecycle and global assembly. */
 
 import * as THREE from './vendor/three.module.js';
+import { updatePingPongBalls } from './office.webgl.pingpong.js';
 import { makeCamera, syncCamera } from './office.webgl.camera.js';
 import { toSceneSpec } from './office.webgl.adapter.js';
 import { editorFreezesFloor, editorHidesAgents } from './office.webgl.edit.lifecycle.js';
@@ -660,6 +661,8 @@ export function renderFrame(now = 0) {
   if (!applyAgentSuppression(runtime, agentFrame)) {
     agentUpdater(runtime.sceneSpec?.agents || [], agentFrame);
   }
+  updatePingPongBalls(runtime.content, actorMap, simulationNow,
+    runtime.agentsSuppressed || runtime.floorFrozen);
   if ((runtime.floorFrozen || justThawed) && runtime.frozenAgentPoses) {
     restoreAgentPoses(runtime.content, runtime.frozenAgentPoses);
   }

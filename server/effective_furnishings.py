@@ -338,6 +338,65 @@ def _authored(layout: dict) -> list[dict]:
     return rows
 
 
+def _apply_authored_overrides(
+    rows: list[dict], overrides: dict | None,
+) -> list[dict]:
+    """Project strict client-authored edits onto fresh authored rows.
+
+    Floor-config intentionally owns this schema separately from the SOC design
+    contract.  Ignore malformed/unknown records fail-closed: they must never
+    remove an occupancy claim that the editor would retain.
+    """
+    if not isinstance(overrides, dict):
+        return rows
+    by_id = {row["stable_furnishing_id"]: row for row in rows}
+    for stable_id, override in overrides.items():
+        row = by_id.get(stable_id)
+        if row is None or not isinstance(override, dict):
+            continue
+        if set(override) == {"id", "removed"}:
+            if override.get("id") != stable_id or override.get("removed") is not True:
+                continue
+            row["removed"] = True
+            row["geometry"] = {
+                **row["geometry"],
+                "footprint": {"w": 0, "d": 0},
+                "blocked_tiles": [],
+            }
+            continue
+        if set(override) != {"anchor", "rotation", "room_id"}:
+            continue
+        anchor = override.get("anchor")
+        rotation = override.get("rotation")
+        room_id = override.get("room_id")
+        if not isinstance(anchor, dict) or set(anchor) != {"x", "y"} \
+                or any(type(anchor.get(axis)) is not int
+                       or abs(anchor[axis]) > contract.MAX_SAFE_INTEGER
+                       for axis in ("x", "y")) \
+                or type(rotation) is not int or rotation not in (0, 90, 180, 270) \
+                or not (room_id is None or isinstance(room_id, str)):
+            continue
+        geometry = row["geometry"]
+        prior_rotation = row["rotation"]
+        prior_footprint = geometry["footprint"]
+        base_w, base_d = _rotated_footprint(
+            prior_footprint["w"], prior_footprint["d"], prior_rotation,
+        )
+        placed_w, placed_d = _rotated_footprint(base_w, base_d, rotation)
+        row["room_id"] = room_id or row["room_id"]
+        row["rotation"] = rotation
+        row["geometry"] = {
+            **geometry,
+            "anchor": {"x": anchor["x"], "y": anchor["y"]},
+            "footprint": {"w": placed_w, "d": placed_d},
+            "blocked_tiles": (
+                _tiles(anchor["x"], anchor["y"], placed_w, placed_d)
+                if geometry["blocked_tiles"] else []
+            ),
+        }
+    return rows
+
+
 def _placed(design: dict | None, catalog: dict, rooms: list[dict], readiness: dict,
             operational: dict) -> tuple[list[dict], list[dict]]:
     if design is None:
@@ -459,8 +518,9 @@ def _claims(layout: dict, furnishings: list[dict], initial_conflicts: list[dict]
 def build_effective_furnishings(layout: dict, design: dict | None, catalog: dict,
                                 *, readiness: dict | None = None,
                                 operational: dict | None = None,
+                                authored_overrides: dict | None = None,
                                 layout_variant: str = "default") -> dict:
-    authored = _authored(layout)
+    authored = _apply_authored_overrides(_authored(layout), authored_overrides)
     placed, conflicts = _placed(design, catalog, layout.get("rooms", []), readiness or {}, operational or {})
     furnishings = authored + placed
     furnishings.sort(key=lambda row: row["stable_furnishing_id"])

@@ -16,7 +16,8 @@ from unittest import mock
 
 from http.server import ThreadingHTTPServer
 
-from server import building, customization_api, http as office_http, roots, world
+from server import building, customization_api, effective_furnishings, floor_config
+from server import http as office_http, roots, world
 
 import sys
 from pathlib import Path
@@ -260,6 +261,76 @@ print(json.dumps({
             ))
         self.assertIn(conflict.exception.code, {"structural", "occupied"})
         self.assertEqual(authority_bytes(self.service), pinned)
+
+    def test_saved_authored_removal_frees_exact_ping_pong_repro(self) -> None:
+        self.purchase("sku-0604", 0)
+        placement = {
+            "placement_id": "plc_PING_PONG",
+            "sku_id": "sku-0604",
+            "room_id": "rec",
+            "anchor": {"x": 17, "y": 20},
+            "rotation": 0,
+        }
+        request = self.request(
+            "designs", "create", 0,
+            design_id="dsn_PING_PONG", name="Ping Pong", placements=[placement],
+        )
+        with self.assertRaises(customization_api.CustomizationAPIError) as occupied:
+            self.service.apply(request)
+        self.assertEqual(occupied.exception.code, "occupied")
+
+        stable_id = "authored:prop:5"
+        floor_config.save(roots.state_dir(self.ctx), "default", {
+            "version": 1,
+            "placements": [],
+            "authored_overrides": {
+                stable_id: {"id": stable_id, "removed": True},
+            },
+        })
+        saved = self.service.apply(request)
+        self.assertEqual(saved["result"]["value"]["placements"], [placement])
+
+    def test_moved_authored_prop_claims_new_spot_and_frees_old_spot(self) -> None:
+        layout = {
+            "world": {"w": 12, "h": 12, "building_h": 12},
+            "rooms": [{"id": "rec", "x": 0, "y": 0, "w": 12, "h": 12}],
+            "props": [{"id": 5, "type": "pingpong", "x": 2, "y": 2,
+                       "w": 3, "d": 1.6}],
+        }
+        old_spot = {
+            "placement_id": "plc_OLD", "sku_id": "sku-0604", "room_id": "rec",
+            "anchor": {"x": 2, "y": 2}, "rotation": 0,
+        }
+        new_spot = {
+            **old_spot, "placement_id": "plc_NEW", "anchor": {"x": 6, "y": 6},
+        }
+        stable_id = "authored:prop:5"
+        override = {
+            stable_id: {"anchor": {"x": 6, "y": 6}, "rotation": 90, "room_id": "rec"},
+        }
+
+        def model(placement: dict) -> dict:
+            return effective_furnishings.build_effective_furnishings(
+                layout,
+                {"design_id": "dsn_MOVE", "name": "Move",
+                 "architecture_id": "standard-office-v1", "revision": 0,
+                 "placements": [placement]},
+                self.service.catalog,
+                authored_overrides=override,
+            )
+
+        old_freed = model(old_spot)
+        self.assertFalse(any(conflict["reason"] == "occupied"
+                             for conflict in old_freed["conflicts"]))
+        new_blocked = model(new_spot)
+        self.assertTrue(any(conflict["reason"] == "occupied"
+                            for conflict in new_blocked["conflicts"]))
+        authored = effective_furnishings.lookup(
+            new_blocked, furnishing_id=stable_id,
+        )[0]
+        self.assertEqual(authored["geometry"]["anchor"], {"x": 6, "y": 6})
+        self.assertEqual(authored["geometry"]["footprint"], {"w": 1.6, "d": 3})
+        self.assertEqual(authored["rotation"], 90)
 
     def test_strict_forbidden_fields_catalog_cas_and_real_money_do_not_mutate(self) -> None:
         self.purchase("sku-0207", 0)

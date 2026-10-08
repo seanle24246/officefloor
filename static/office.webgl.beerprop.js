@@ -1,7 +1,7 @@
 /* Blocky mugs held by the shared C-arc drinking/smoking rig. */
 const DRINK_STYLES = Object.freeze({
   beer: Object.freeze({
-    body: '#cf932f', surface: '#fff3d1', surfaceName: 'foam', handle: '#f2ce79',
+    body: '#f2c12e', surface: '#ffffff', surfaceName: 'foam', handle: '#f7d65a',
   }),
   coffee: Object.freeze({
     body: '#f3ead7', surface: '#3b2416', surfaceName: 'liquid', handle: '#e7dcc5',

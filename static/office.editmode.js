@@ -53,7 +53,7 @@ const EDITOR_GESTURE_OWNERS = Object.freeze(['editor', 'placement']);
 const TRAY_READINESS = Object.freeze(['loading', 'ready', 'unavailable/retry']);
 const PLACEMENT_TOOLS = Object.freeze(['select', 'place']);
 const OWNED_ITEM_CATEGORIES = Object.freeze([
-  'All', 'Desks', 'Chairs', 'Decor', 'Cars', 'Equipment', 'Amenities', 'Transit', 'Outdoor',
+  'All', 'Desks', 'Chairs', 'Decor', 'Equipment', 'Amenities', 'Transit', 'Outdoor',
 ]);
 const OWNED_ITEM_CATEGORY_BY_SKU = Object.freeze({
   'sku-0100': 'Desks',
@@ -64,18 +64,6 @@ const OWNED_ITEM_CATEGORY_BY_SKU = Object.freeze({
   'sku-0605': 'Chairs',
   'sku-0700': 'Chairs',
   'sku-0710': 'Chairs',
-  'sku-0806': 'Cars',
-  'sku-0810': 'Cars',
-  'sku-0812': 'Cars',
-  'sku-0815': 'Cars',
-  'sku-0820': 'Cars',
-  'sku-0823': 'Cars',
-  'sku-0825': 'Cars',
-  'sku-0826': 'Cars',
-  'sku-0829': 'Cars',
-  'sku-0830': 'Cars',
-  'sku-0831': 'Cars',
-  'sku-0832': 'Cars',
   'sku-0400': 'Equipment',
   'sku-0403': 'Equipment',
   'sku-0412': 'Equipment',
@@ -285,9 +273,15 @@ function ownedItemCounts(entitlements) {
   return counts;
 }
 
+function isCarCatalogItem(item) {
+  // Catalog normalization keeps generator-pack categories under `source`.
+  // Test fixtures and external callers may provide the compact top-level form.
+  return item?.category === 'Cars' || item?.source?.category === 'Cars';
+}
+
 function ownedAdmitted(admitted, inventory) {
   const owned = ownedItemCounts(entitlementRows(inventory));
-  return admitted.filter((item) => owned.has(item.sku_id));
+  return admitted.filter((item) => !isCarCatalogItem(item) && owned.has(item.sku_id));
 }
 
 function ownedItemCount(skuId, entitlements) {
@@ -470,6 +464,7 @@ const CAR_DISPLAY_NAMES = Object.freeze({
 function authoredItemIdentity(row) {
   const kind = String(row?.source?.kind || 'furnishing');
   const ref = String(row?.source?.ref || '');
+  const renderReference = String(row?.render?.reference || '');
   const carGenerator = /^cars\.([a-z0-9]+(?:-[a-z0-9]+)*)-v1$/
     .exec(String(row?.provenance?.generator || ''));
   const carName = carGenerator && CAR_DISPLAY_NAMES[carGenerator[1]];
@@ -479,6 +474,11 @@ function authoredItemIdentity(row) {
       name: carName,
       category: 'Cars',
     });
+  }
+  // Older authored lots use the car prop without generator provenance. They
+  // are still cars, so keep them out of the editor just like generated rows.
+  if (renderReference === 'props.car') {
+    return Object.freeze({ item_id: 'authored:car', name: 'Car', category: 'Cars' });
   }
   if (['bullpen_desk', 'room_desk'].includes(kind)) {
     return Object.freeze({ item_id: 'authored:oak-desk', name: 'Oak Desk', category: 'Desks' });
@@ -540,6 +540,10 @@ function groupEffectiveFurnishings(furnishings, durablePlacements = []) {
     if (!row?.stable_furnishing_id || row?.source?.kind === 'placement') continue;
     if (row.source?.kind === 'paired_chair' && durableIds.has(row.placement_id)) continue;
     const identity = authoredItemIdentity(row);
+    // Cars are part of the rendered office, never editor inventory. Keep
+    // this category check tied to the generator-pack metadata rather than
+    // SKU ranges so new cars inherit the exclusion automatically.
+    if (identity.category === 'Cars') continue;
     // Art is excluded from the fresh public tray, but a removed authored
     // piece must remain recoverable through Unplaced like any furnishing.
     if (identity.item_id === 'authored:art' && row.removed !== true) continue;

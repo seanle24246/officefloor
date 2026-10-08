@@ -1,3 +1,4 @@
+import { applyPingPongPose, clearPingPongPaddle, pingPongPlayer } from './office.webgl.pingpong.js';
 import {
   disposeBeerProp,
   disposeDrinkProp,
@@ -655,6 +656,18 @@ function directionForFacing(value) {
   return 's';
 }
 
+function directionTowardCamera(camera, animApi) {
+  if (typeof camera?.getWorldDirection !== 'function' || typeof animApi?.isoDir8 !== 'function') {
+    return null;
+  }
+  const view = camera.getWorldDirection(new context.THREE.Vector3());
+  if (![view.x, view.z].every(Number.isFinite) || Math.hypot(view.x, view.z) < 1e-9) return null;
+  // Camera.getWorldDirection points into the scene. Its inverse is the ground-
+  // plane heading an agent uses to look back at the viewer, independent of the
+  // camera's current isometric azimuth.
+  return animApi.isoDir8(-view.x, -view.z);
+}
+
 function animationState(entry, actor = null) {
   const actorSeed = Number(actor?.seed);
   const seedOffset = Number.isFinite(actorSeed)
@@ -825,7 +838,9 @@ function syncNeedsBehavior(record, current, lane, actor, frame) {
   }
 
   const idle = actor?.idleActivity;
-  const activityKey = needsActivityKey(idle);
+  // Table visitors already have an object activity; do not layer a random
+  // drink/eat action over their ping-pong presence. Vitals still tick normally.
+  const activityKey = idle?.kind === 'ping-pong' ? null : needsActivityKey(idle);
   let action = previous?.action || null;
   let applied = previous?.applied === true;
   if (activityKey !== previous?.activityKey) {
@@ -1170,6 +1185,7 @@ function removeAgent(record, lane, current, disposeObject) {
   current.coffeeProp = disposeDrinkProp(current.coffeeProp);
   current.snackProp = disposeSnackProp(current.snackProp);
   clearPeeProp(current, disposeObject);
+  clearPingPongPaddle(current);
   restoreUnsmokedRig(current);
   record.layer.remove(current.object);
   record.needs?.delete(lane);
@@ -1240,9 +1256,10 @@ export function updateAgents(agents, frame = {}) {
     const activity = (proposedActivity === 'smoke' && !smoking)
       || (['coffee', 'snack'].includes(proposedActivity) && proposedActivity !== kitchenActivity)
       ? null : proposedActivity;
+    const pingPong = frame.frozen ? null : pingPongPlayer(actor);
     const articulatedBefore = Boolean(current.rig?.rightForearm);
-    const articulatedActivity = activitiesAnimated
-      && (['beer', 'coffee', 'snack'].includes(activity) || (activity === 'smoke' && smoking))
+    const articulatedActivity = (pingPong || (activitiesAnimated
+      && (['beer', 'coffee', 'snack'].includes(activity) || (activity === 'smoke' && smoking))))
       && prepareHandToMouthRig(current);
     if (!articulatedActivity || activity !== 'smoke') clearSmokingHandProp(current, frame.disposeObject);
     if (!articulatedActivity || activity !== 'beer') current.beerProp = disposeBeerProp(current.beerProp);
@@ -1252,6 +1269,7 @@ export function updateAgents(agents, frame = {}) {
     if (!articulatedActivity || activity !== 'snack') {
       current.snackProp = disposeSnackProp(current.snackProp);
     }
+    if (!pingPong) clearPingPongPaddle(current);
     if (!articulatedActivity) restoreUnsmokedRig(current);
     if (activity !== 'pee' || !outdoors) {
       clearPeeProp(current, frame.disposeObject);
@@ -1274,9 +1292,23 @@ export function updateAgents(agents, frame = {}) {
     } else if (!moving) {
       const occupant = occupantMatch(entry.x, entry.y, deskOccupants);
       current.anim.dir = occupant ? occupant.facing : idleFacingVariant(lane);
+      const idle = actor?.idleActivity;
+      if (idle?.kind === 'ping-pong' && ['settling', 'active'].includes(idle.beat)
+          && idle.facingTarget && animApi?.isoDir8) {
+        current.anim.dir = animApi.isoDir8(
+          idle.facingTarget.x - entry.x, idle.facingTarget.y - entry.y) || current.anim.dir;
+      }
+      if (smoking && ['settling', 'active'].includes(idle?.beat) && !frame.world3dPlacement) {
+        current.anim.dir = directionTowardCamera(frame.camera, animApi) || current.anim.dir;
+      }
     }
     if (activity && (activity !== 'smoke' || smoking) && (activity !== 'pee' || outdoors)) {
       applyActivity(current, animApi, activity, lane, frame, articulatedActivity);
+    }
+    if (pingPong && articulatedActivity) {
+      applyPingPongPose(current, pingPong,
+        globalThis.OFFICE?.actors?.pingPongGames?.(frame.actorMap)?.includes(pingPong.tableId),
+        frame.now, context);
     }
     if (current.labelActor !== actor) setRenderedActivityIcon(current.labelActor, null);
     current.labelActor = actor;

@@ -221,6 +221,69 @@ function activityZones(layout) {
   return zones;
 }
 
+// Only explicitly supported objects offer this idle activity. Resolve the same
+// placement/override geometry as the renderer; removed props cannot host play.
+function pingPongTables(layout, coordinator = globalThis.OFFICE?.state?.customization) {
+  const theme = globalThis.OFFICE?.theme?.THEME;
+  if (theme?.plateScene) return []; // The photographed table has no live mesh.
+  const effective = coordinator?.effective?.();
+  const spatial = globalThis.OfficeSpatial;
+  const snapshot = spatial?.current?.();
+  const rows = [];
+  for (const [index, prop] of (layout?.props || []).entries()) {
+    if ((prop.kind || prop.type) !== 'pingpong'
+        || (theme?.props?.pingpong && theme.props.pingpong !== 'pingpong')) continue;
+    const id = `authored:prop:${prop.id ?? index}`;
+    const override = coordinator?.authoredOverrideFor?.(id);
+    if (override?.removed) continue;
+    const row = effective?.furnishings?.find((item) => item.stable_furnishing_id === id);
+    rows.push({ id, anchor: override?.anchor || row?.geometry?.anchor || prop,
+      footprint: { w: prop.w || 3, d: prop.d || 1.6 },
+      rotation: override?.rotation ?? row?.rotation ?? prop.rotation ?? prop.rot ?? 0 });
+  }
+  for (const row of effective?.furnishings || []) {
+    if (row.source?.kind !== 'placement' || row.sku_id !== 'sku-0604'
+        || row.operational?.behavior_enabled !== true) continue;
+    rows.push({ id: row.stable_furnishing_id, placementId: row.placement_id,
+      anchor: row.geometry?.anchor, footprint: { w: 3, d: 2 }, rotation: row.rotation });
+  }
+  return rows.flatMap((row) => {
+    const entry = snapshot && spatial.entryFor?.(snapshot, row.id);
+    if (snapshot && !entry) return [];
+    const anchor = entry?.anchor || row.anchor;
+    const footprint = entry?.footprint || row.footprint;
+    const rotation = entry?.rotation ?? row.rotation;
+    if (!finitePoint(anchor) || ![0, 90, 180, 270].includes(rotation)) return [];
+    const swapped = rotation % 180 !== 0;
+    const center = { x: anchor.x + (swapped ? footprint.d : footprint.w) / 2,
+      y: anchor.y + (swapped ? footprint.w : footprint.d) / 2 };
+    const angle = rotation * Math.PI / 180;
+    const axis = { x: Math.cos(angle), y: -Math.sin(angle) };
+    const ends = [-1, 1].map((side) => ({
+      x: center.x + side * axis.x * (footprint.w / 2 + 0.65),
+      y: center.y + side * axis.y * (footprint.w / 2 + 0.65),
+    }));
+    return [{ ...row, center, ends, rotation,
+      fingerprint: JSON.stringify([anchor.x, anchor.y, footprint.w, footprint.d, rotation]) }];
+  });
+}
+
+function pingPongGames(actorMap) {
+  const tables = new Map();
+  for (const actor of actorMap?.values?.() || []) {
+    const state = actor.idleActivity;
+    if (state?.kind !== 'ping-pong' || !['settling', 'active'].includes(state.beat)
+        || actor.moving || !samePoint(actor, state.target, 0.06)) continue;
+    const players = tables.get(state.tableId) || [];
+    players.push({ actor, state });
+    tables.set(state.tableId, players);
+  }
+  return [...tables.entries()].filter(([, players]) => players.length === 2
+    && players[0].state.tableEnd !== players[1].state.tableEnd
+    && players[0].state.tableFingerprint === players[1].state.tableFingerprint)
+    .map(([id]) => id);
+}
+
 // SIGNALS §5: alive:false is external evidence of absence, even on a bench.
 const idleActivityEligible = (agent, occupiedSeats = new Set()) => Boolean(
   ((agent?.state === 'bench' && agent?.desk?.kind === 'none')
@@ -493,6 +556,7 @@ function syncIdleActivities({
   }
   const window = Math.floor(epochS / IDLE_ACTIVITY_WINDOW_S);
   const zones = activityZones(layout);
+  const tables = pingPongTables(layout);
   const core = globalThis.OfficeIdleActivity;
   const glue = globalThis.OfficeIdleActivityGlue;
   const gamble = globalThis.OfficeIdleGamble;
@@ -519,7 +583,10 @@ function syncIdleActivities({
     const invalid = !eligibleLanes.has(agent.lane)
       || !samePoint(home, actor.idleActivity.home)
       || (actor.idleActivity.system === 'gamble' && !modeAtLeast(mode, 'funny'))
-      || (actor.idleActivity.kind === 'pee' && mode !== 'naughty');
+      || (actor.idleActivity.kind === 'pee' && mode !== 'naughty')
+      || (actor.idleActivity.kind === 'ping-pong' && !tables.some((table) =>
+        table.id === actor.idleActivity.tableId
+        && table.fingerprint === actor.idleActivity.tableFingerprint));
     if (invalid) actor.interruptIdleActivity(agent, window);
     else if (actor.idleActivity.kind === 'smoke'
         && ['settling', 'active'].includes(actor.idleActivity.beat)
@@ -542,6 +609,41 @@ function syncIdleActivities({
     const expected = actorMap.get(group[0].lane)?.idleActivity?.participantCount || 1;
     if (group.length === expected) continue;
     for (const agent of group) actorMap.get(agent.lane)?.interruptIdleActivity(agent, window);
+  }
+
+  // A lone visitor may wait at one end; a later visitor can claim the other.
+  // Reuse idle ownership, routing, lifetime and the floor's existing K budget.
+  let pingBudget = eligible.filter((agent) =>
+    actorMap.get(agent.lane)?.idleActivity?.depth === 'deep').length;
+  const visitors = [...eligible].sort((a, b) =>
+    hash(`ping-pong:${window}:${a.lane}`) - hash(`ping-pong:${window}:${b.lane}`));
+  for (const table of tables) {
+    // Alternate with the existing idle repertoire; always let a waiting visitor
+    // receive a partner, including across a window boundary.
+    const occupied = eligible.some((agent) => {
+      const state = actorMap.get(agent.lane)?.idleActivity;
+      return state?.kind === 'ping-pong' && state.tableId === table.id;
+    });
+    if (!occupied && window % 2 === 0) continue;
+    for (let end = 0; end < 2 && pingBudget < K; end++) {
+      if (eligible.some((agent) => {
+        const state = actorMap.get(agent.lane)?.idleActivity;
+        return state?.kind === 'ping-pong' && state.tableId === table.id && state.tableEnd === end;
+      })) continue;
+      const visitor = visitors.find((agent) => {
+        const actor = actorMap.get(agent.lane);
+        return actor && !actor.idleActivity && actor.idleFinishedWindow !== window
+          && (samePoint(actor, table.ends[end], 0.06)
+            || route(actor.x, actor.y, table.ends[end].x, table.ends[end].y).length > 0);
+      });
+      if (!visitor) continue;
+      const state = actorMap.get(visitor.lane).startIdleActivity(visitor, {
+        system: 'idle', kind: 'ping-pong', selectedKind: 'ping-pong', depth: 'deep',
+        variant: null, target: table.ends[end], facingTarget: table.center, tableId: table.id, tableEnd: end,
+        tableFingerprint: table.fingerprint,
+      }, window);
+      if (state.depth === 'deep') pingBudget++;
+    }
   }
 
   if (demoShowcase === true) {
@@ -1025,6 +1127,8 @@ return {
   idleContentMode,
   prepareIdleActivityLayout,
   activityZones,
+  pingPongTables,
+  pingPongGames,
   idleActivityEligible,
   syncIdleActivities,
   inspectIdleActivities,

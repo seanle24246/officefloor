@@ -26,7 +26,7 @@
   'use strict';
 
   const IDLE_ACTIVITY_VERSION = 1;
-  const DEFAULT_K = 2; /* floor-wide concurrent DEEP-activity budget (tunable) */
+  const DEFAULT_K = 5; /* floor-wide concurrent DEEP-activity budget (tunable) */
   /* Each activity: zone (path target), slotCap, minAgents, depth, weight. */
   const ACTIVITIES = Object.freeze({
     coffee: Object.freeze({ zone: 'kitchen', slotCap: 1, minAgents: 1, depth: 'deep', weight: 8 }),

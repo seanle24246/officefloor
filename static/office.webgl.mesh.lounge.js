@@ -83,8 +83,8 @@ function barCounter(ctx) {
       at(ctx.greeble(0.22, 0.20, 5, 'glass', 0.07), 1.03, 1.44, -0.23)),
     part(ctx, 'beer glasses',
       ...[0.67, 0.96].map((x) => at(ctx.group(
-        ctx.cylinder(0.075, 0.065, 0.25, 'amber', 10),
-        at(ctx.cylinder(0.078, 0.078, 0.035, 'cream', 10), 0, 0.25, 0),
+        ctx.cylinder(0.075, 0.065, 0.25, 'beer-yellow', 10),
+        at(ctx.cylinder(0.078, 0.078, 0.035, 'beer-foam', 10), 0, 0.25, 0),
         at(ctx.strip(0.035, 0.09, 0.16, 'glass'), 0.09, 0.07, 0),
       ), x, 1.13, 0.16))),
     part(ctx, 'cocktail glasses',

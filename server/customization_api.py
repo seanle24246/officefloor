@@ -20,6 +20,7 @@ from server import customization_contract as contract
 from server import customization_purchase as purchase
 from server import customization_store as store_module
 from server import effective_furnishings
+from server import floor_config
 from server import placed_props_ext
 from server import roots
 
@@ -274,6 +275,7 @@ class CustomizationService:
             ) from exc
         self.layout = copy.deepcopy(layout)
         self.rooms = copy.deepcopy(self.layout.get("rooms", []))
+        self.ctx = ctx
         self.agent_ids = tuple(agent_ids)
         self.layout_variant = layout_variant
         self.target = copy.deepcopy(target or {"layout": layout_variant})
@@ -472,6 +474,7 @@ class CustomizationService:
                 design,
                 self.catalog,
                 operational=operational,
+                authored_overrides=self._authored_overrides(),
                 layout_variant=self.layout_variant,
             )
         except (contract.ContractError, effective_furnishings.FurnishingError) as exc:
@@ -480,6 +483,10 @@ class CustomizationService:
                 else exc.reason
             )
             raise _authority_unavailable(exc, "effective furnishings", reason) from exc
+
+    def _authored_overrides(self) -> dict:
+        design = floor_config.load(roots.state_dir(self.ctx), self.layout_variant)
+        return design.get("authored_overrides", {}) if design is not None else {}
 
     def snapshot(self) -> dict:
         """Return one consistent, read-only view of all four resources."""
@@ -657,7 +664,9 @@ class CustomizationService:
                 raise self._domain_error("not_entitled")
         try:
             model = effective_furnishings.build_effective_furnishings(
-                self.layout, normalized, self.catalog, layout_variant=self.layout_variant,
+                self.layout, normalized, self.catalog,
+                authored_overrides=self._authored_overrides(),
+                layout_variant=self.layout_variant,
             )
         except contract.ContractError as exc:
             raise self._domain_error(exc.reason) from exc

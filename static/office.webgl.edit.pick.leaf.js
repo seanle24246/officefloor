@@ -2,9 +2,20 @@
 
 const MAX_PARENT_DEPTH = 64;
 
+function isCarData(data) {
+  return data?.category === 'Cars'
+    || typeof data?.vehicle === 'string'
+    || /^cars\./.test(String(data?.provenance?.generator || ''));
+}
+
 function itemPayload(data, instanceId = null) {
+  // Cars remain visible scenery but never enter the edit-mode selection
+  // boundary. This checks the renderer's vehicle marker, category metadata,
+  // and authored generator form so old lots and future car rows fail closed.
+  if (isCarData(data)) return null;
   const instance = Number.isInteger(instanceId)
     ? data.editableInstances?.[instanceId] : null;
+  if (isCarData(instance)) return null;
   if (instance?.stable_furnishing_id) {
     return Object.freeze({
       kind: 'item',

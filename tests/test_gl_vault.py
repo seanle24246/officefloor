@@ -68,6 +68,7 @@ EXPECTED_INVENTORY = [
     "office.webgl.perf.js",
     "office.webgl.pick.js",
     "office.webgl.pick.leaf.js",
+    "office.webgl.pingpong.js",
     "office.webgl.plate.js",
     "office.webgl.plate.leaf.js",
     "office.webgl.primitives.js",
