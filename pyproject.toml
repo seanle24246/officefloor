@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "officefloor"
-version = "0.2.3"
+version = "0.2.4"
 description = "A live, local office floor for teams of coding agents"
 readme = "PYPI_README.md"
 license = { text = "FSL-1.1-ALv2" }
