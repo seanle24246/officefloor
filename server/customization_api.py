@@ -44,6 +44,7 @@ DEMO_OFFICE_ITEMS = (
     ("MINI_FRIDGE", "sku-0503", "kitchen", 8, 3, 0),
     ("RECYCLING_BIN", "sku-0529", "kitchen", 11, 3, 0),
     ("ARCADE_CABINET", "sku-0600", "rec", 3, 1, 0),
+    ("PING_PONG_TABLE", "sku-0604", "rec", 1, 2, 0),
     # Moved south (y_offset 5->8) so it clears the 4 model cars now parked on
     # the lot (CTO-CAR-ALIGN ruling A, 2026-08-27).
     ("OUTDOOR_BENCH", "sku-0700", "lot", 18, 8, 0),
@@ -68,10 +69,19 @@ DEMO_CARS = (
 # Keep the public demo's parked set as small as the wheel's four-car lot while
 # retaining every catalog car in the default entitlement seed below.
 DEMO_PLACED_CARS = DEMO_CARS[:4]
-# These rec-room pieces are granted to every authority. The existing demo
-# arcade placement remains authored; the other three start unplaced, and the
-# migration never creates or changes placements on an existing floor.
+# These rec-room pieces are granted to every authority. Fresh demo designs
+# place the arcade and ping-pong tables; pool and foosball start unplaced. The
+# entitlement migration never creates or changes placements on an existing
+# floor.
 DEFAULT_REC_ITEMS = ("sku-0600", "sku-0601", "sku-0603", "sku-0604")
+DEFAULT_DESIGN_ID = "dsn_DEFAULT_OFFICE"
+DEFAULT_PING_PONG_PLACEMENT = {
+    "placement_id": "plc_DEFAULT_PING_PONG_TABLE",
+    "sku_id": "sku-0604",
+    "room_id": "rec",
+    "anchor": {"x": 16, "y": 21},
+    "rotation": 0,
+}
 # The complete bar set is likewise granted without authored placements, so it
 # starts in the tray and never changes an existing floor's design.
 DEFAULT_BAR_ITEMS = (
@@ -399,6 +409,34 @@ class CustomizationService:
         with self.store.transaction():
             return copy.deepcopy(self.store._read_locked(initialize=False))
 
+    def _fresh_default_document(self, document: dict) -> dict:
+        """Project the baked default without creating an authority file.
+
+        Only the default layout receives this projection. Once an authority
+        file exists, its designs remain the complete truth and are never
+        backfilled with a placement.
+        """
+        if self.layout_variant != "default" or self.store.path.exists():
+            return document
+        projected = copy.deepcopy(document)
+        entitlement = contract.normalize_entitlement({
+            "sku_id": DEFAULT_PING_PONG_PLACEMENT["sku_id"],
+            "debit_id": "debit_default_seed_0604",
+            "acquired_at": "2026-08-24T12:00:00Z",
+        })
+        projected["entitlements"][entitlement["sku_id"]] = entitlement
+        projected["purchase_receipts"][entitlement["debit_id"]] = entitlement
+        design = self._validate_design({
+            "design_id": DEFAULT_DESIGN_ID,
+            "name": "Default Office",
+            "architecture_id": contract.ARCHITECTURE_ID,
+            "revision": 0,
+            "placements": [copy.deepcopy(DEFAULT_PING_PONG_PLACEMENT)],
+        }, projected)
+        projected["designs"][design["design_id"]] = design
+        projected["active_design_id"] = design["design_id"]
+        return projected
+
     def _settlement_context(self) -> dict[str, bool]:
         return {
             "supported_live": self.supported_live,
@@ -493,6 +531,7 @@ class CustomizationService:
         try:
             with self.store.transaction():
                 document = self._document()
+                document = self._fresh_default_document(document)
                 operational = self._operational_snapshot(document)
                 effective = self._effective_model(document, operational)
                 if self.store.path.exists():
@@ -852,9 +891,26 @@ class CustomizationService:
             with self.store.transaction():
                 resource, action, expected = self._validate_envelope(payload)
                 document = self._document()
+                fresh_default_replace = (
+                    not self.store.path.exists()
+                    and self.layout_variant == "default"
+                    and resource == "designs"
+                    and action == "replace"
+                    and payload.get("design_id") == DEFAULT_DESIGN_ID
+                )
+                if fresh_default_replace:
+                    document = self._fresh_default_document(document)
                 self._require_catalog(payload, document)
                 if resource != "entitlements":
                     self._require_revision(resource, expected, document)
+                if fresh_default_replace:
+                    current = document["designs"][DEFAULT_DESIGN_ID]
+                    self._validate_design(
+                        {**current, "placements": payload["placements"]}, document,
+                    )
+                    self.store._write_locked(document)
+                    self._ensure_default_entitlements()
+                    document = self._document()
                 if resource == "designs":
                     result = self._design_action(action, payload, expected, document)
                 elif resource == "entitlements":

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import itertools
+import json
 import os
 import sys
 import tempfile
@@ -268,6 +269,62 @@ class SmokingAreaTests(unittest.TestCase):
         spots = layout["offduty_spots"]
         self.assertEqual((spots[0]["x"], spots[0]["y"]), floorplan.REC_SPOTS[0])
         self.assertEqual((spots[1]["x"], spots[1]["y"]), floorplan.REC_SPOTS[1])
+
+    def test_default_layout_has_no_authored_ping_pong_table(self) -> None:
+        layout = floorplan.build_layout([], serve.PROPS)
+        self.assertFalse(any(prop.get("type") == "pingpong" for prop in layout["props"]))
+
+    def test_surviving_authored_prop_map_matches_pre_swap_bytes(self) -> None:
+        layout = floorplan.build_layout([], serve.PROPS)
+        current = {
+            str(prop.get("id", index)): {
+                key: value for key, value in prop.items() if key != "id"
+            }
+            for index, prop in enumerate(layout["props"])
+        }
+        # Canonical map from origin/main@455fffbe, with only authored:prop:5
+        # removed. Comparing canonical bytes pins every surviving id and prop,
+        # including the floorplan-appended ashcan, cars, and greenery.
+        expected = {
+            "0": {"edge": "n", "kind": "crown", "type": "art", "x": 5, "y": 1},
+            "1": {"edge": "n", "type": "whiteboard", "x": 15, "y": 1},
+            "2": {"edge": "n", "type": "clock", "x": 9, "y": 10},
+            "3": {"type": "rack", "x": 1.15, "y": 15.1},
+            "4": {"d": 1.0, "type": "couch", "w": 3.0, "x": 24, "y": 11},
+            "6": {"d": 1.0, "type": "counter", "w": 5.0, "x": 3, "y": 20},
+            "7": {"type": "espresso", "x": 3.3, "y": 20.1},
+            "8": {"type": "fridge", "x": 9, "y": 20},
+            "9": {"type": "crate", "x": 10.4, "y": 20.2},
+            "10": {"type": "cooler", "x": 1.1, "y": 20.1},
+            "11": {"type": "table", "x": 4, "y": 22},
+            "12": {"type": "table", "x": 7, "y": 22},
+            "13": {"edge": "n", "type": "smashscreen", "x": 19.1, "y": 19},
+            "14": {"d": 0.7, "type": "smashcouch", "w": 3.2, "x": 18.1, "y": 23.1},
+            "15": {"d": 1.0, "type": "beerpong", "w": 4.0, "x": 4, "y": 22},
+            "16": {"type": "ashcan", "x": 27.4, "y": 26.2},
+            "17": {"model": "fable", "plate": "FABLE 5", "type": "car",
+                   "vehicle": "sports", "x": 8.9, "y": 28.0},
+            "18": {"model": "opus", "plate": "OPUS 5", "type": "car",
+                   "vehicle": "luxsedan", "x": 11.9, "y": 28.0},
+            "19": {"model": "haiku", "plate": "HAIKU 45", "type": "car",
+                   "vehicle": "hatchback", "x": 14.9, "y": 28.0},
+            "20": {"model": "sonnet", "plate": "SONNET 5", "type": "car",
+                   "vehicle": "convertible", "x": 17.9, "y": 28.0},
+            "21": {"type": "tree", "x": 33.4, "y": 2.5},
+            "22": {"type": "tree", "x": 34.6, "y": 8.0},
+            "23": {"type": "tree", "x": 33.6, "y": 14.5},
+            "24": {"type": "tree", "x": 34.4, "y": 21.0},
+            "25": {"type": "tree", "x": 29.0, "y": 27.0},
+            "26": {"type": "tree", "x": 30.2, "y": 29.4},
+            "27": {"type": "shrub", "x": 22.5, "y": 30.2},
+            "28": {"type": "shrub", "x": 28.0, "y": 30.6},
+            "29": {"type": "planter", "x": 25.0, "y": 27.0},
+            "30": {"type": "planter", "x": 27.0, "y": 27.0},
+        }
+        canonical = lambda value: json.dumps(
+            value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+        ).encode("utf-8")
+        self.assertEqual(canonical(current), canonical(expected))
 
     def test_exactly_two_outside_spots_and_no_prop_collision(self) -> None:
         layout = floorplan.build_layout([], [])

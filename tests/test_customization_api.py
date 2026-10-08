@@ -138,13 +138,117 @@ class CustomizationServiceTests(unittest.TestCase):
             "designs": 0, "entitlements": 0, "assignments": 0, "upkeep": 0,
         })
         self.assertEqual(first["economy_authority"], "local-demo")
-        self.assertEqual(first["designs"], [])
-        self.assertEqual(first["entitlements"], [])
+        self.assertEqual(first["designs"], [first["active_design"]])
+        self.assertEqual(first["active_design_id"], customization_api.DEFAULT_DESIGN_ID)
+        self.assertEqual(first["active_design"]["placements"], [
+            customization_api.DEFAULT_PING_PONG_PLACEMENT,
+        ])
+        self.assertEqual(
+            [row["sku_id"] for row in first["entitlements"]], ["sku-0604"],
+        )
         self.assertEqual(first["assignments"], [])
         self.assertEqual(first["upkeep"]["receipts"], [])
         self.assertEqual(first["upkeep"]["attempts"], [])
         self.assertNotIn("prepared", first["upkeep"])
         self.assertEqual(self.wallet.calls, [])
+
+    def test_fresh_default_persists_on_first_save_but_never_reseeds_existing(self) -> None:
+        fresh = self.service.snapshot()
+        placements = fresh["active_design"]["placements"]
+        self.assertFalse(self.service.store.path.exists())
+
+        saved = self.service.apply(self.request(
+            "designs", "replace", fresh["revisions"]["designs"],
+            design_id=fresh["active_design_id"], placements=placements,
+        ))
+        self.assertEqual(saved["result"]["value"]["placements"], placements)
+        self.assertTrue(self.service.store.path.exists())
+        persisted = self.service.snapshot()
+        self.assertEqual(
+            {row["sku_id"] for row in persisted["entitlements"]},
+            {*customization_api.DEFAULT_REC_ITEMS, *customization_api.DEFAULT_BAR_ITEMS},
+        )
+
+        self.service.apply(self.request(
+            "designs", "replace", saved["result"]["revision"],
+            design_id=fresh["active_design_id"], placements=[],
+        ))
+        restarted = customization_api.CustomizationService(
+            ctx=self.ctx,
+            layout=self.world.layout,
+            agent_ids=[AGENT],
+            target={"layout": "default"},
+            clock=lambda: NOW,
+            supported_live=True,
+            writes_available=True,
+        ).snapshot()
+        self.assertEqual(restarted["active_design"]["placements"], [])
+
+    def test_fresh_demo_places_one_ping_pong_without_mutating_saved_designs(self) -> None:
+        seeded = customization_api.CustomizationService(
+            ctx=self.ctx,
+            layout=self.world.layout,
+            agent_ids=[AGENT],
+            target={"layout": "default"},
+            clock=lambda: NOW,
+            supported_live=True,
+            writes_available=True,
+            demo_seed=True,
+        )
+        fresh = seeded.snapshot()
+        tables = [
+            row for row in fresh["active_design"]["placements"]
+            if row["sku_id"] == "sku-0604"
+        ]
+        self.assertEqual(tables, [{
+            "placement_id": "plc_DEMO_PING_PONG_TABLE",
+            "sku_id": "sku-0604",
+            "room_id": "rec",
+            "anchor": {"x": 16, "y": 21},
+            "rotation": 0,
+        }])
+        self.assertFalse(any(
+            row.get("type") == "pingpong" for row in self.world.layout["props"]
+        ))
+        document = seeded.store.load()
+        model = seeded._effective_model(
+            document, seeded._operational_snapshot(document),
+        )
+        effective_tables = [
+            row for row in model["furnishings"]
+            if row.get("sku_id") == "sku-0604"
+        ]
+        self.assertEqual(len(effective_tables), 1)
+        self.assertEqual(effective_tables[0]["room_id"], "rec")
+        self.assertTrue(effective_tables[0]["operational"]["behavior_enabled"])
+
+        saved_placements = [
+            row for row in fresh["active_design"]["placements"]
+            if row["sku_id"] != "sku-0604"
+        ]
+        seeded.apply({
+            "resource": "designs",
+            "action": "replace",
+            "expected_revision": fresh["revisions"]["designs"],
+            "catalog_digest": seeded.catalog_digest,
+            "design_id": fresh["active_design_id"],
+            "placements": saved_placements,
+        })
+        restarted = customization_api.CustomizationService(
+            ctx=self.ctx,
+            layout=self.world.layout,
+            agent_ids=[AGENT],
+            target={"layout": "default"},
+            clock=lambda: NOW,
+            supported_live=True,
+            writes_available=True,
+            demo_seed=True,
+        ).snapshot()
+        self.assertEqual(restarted["active_design"]["placements"], saved_placements)
+        self.assertFalse(any(
+            row["sku_id"] == "sku-0604"
+            for row in restarted["active_design"]["placements"]
+        ))
 
     def test_design_assignment_mutations_and_restart_reload(self) -> None:
         self.purchase("sku-0101", 0)
@@ -262,7 +366,7 @@ print(json.dumps({
         self.assertIn(conflict.exception.code, {"structural", "occupied"})
         self.assertEqual(authority_bytes(self.service), pinned)
 
-    def test_saved_authored_removal_frees_exact_ping_pong_repro(self) -> None:
+    def test_retired_authored_ping_pong_override_is_inert(self) -> None:
         self.purchase("sku-0604", 0)
         placement = {
             "placement_id": "plc_PING_PONG",
@@ -271,14 +375,6 @@ print(json.dumps({
             "anchor": {"x": 17, "y": 20},
             "rotation": 0,
         }
-        request = self.request(
-            "designs", "create", 0,
-            design_id="dsn_PING_PONG", name="Ping Pong", placements=[placement],
-        )
-        with self.assertRaises(customization_api.CustomizationAPIError) as occupied:
-            self.service.apply(request)
-        self.assertEqual(occupied.exception.code, "occupied")
-
         stable_id = "authored:prop:5"
         floor_config.save(roots.state_dir(self.ctx), "default", {
             "version": 1,
@@ -287,8 +383,17 @@ print(json.dumps({
                 stable_id: {"id": stable_id, "removed": True},
             },
         })
-        saved = self.service.apply(request)
+        saved = self.service.apply(self.request(
+            "designs", "create", 0,
+            design_id="dsn_PING_PONG", name="Ping Pong", placements=[placement],
+        ))
         self.assertEqual(saved["result"]["value"]["placements"], [placement])
+        self.assertEqual(
+            floor_config.load(roots.state_dir(self.ctx), "default")[
+                "authored_overrides"
+            ],
+            {stable_id: {"id": stable_id, "removed": True}},
+        )
 
     def test_moved_authored_prop_claims_new_spot_and_frees_old_spot(self) -> None:
         layout = {

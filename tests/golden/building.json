@@ -491,57 +491,59 @@
         "y": 11
       },
       {
-        "d": 1.6,
-        "type": "pingpong",
-        "w": 3.0,
-        "x": 16,
-        "y": 21
-      },
-      {
         "d": 1.0,
+        "id": 6,
         "type": "counter",
         "w": 5.0,
         "x": 3,
         "y": 20
       },
       {
+        "id": 7,
         "type": "espresso",
         "x": 3.3,
         "y": 20.1
       },
       {
+        "id": 8,
         "type": "fridge",
         "x": 9,
         "y": 20
       },
       {
+        "id": 9,
         "type": "crate",
         "x": 10.4,
         "y": 20.2
       },
       {
+        "id": 10,
         "type": "cooler",
         "x": 1.1,
         "y": 20.1
       },
       {
+        "id": 11,
         "type": "table",
         "x": 4,
         "y": 22
       },
       {
+        "id": 12,
         "type": "table",
         "x": 7,
         "y": 22
       },
       {
         "edge": "n",
+        "id": 13,
         "type": "smashscreen",
         "x": 19.1,
         "y": 19
       },
       {
         "d": 0.7,
+        "id": 14,
         "type": "smashcouch",
         "w": 3.2,
         "x": 18.1,
@@ -549,17 +551,20 @@
       },
       {
         "d": 1.0,
+        "id": 15,
         "type": "beerpong",
         "w": 4.0,
         "x": 4,
         "y": 22
       },
       {
+        "id": 16,
         "type": "ashcan",
         "x": 27.4,
         "y": 26.2
       },
       {
+        "id": 17,
         "model": "fable",
         "plate": "FABLE 5",
         "type": "car",
@@ -568,6 +573,7 @@
         "y": 28.0
       },
       {
+        "id": 18,
         "model": "opus",
         "plate": "OPUS 5",
         "type": "car",
@@ -576,6 +582,7 @@
         "y": 28.0
       },
       {
+        "id": 19,
         "model": "haiku",
         "plate": "HAIKU 45",
         "type": "car",
@@ -584,6 +591,7 @@
         "y": 28.0
       },
       {
+        "id": 20,
         "model": "sonnet",
         "plate": "SONNET 5",
         "type": "car",
@@ -592,51 +600,61 @@
         "y": 28.0
       },
       {
+        "id": 21,
         "type": "tree",
         "x": 33.4,
         "y": 2.5
       },
       {
+        "id": 22,
         "type": "tree",
         "x": 34.6,
         "y": 8.0
       },
       {
+        "id": 23,
         "type": "tree",
         "x": 33.6,
         "y": 14.5
       },
       {
+        "id": 24,
         "type": "tree",
         "x": 34.4,
         "y": 21.0
       },
       {
+        "id": 25,
         "type": "tree",
         "x": 29.0,
         "y": 27.0
       },
       {
+        "id": 26,
         "type": "tree",
         "x": 30.2,
         "y": 29.4
       },
       {
+        "id": 27,
         "type": "shrub",
         "x": 22.5,
         "y": 30.2
       },
       {
+        "id": 28,
         "type": "shrub",
         "x": 28.0,
         "y": 30.6
       },
       {
+        "id": 29,
         "type": "planter",
         "x": 25.0,
         "y": 27.0
       },
       {
+        "id": 30,
         "type": "planter",
         "x": 27.0,
         "y": 27.0

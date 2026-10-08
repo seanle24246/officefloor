@@ -326,8 +326,15 @@ def build_layout(seats: list[dict], prop_rows: list[dict], layout: str = "defaul
     world_h = WORLD_H
     outside_spots = OUTSIDE_SPOTS
     smoking = SMOKING
-    ashcan = ASHCAN
-    greenery = GREENERY
+    # Default props after the retired ping-pong table carry explicit historical
+    # ids. Keep build_layout's caller-authored extension seam unchanged for
+    # custom prop lists that do not opt into those ids.
+    pin_appended_ids = any("id" in prop for prop in prop_rows)
+    ashcan = {**ASHCAN, **({"id": 16} if pin_appended_ids else {})}
+    greenery = [
+        {**prop, **({"id": 21 + index} if pin_appended_ids else {})}
+        for index, prop in enumerate(GREENERY)
+    ]
     # The world split (PARKING.md §1.1 / SMOKING-AREA.md §1.1): building_h is
     # where the indoor floor stops; world.h grows by the lot-depth apron so the
     # camera's fit-the-floor maths includes the outside.
@@ -338,8 +345,9 @@ def build_layout(seats: list[dict], prop_rows: list[dict], layout: str = "defaul
         "w": LOT_W, "h": LOT_H, "tint": "#202631", "outdoor": True,
     }
     car_rows = [
-        {**car, "x": x, "y": round(y + building_h - WORLD_H, 1)}
-        for car, (x, y) in zip(CARS, PARKING_SPOTS)
+        {**car, **({"id": 17 + index} if pin_appended_ids else {}), "x": x,
+         "y": round(y + building_h - WORLD_H, 1)}
+        for index, (car, (x, y)) in enumerate(zip(CARS, PARKING_SPOTS))
     ]
 
     by_room: dict[str, list[dict]] = {r[0]: [] for r in rooms}
