@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.4 — 2026-10-08
+
+- Idle agents play ping-pong: they walk to a placed table, wait for a partner,
+  hold paddles and rally. Real work interrupts immediately.
+- The default rec-room ping-pong table is now the owned table; demo and fresh
+  offices start with it placed.
+- Up to five idle activities run at once (was two); smokers face the camera;
+  beer glasses are yellow with white foam.
+- Edit Office: cars are scenery and can no longer be placed or selected.
+- Saving and reloading honor stored or moved built-in furniture, so placing over
+  a stored prop no longer fails and a reload no longer brings the prop back.
+- `make_release.sh` runs on the public tree.
+
 ## 0.2.3 — 2026-10-08
 
 - PyPI page now carries the full setup guide: lane folders and per-agent git clones,
