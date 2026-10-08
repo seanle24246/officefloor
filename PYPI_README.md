@@ -101,8 +101,8 @@ if you keep the clone in a `repo/` subfolder):
 
 | Fact | Source |
 |---|---|
-| branch | `git branch --show-current` (used when STATUS omits `branch:`) |
-| uncommitted files | `git status --porcelain` count |
+| branch | the checkout's current branch (used when STATUS omits `branch:`) |
+| uncommitted files | count of changed/untracked files in `git status` |
 | commits ahead | `origin/dev..HEAD`, only if your remote has a `dev` branch; otherwise 0 |
 
 **PR status (optional).** If `<org>/main/` is a clone of the project and the

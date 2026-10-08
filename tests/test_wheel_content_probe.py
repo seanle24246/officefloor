@@ -167,8 +167,8 @@ class WheelContentProbeTests(unittest.TestCase):
             "public_room_creation", "cockpit_chat", "collector_mechanical_status",
         }
         self.assertTrue(private_flags.isdisjoint(metadata["feature_flags.json"]))
-        self.assertEqual({"_comment", "0.2.2"}, set(metadata["release_manifest.json"]))
-        self.assertTrue(private_flags.isdisjoint(metadata["release_manifest.json"]["0.2.2"]))
+        self.assertEqual({"_comment", (ROOT / "VERSION").read_text().strip()}, set(metadata["release_manifest.json"]))
+        self.assertTrue(private_flags.isdisjoint(metadata["release_manifest.json"][(ROOT / "VERSION").read_text().strip()]))
         self.assertNotIn(
             "office.vitals.naughty.js",
             metadata["mvp_manifest.json"]["excluded_scripts"],

@@ -80,7 +80,7 @@ class PublicWheelMetadataTests(unittest.TestCase):
                 }
         self.assertEqual(before, {path: path.read_bytes() for path in paths})
         self.assertTrue(ship_manifest.PRIVATE_FLAGS.isdisjoint(metadata["feature_flags.json"]))
-        self.assertEqual({"_comment", "0.2.2"}, set(metadata["release_manifest.json"]))
+        self.assertEqual({"_comment", (ROOT / "VERSION").read_text().strip()}, set(metadata["release_manifest.json"]))
         self.assertTrue(all(
             (ROOT / "static" / script).is_file()
             for script in metadata["mvp_manifest.json"]["excluded_scripts"]
