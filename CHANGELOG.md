@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.2.3 — 2026-10-08
+
+- PyPI page now carries the full setup guide: lane folders and per-agent git clones,
+  OUTBOX STATUS block, INBOX directives, roster/rooms, state legend, CLI and troubleshooting.
 
 - New optional theme **TOKYO3d office**: a real 3D Blender-authored Japanese office (10 developer desks,
   5 review desks, CEO desk, animated conveyor) with agents walking real navigation. Pick it from the theme

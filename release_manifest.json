@@ -38,6 +38,15 @@
     "webgl_floor",
     "webgl_plate_themes"
   ],
+  "0.2.3": [
+    "agent_animation",
+    "agent_appearance",
+    "agent_needs",
+    "npc_vignettes",
+    "store_coming_soon",
+    "webgl_floor",
+    "webgl_plate_themes"
+  ],
   "_example_next": [
     "store_coming_soon",
     "costview_live",
