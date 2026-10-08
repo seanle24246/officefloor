@@ -57,6 +57,44 @@ Lane names cannot begin with `.` or contain `:`, `/`, or `\`. A lane without an
 `OUTBOX.md` does not appear unless experimental session discovery finds valid
 evidence.
 
+## Give each agent its own clone
+
+Each lane folder is where one agent works, so make it **its own git clone (or
+worktree) of your project**. OfficeFloor reads git facts straight from that
+checkout, and two agents never share a working tree.
+
+```bash
+mkdir -p ~/agents && cd ~/agents
+git clone git@github.com:you/yourapp.git main            # optional: PR status (see below)
+git clone git@github.com:you/yourapp.git research-ada    # one clone per agent
+git clone git@github.com:you/yourapp.git api-sam
+# or, from one existing clone:  git -C main worktree add ../api-sam -b api-sam
+touch research-ada/OUTBOX.md api-sam/OUTBOX.md            # makes each folder a lane
+```
+
+Keep `INBOX.md`, `OUTBOX.md` and `identity.env` out of your product's history:
+add them to the clone's `.git/info/exclude` (local, never committed).
+
+What the floor reads from a lane's checkout (`<lane>/.git`, or `<lane>/repo/.git`
+if you keep the clone in a `repo/` subfolder):
+
+| Fact | Source |
+|---|---|
+| branch | `git branch --show-current` (used when STATUS omits `branch:`) |
+| uncommitted files | `git status --porcelain` count |
+| commits ahead | `origin/dev..HEAD`, only if your remote has a `dev` branch; otherwise 0 |
+
+**PR status (optional).** If `<org>/main/` is a clone of the project and the
+[`gh`](https://cli.github.com/) CLI is installed and logged in, OfficeFloor polls
+open and merged PRs once a minute. A seat whose branch has an open PR stops
+showing 📦 (it is in review), and a branch merged after the seat's last report
+is treated as collected. Without `gh` or `main/`, PR state reads as unknown and
+📦 simply follows `ready_for_pr`.
+
+**Liveness** comes from processes: start each agent (Claude Code, Codex, a local
+model runner) with its lane folder as the working directory, ideally in its own
+terminal or tmux session named after the lane.
+
 ## Who sits where (roles and rooms)
 
 Seats come from the `ROSTER` heredoc in `<org>/ceo/bootstrap.sh` (written as
