@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Python 3.10+ (the package floor). Override with PYTHON=/path/to/python3.x.
+PY=${PYTHON:-}
+if [[ -z "$PY" ]]; then
+  for candidate in python3.13 python3.12 python3.11 python3.10 python3; do
+    if command -v "$candidate" >/dev/null 2>&1 \
+        && "$candidate" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'; then
+      PY=$(command -v "$candidate")
+      break
+    fi
+  done
+fi
+if [[ -z "$PY" ]] || ! "$PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'; then
+  echo "make_release.sh needs Python 3.10+ (set PYTHON=...)" >&2
+  exit 2
+fi
+
 usage() {
   echo "usage: ./make_release.sh <version> [commit]" >&2
 }
@@ -37,7 +53,7 @@ if git show-ref --verify --quiet "refs/tags/v${release_version}"; then
   exit 1
 fi
 
-python3 - "$release_version" <<'PY'
+"$PY" - "$release_version" <<'PY'
 import sys
 from server.feature_flags import resolve_feature_flags
 
@@ -57,7 +73,7 @@ echo "Release plan"
 echo "  version: ${release_version}"
 echo "  tag target: ${tag_commit}"
 echo "  update: VERSION + pyproject.toml"
-echo "  gates: manifest probe + release readiness 5/5"
+echo "  gates: manifest entry + test suite + wheel content probe + wheel metadata scan"
 echo "  artifact: wheel + sha256 under dist/"
 echo "  publish/tag: print command only; create nothing"
 
@@ -78,7 +94,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-python3 - "$release_version" <<'PY'
+"$PY" - "$release_version" <<'PY'
 from pathlib import Path
 import re
 import sys
@@ -99,34 +115,41 @@ version_tmp.replace(version_path)
 project_tmp.replace(project_path)
 PY
 
-python3 qa/tools/release_manifest_probe.py
-readiness_log=$(mktemp "${TMPDIR:-/tmp}/office-readiness.XXXXXX")
-if ! python3 qa/tools/release_readiness_probe.py | tee "$readiness_log"; then
-  rm -f "$readiness_log"
-  echo "release readiness failed" >&2
-  exit 1
-fi
-if ! grep -Fxq "PASS release readiness: 5/5 hard items green" "$readiness_log"; then
-  rm -f "$readiness_log"
-  echo "release readiness did not report exactly 5/5" >&2
-  exit 1
-fi
-rm -f "$readiness_log"
+"$PY" - "$release_version" <<'PY'
+import json, sys
+version = sys.argv[1]
+manifest = json.load(open("release_manifest.json", encoding="utf-8"))
+if version not in manifest:
+    raise SystemExit(f"release_manifest.json has no entry for {version}; add its reviewed flag list first")
+print(f"PASS release manifest: {version} -> {len(manifest[version])} flags")
+PY
 
-python3 -m pip wheel . -w dist --no-deps --no-build-isolation
-mapfile -t release_wheels < <(
-  find dist -maxdepth 1 -type f -name "officefloor-${release_version}-*.whl" -print
-)
-if [[ ${#release_wheels[@]} -ne 1 ]]; then
-  echo "expected exactly one wheel for ${release_version}, found ${#release_wheels[@]}" >&2
+if ! "$PY" -m unittest discover -s tests -q; then
+  echo "test suite failed" >&2
   exit 1
 fi
-wheel=${release_wheels[0]}
-if ! python3 qa/tools/wheel_secret_probe.py "$wheel"; then
-  echo "wheel secret scan failed" >&2
+
+"$PY" -m pip wheel . -w dist --no-deps --no-build-isolation -q
+wheel=""
+wheel_count=0
+for candidate in dist/officefloor-"${release_version}"-*.whl; do
+  [[ -f "$candidate" ]] || continue
+  wheel=$candidate
+  wheel_count=$((wheel_count + 1))
+done
+if [[ $wheel_count -ne 1 ]]; then
+  echo "expected exactly one wheel for ${release_version}, found ${wheel_count}" >&2
   exit 1
 fi
-wheel_sha=$(python3 - "$wheel" <<'PY'
+if ! "$PY" qa/tools/wheel_content_probe.py "$wheel"; then
+  echo "wheel content probe failed" >&2
+  exit 1
+fi
+if ! PYTHONPATH=. "$PY" qa/tools/wheel_meta_scan.py "$wheel"; then
+  echo "wheel metadata scan failed" >&2
+  exit 1
+fi
+wheel_sha=$("$PY" - "$wheel" <<'PY'
 from hashlib import sha256
 from pathlib import Path
 import sys

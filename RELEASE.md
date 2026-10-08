@@ -26,7 +26,7 @@ if (!enabled) return;
 To land v-next work disabled, add a registry entry with `"default": false`,
 guard its client or build entry point, and add it to `_example_next`. Add the
 flag to a real release list only when that release is approved to expose it.
-Run `python3 qa/tools/release_manifest_probe.py` before committing.
+The release script refuses a version with no `release_manifest.json` entry.
 
 ## Cut a release
 
@@ -34,17 +34,14 @@ Run `python3 qa/tools/release_manifest_probe.py` before committing.
    `release_manifest.json` with its reviewed enabled-flag list and commit it.
 2. Run `./make_release.sh <version> [commit]`. The version is numeric
    `MAJOR.MINOR.PATCH`; the optional tag target is `HEAD` or a commit SHA.
-3. The script updates `VERSION` and `pyproject.toml`, requires the manifest
-   probe and the 5/5 release-readiness gate, builds one wheel without build
-   isolation, then scans every uncompressed wheel member before attestation.
-   The stdlib-only scan verifies `RECORD` closure and blocks credential-shaped
-   bytes in every member, including binary and extensionless members. It prints
-   only a member path, byte offset, detector class, and short fingerprint on a
-   finding; it never prints the matched value. On a scan failure, normal
-   release cleanup removes the partial wheel. A clean scan precedes the printed
-   SHA-256 and exact tag command. Known binary asset encodings (`.png`, `.jpg`,
-   `.glb`, `.gltf`, `.woff2`) and `static/vendor/` are exempt only from the
-   generic entropy heuristic; all named credential detectors still scan them.
+3. The script picks a Python 3.10+ interpreter (override with `PYTHON=`),
+   updates `VERSION` and `pyproject.toml`, checks that `release_manifest.json`
+   has an entry for the version, runs the full `tests/` suite, builds one wheel
+   without build isolation, then runs `qa/tools/wheel_content_probe.py` (only
+   public product members, no private paths) and `qa/tools/wheel_meta_scan.py`
+   (metadata matches the source, no credential-shaped bytes). Any failure
+   restores both version files and removes the partial wheel. A clean run
+   prints the wheel SHA-256 and the exact tag command.
 4. Review the two version changes and artifact checksum, then commit the version
    bump. After that release commit is merged, the CEO may run the printed tag
    command against the intended commit and push the tag.
