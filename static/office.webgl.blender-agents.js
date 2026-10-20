@@ -19,7 +19,7 @@ export function zoneFor(agent) {
 }
 
 export function createBlenderAgents(manifest) {
-  const nav = createNavGrid(manifest.nav);
+  let nav = createNavGrid(manifest.nav);
   const anchors = manifest.anchors;
   if (!anchors || !Array.isArray(anchors.desks) || !anchors.zones) {
     throw new Error('Blender office has no authored agent anchors');
@@ -72,7 +72,8 @@ export function createBlenderAgents(manifest) {
       if (current?.zone === zone && current.deskId) claimed.add(current.deskId);
     }
     const reserved = [];
-    const spaceFree = (point) => reserved.every((other) =>
+    // CITY-RENDER-01: a standing spot under a placed item is not free (nav.cellAt is null there).
+    const spaceFree = (point) => !!nav.cellAt(point[0], point[2]) && reserved.every((other) =>
       Math.hypot(other[0] - point[0], other[2] - point[2]) >= MIN_SPACING);
     for (const row of sorted) {
       const zone = zoneFor(row);
@@ -107,7 +108,9 @@ export function createBlenderAgents(manifest) {
         next = { position: [...target], route: [], waypoint: 0, zone, deskId: desk?.id || null,
           slotId, target, moving: false, yaw: desk?.facing ?? 0, unavailable: false };
       } else if (!next.target || next.target[0] !== target[0] || next.target[2] !== target[2]) {
-        const start = nav.cellAt(next.position[0], next.position[2]);
+        let start = nav.cellAt(next.position[0], next.position[2]);
+        // CITY-RENDER-01: an agent caught inside a newly placed item steps straight to its target.
+        if (!start) { next.position = [...target]; start = nav.cellAt(target[0], target[2]); }
         const goal = nav.cellAt(target[0], target[2]);
         const route = nav.path(start, goal);
         if (route) {
@@ -144,8 +147,18 @@ export function createBlenderAgents(manifest) {
     }
   }
   const get = (lane) => agents.get(lane) || null;
+  // CITY-RENDER-01: placed items block their nav cells. Rebuild the grid from the given walkable mask and make every
+  // agent re-plan on the next update (a cleared target forces a fresh path).
+  function setWalkable(walkable) {
+    nav = createNavGrid({ ...manifest.nav, walkable });
+    for (const item of agents.values()) {
+      if (!item.position) continue;
+      item.target = null; item.route = []; item.waypoint = 0;
+    }
+    return nav;
+  }
   return {
-    nav, update, get,
+    get nav() { return nav; }, update, get, setWalkable,
     placement(lane) {
       const item = get(lane);
       return item?.position ? { position: item.position, facing: item.yaw, moving: item.moving } : null;

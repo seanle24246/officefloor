@@ -40,8 +40,20 @@
     const hasRealWork = options.hasRealWork === true;
 
     // 1. deterministic weighted pick from the eligible activities
-    // opts.mode gates the pool; omitted means the legacy ungated table
-    const kind = core.activitySelect(agent, presentCount, seed, options.mode).kind;
+    // opts.mode gates the pool; omitted means the legacy ungated table.
+    // opts.calendar (OFFICE-EVENTS-01) is the weekly-rhythm seam; when it and
+    // needsOn are both absent the call is byte-identical to before.
+    const context = options.needsOn === true || options.calendar !== undefined
+      ? {
+        ...(options.needsOn === true
+          ? { needsOn: true, traits: options.traits, vitals: options.vitals } : {}),
+        ...(options.calendar !== undefined ? { calendar: options.calendar } : {}),
+      }
+      : undefined;
+    // No context: the exact legacy 4-argument call (VITALS-STATS-01 pins the arity).
+    const kind = (context === undefined
+      ? core.activitySelect(agent, presentCount, seed, options.mode)
+      : core.activitySelect(agent, presentCount, seed, options.mode, context)).kind;
     const spec = core.activitySpec(kind);
 
     // 2. floor-wide K density budget: an over-budget DEEP roll downgrades shallow

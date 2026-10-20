@@ -18,6 +18,18 @@ from server import procs, roots
 
 FIXED_EPOCH = 1_700_000_000
 
+
+@contextmanager
+def isolated_office_state() -> Iterator[Path]:
+    """Keep fixture authorities out of inherited live state, then restore it."""
+    with tempfile.TemporaryDirectory(prefix="office-fixture-state-") as directory:
+        with mock.patch.dict(os.environ, {"XDG_STATE_HOME": directory}), \
+                mock.patch.object(roots, "_STATE_OVERRIDE", None), \
+                mock.patch.object(roots, "_STATE_DEMO", False):
+            os.environ.pop("OFFICE_STATE", None)
+            yield Path(directory)
+
+
 FIXTURE_BOOTSTRAP = """#!/usr/bin/env bash
 read -r -d '' _ <<'ROSTER'
 ceo    | ceo                        | Prime | 👑 | CEO — air traffic control | claude-opus-5
@@ -196,6 +208,18 @@ def scenario_building() -> BuildingScenario:
     _building_org(alpha, "codex-alpha-dev", "Alpha", "🅰️")
     _building_org(beta, "codex-beta-dev", "Beta", "🅱️")
     return BuildingScenario(tmp, alpha, beta, dark)
+
+
+@contextmanager
+def _without_env(key: str) -> Iterator[None]:
+    """Hide one variable. Unlike mock.patch.dict, never clears os.environ, so a
+    server thread reading HOME/OFFICE_STATE meanwhile cannot see it empty."""
+    saved = os.environ.pop(key, None)
+    try:
+        yield
+    finally:
+        if saved is not None:
+            os.environ[key] = saved
 
 
 @contextmanager

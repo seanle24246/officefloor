@@ -10,7 +10,7 @@ EXCLUDE_PATTERNS = (
     "picker", "npc", "animals", "death", "edit.mode",
     "designs.panel", "agent.manager", "briefing", "bouts", "elevator", 
     "marriage", "smoking", "excursion", "commute", "weather", "nux", 
-    "settings.panel", "talk", "naughty"
+    "settings.panel", "talk", "naughty", "office.pet.", "director", "office.film"
 )
 
 def parse_script_tags(html_content):

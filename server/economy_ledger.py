@@ -1,9 +1,9 @@
-"""Durable, append-only ledgers for the two isolated Office economies.
+"""Durable, append-only ledgers for the three isolated Office economies.
 
-Credits (viewer ``cr``) and scrip (agent ``sc``) share a SQLite substrate but
-not a journal, balance table, or mutation API.  A book-local operation cannot
-name the other book, and this module intentionally provides no transfer or
-exchange primitive.
+Credits (viewer ``cr``), scrip (agent ``sc``), and office (market ``of``)
+share a SQLite substrate but not a journal, balance table, or mutation API.
+A book-local operation cannot name the other books, and this module
+intentionally provides no transfer or exchange primitive.
 
 Amounts in the journal are signed safe integers: positive entries add to a
 balance and negative entries subtract from it.  The balance table is only a
@@ -13,6 +13,10 @@ projection; every authoritative read checks it against the append-only journal.
 from __future__ import annotations
 
 from collections.abc import Mapping
+from contextlib import contextmanager
+import os
+import secrets
+import stat
 from datetime import datetime, timezone
 import json
 from pathlib import Path
@@ -25,7 +29,8 @@ from typing import Any, Callable
 MAX_SAFE_INTEGER = (1 << 53) - 1
 BOOK_CREDITS = "credits"
 BOOK_SCRIP = "scrip"
-BOOKS = (BOOK_CREDITS, BOOK_SCRIP)
+BOOK_OFFICE = "office"
+BOOKS = (BOOK_CREDITS, BOOK_SCRIP, BOOK_OFFICE)
 
 # This is deliberately the same firewall used by the SOC-04 authority.  It is
 # repeated here because the ledger is the lower, shared persistence boundary.
@@ -406,8 +411,16 @@ class ScripBook(_BookLedger):
     _balances = "scrip_balances"
 
 
+class OfficeBook(_BookLedger):
+    """Office-market journal.  It has no reference to the credits or scrip tables."""
+
+    book = BOOK_OFFICE
+    _entries = "office_entries"
+    _balances = "office_balances"
+
+
 class EconomyLedger:
-    """Own the SQLite substrate and expose two fixed, isolated book handles."""
+    """Own the SQLite substrate and expose three fixed, isolated book handles."""
 
     def __init__(
         self,
@@ -428,6 +441,7 @@ class EconomyLedger:
         self._initialize()
         self.credits = CreditsBook(self)
         self.scrip = ScripBook(self)
+        self.office = OfficeBook(self)
 
     def close(self) -> None:
         with self._lock:
@@ -500,13 +514,182 @@ class EconomyLedger:
                 CREATE TRIGGER IF NOT EXISTS scrip_entries_no_delete
                     BEFORE DELETE ON scrip_entries
                     BEGIN SELECT RAISE(ABORT, 'scrip journal is append-only'); END;
+
+                CREATE TABLE IF NOT EXISTS office_entries (
+                    entry_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    account TEXT NOT NULL,
+                    idempotency_key TEXT NOT NULL UNIQUE,
+                    amount INTEGER NOT NULL,
+                    reason TEXT NOT NULL,
+                    actor TEXT NOT NULL,
+                    metadata TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    balance_after INTEGER NOT NULL,
+                    CHECK (amount <> 0 AND amount BETWEEN {-MAX_SAFE_INTEGER} AND {MAX_SAFE_INTEGER}),
+                    CHECK (balance_after BETWEEN 0 AND {MAX_SAFE_INTEGER})
+                );
+                CREATE TABLE IF NOT EXISTS office_balances (
+                    account TEXT PRIMARY KEY,
+                    balance INTEGER NOT NULL
+                        CHECK (balance BETWEEN 0 AND {MAX_SAFE_INTEGER})
+                );
+                CREATE INDEX IF NOT EXISTS office_entries_account_id
+                    ON office_entries(account, entry_id);
+                CREATE TRIGGER IF NOT EXISTS office_entries_no_update
+                    BEFORE UPDATE ON office_entries
+                    BEGIN SELECT RAISE(ABORT, 'office journal is append-only'); END;
+                CREATE TRIGGER IF NOT EXISTS office_entries_no_delete
+                    BEFORE DELETE ON office_entries
+                    BEGIN SELECT RAISE(ABORT, 'office journal is append-only'); END;
                 """
             )
 
 
 __all__ = [
-    "BOOK_CREDITS", "BOOK_SCRIP", "BOOKS", "MAX_SAFE_INTEGER",
-    "REAL_MONEY_FIELD", "EconomyLedger", "CreditsBook", "ScripBook",
+    "BOOK_CREDITS", "BOOK_SCRIP", "BOOK_OFFICE", "BOOKS", "MAX_SAFE_INTEGER",
+    "REAL_MONEY_FIELD", "EconomyLedger", "CreditsBook", "ScripBook", "OfficeBook",
     "EconomyLedgerError", "InvalidEntry", "IdempotencyConflict",
     "LedgerCorruption",
 ]
+
+
+_LEDGER_NAME = "office-economy.sqlite3"
+_LEDGER_MAX_BYTES = 64 * 1024 * 1024
+
+
+def _refuse(message: str) -> None:
+    raise EconomyLedgerError("ledger_storage", message)
+
+
+def _validated_image(fd: int, before: os.stat_result | None) -> bytes:
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 \
+            or info.st_uid != os.geteuid() or stat.S_IMODE(info.st_mode) != 0o600 \
+            or not 1 <= info.st_size <= _LEDGER_MAX_BYTES:
+        _refuse("ledger image failed final validation")
+    if before is not None and not os.path.samestat(before, info):
+        _refuse("ledger image changed during operation")
+    handle = os.fdopen(fd, "rb", closefd=False)
+    try:
+        data = handle.read(_LEDGER_MAX_BYTES + 1)
+    finally:
+        handle.close()
+    if len(data) > _LEDGER_MAX_BYTES:
+        _refuse("ledger image exceeds the size cap")
+    return data
+
+
+@contextmanager
+def market_ledger(store, *, persist: bool = True):
+    """Persist one SQLite image via the customization authority's checked directory.
+
+    SQLite operates in memory so it never reopens an unchecked pathname or a
+    sidecar journal. The authority lock covers load through atomic replacement.
+    ``persist=False`` is the read view: it loads the image (or an empty book)
+    and never creates, replaces or journals anything on disk.
+    """
+    from server import safe_fs
+
+    with store.transaction():
+        directory_fd = store._open_transaction_directory()
+        temp_fd = -1
+        temp_name = ""
+        try:
+            before = None
+            try:
+                before = os.stat(
+                    _LEDGER_NAME, dir_fd=directory_fd, follow_symlinks=False,
+                )
+            except FileNotFoundError:
+                before = None
+            if before is not None:
+                if not stat.S_ISREG(before.st_mode) or before.st_nlink != 1 \
+                        or before.st_uid != os.geteuid() \
+                        or stat.S_IMODE(before.st_mode) != 0o600 \
+                        or not 1 <= before.st_size <= _LEDGER_MAX_BYTES:
+                    _refuse("existing ledger image is unsafe")
+                read_fd = os.open(
+                    _LEDGER_NAME,
+                    os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                    dir_fd=directory_fd,
+                )
+                try:
+                    existing = _validated_image(read_fd, before)
+                finally:
+                    os.close(read_fd)
+            else:
+                existing = None
+
+            with EconomyLedger() as ledger:
+                if existing is not None:
+                    ledger._connection.deserialize(existing)
+                    ledger._initialize()
+                yield ledger
+                if not persist:
+                    return
+                serialized = ledger._connection.serialize()
+                if len(serialized) > _LEDGER_MAX_BYTES:
+                    _refuse("serialized ledger exceeds the size cap")
+
+            if existing is not None and existing == serialized:
+                return
+
+            if store.authority_root is not None:
+                safe_fs.directory_matches_beneath(
+                    store.authority_root, store.path.parent, directory_fd,
+                )
+            if before is not None:
+                try:
+                    current = os.stat(
+                        _LEDGER_NAME, dir_fd=directory_fd, follow_symlinks=False,
+                    )
+                except FileNotFoundError:
+                    _refuse("ledger image disappeared before replacement")
+                if not stat.S_ISREG(current.st_mode) \
+                        or (current.st_dev, current.st_ino) != (before.st_dev, before.st_ino) \
+                        or current.st_nlink != 1 or current.st_uid != before.st_uid \
+                        or stat.S_IMODE(current.st_mode) != 0o600 \
+                        or current.st_size != before.st_size \
+                        or current.st_mtime_ns != before.st_mtime_ns:
+                    _refuse("ledger image was replaced before replacement")
+            else:
+                try:
+                    os.lstat(_LEDGER_NAME, dir_fd=directory_fd)
+                    _refuse("fresh ledger image appeared unexpectedly")
+                except FileNotFoundError:
+                    before = None
+
+            temp_name = f".{_LEDGER_NAME}.{secrets.token_hex(16)}.tmp"
+            temp_fd = os.open(
+                temp_name,
+                os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
+                0o600,
+                dir_fd=directory_fd,
+            )
+            try:
+                handle = os.fdopen(temp_fd, "wb", closefd=False)
+                try:
+                    handle.write(serialized)
+                    handle.flush()
+                    os.fsync(temp_fd)
+                finally:
+                    handle.close()
+                os.replace(temp_name, _LEDGER_NAME, src_dir_fd=directory_fd,
+                           dst_dir_fd=directory_fd)
+                os.close(temp_fd)
+                temp_fd = -1
+                temp_name = ""
+                os.fsync(directory_fd)
+            except BaseException:
+                if temp_fd >= 0:
+                    os.close(temp_fd)
+                    temp_fd = -1
+                try:
+                    os.unlink(temp_name, dir_fd=directory_fd)
+                except FileNotFoundError:
+                    temp_name = ""
+                raise
+        finally:
+            if temp_fd >= 0:
+                os.close(temp_fd)
+            os.close(directory_fd)

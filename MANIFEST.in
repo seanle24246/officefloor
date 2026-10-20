@@ -12,6 +12,7 @@ recursive-include static *
 recursive-include data *
 recursive-exclude data sku-*
 exclude server/hosted_contract.py
+exclude server/live_only_scripts.py
 exclude static/office.vitals.naughty.js
 exclude static/office.npcvig.bank.naughty-cast.js
 exclude static/office.idle.naughty.gate.js
@@ -21,4 +22,4 @@ exclude static/office.sweep.js
 recursive-exclude static office.sku.pack.*.js
 prune static/assets/experimental
 prune static/assets/blender-offices
-global-exclude __pycache__ *.pyc
+global-exclude __pycache__ *.pyc *.blend *.blend1

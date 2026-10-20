@@ -371,6 +371,40 @@ function keyboardTarget(key) {
   return null;
 }
 
+// MULTI-FLOOR-01: the elevator shaft prop is a visible door to the next floor.
+// Its type is the whole contract; no prop id or coordinate is hard-coded.
+function isElevatorProp(prop) {
+  return Boolean(prop) && String(prop.type || '').toLowerCase() === 'elevator';
+}
+
+function nextFloorId() {
+  if (floors.length < 2) return null;
+  const current = floors.findIndex((floor) => floor.id === activeFloor);
+  if (current < 0) return floors[0]?.id || null;
+  return floors[(current + 1) % floors.length]?.id || null;
+}
+
+// Ride the existing switcher when the shaft prop is the clicked object. Returns
+// true only when the click was an elevator on a mounted building.
+function activateProp(prop) {
+  if (!buildingMode || !isElevatorProp(prop)) return false;
+  const next = nextFloorId();
+  if (next) selectFloor(next);
+  return true;
+}
+
+// Capture phase: claim the click before office.inspector's bubble listener
+// opens the prop card. A non-elevator prop (or no inspector) falls through
+// untouched, so the legacy click path is unchanged.
+root.document?.addEventListener?.('click', (event) => {
+  if (!buildingMode || (event.button != null && event.button !== 0)) return;
+  const propAt = OFFICE.inspector?.propAtScreenPoint;
+  if (typeof propAt !== 'function') return;
+  if (!isElevatorProp(propAt(event.clientX, event.clientY))) return;
+  event.stopPropagation?.();
+  activateProp({ type: 'elevator' });
+}, true);
+
 root.addEventListener('hashchange', () => {
   const floor = floorFromHash();
   if (floor && floor !== activeFloor) selectFloor(floor, { updateHash: false });
@@ -404,6 +438,9 @@ OFFICE.elevator = Object.freeze({
   badgeCount,
   format_as_of,
   selectFloor,
+  activateProp,
+  nextFloorId,
+  isElevatorProp,
   get activeFloor() { return activeFloor; },
   get floors() { return floors.slice(); },
   get buildingMode() { return buildingMode; },

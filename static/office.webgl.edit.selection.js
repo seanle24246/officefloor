@@ -1206,7 +1206,10 @@ export function createSelectionSurface(options = {}) {
       y: Math.floor(anchor.y) + delta.y,
     });
     const roomId = roomIdAt(runtime?.sceneSpec?.rooms, nextAnchor);
-    if (!roomId) return false;
+    if (!roomId) {
+      root.OFFICE?.hud?.toast?.("Can't move it there — furniture stays inside one room (cross_room).");
+      return false;
+    }
 
     const moveObject = () => {
       if (!object?.position?.set || !origin) return;

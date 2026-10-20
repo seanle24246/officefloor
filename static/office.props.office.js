@@ -39,6 +39,9 @@ const OFFICE_META = Object.freeze({
   dicetable: { w: 1.2, d: 0.8 },
   // the generic parked car; cars.* garage types register from office.cars.glue.js
   car: { w: 1.9, d: 3.8 },
+  // MULTI-FLOOR-01: the building elevator shaft. Solid ground prop: the
+  // prop-claims ledger blocks its tiles, so agents route around it.
+  elevator: { w: 1.4, d: 1.4 },
 });
 core.registerProps(OFFICE_META);
 

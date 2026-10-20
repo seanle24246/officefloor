@@ -17,8 +17,12 @@ from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from server import actions, attach, audit_read, blender_offices, building, customization_api, decision_writer, dispatch_projection, floor_config, ledger, procs, roots, roster, usage_ingest, world
+from server import actions, attach, audit_read, blender_offices, building, customization_api, decision_writer, dispatch_projection, floor_config, ledger, multi_floor, procs, roots, roster, usage_ingest, world
 from server.cockpit import reader as cockpit_reader
+from server.customization_purchase import served_market_wallet
+from server import office_pet
+from server import mvp_profile
+from server import agent_spend_http
 
 
 CONTENT_SECURITY_POLICY = (
@@ -33,13 +37,6 @@ DECISION_RULE_PATH = "/api/decisions/rule"
 MAX_DECISION_BODY_BYTES = 64 * 1024
 CUSTOMIZATION_PATH = "/api/customization"
 MAX_CUSTOMIZATION_BODY_BYTES = customization_api.MAX_BODY_BYTES
-CUSTOMIZATION_WALLET_RECEIPT_FIELDS = frozenset(
-    ("amount", "sku", "balance_after", "nonce", "ts")
-)
-CUSTOMIZATION_WALLET_NONCE = re.compile(r"[A-Za-z0-9_-]{8,128}")
-CUSTOMIZATION_WALLET_TIMESTAMP = re.compile(
-    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z"
-)
 _DEFAULT_CUSTOMIZATION_DEBIT = object()
 FLOOR_CONFIG_PATH = "/api/office/floor-config"
 
@@ -113,59 +110,6 @@ class MutatingTargetRefused(Exception):
     """A building write has no safe filesystem authority."""
 
 
-class CustomizationReceiptValidator:
-    """Validate one browser-wallet receipt without owning a server balance."""
-
-    def __init__(self) -> None:
-        self._accepted: dict[tuple[str, str], tuple[object, ...]] = {}
-        self._lock = threading.Lock()
-
-    @staticmethod
-    def _safe_non_negative_int(value: object) -> bool:
-        return type(value) is int and 0 <= value <= (2 ** 53 - 1)
-
-    def for_receipt(self, receipt: object, session: str):
-        def debit(amount: int, _debit_id: str, context: dict) -> dict:
-            if not isinstance(receipt, dict) \
-                    or set(receipt) != CUSTOMIZATION_WALLET_RECEIPT_FIELDS \
-                    or not self._safe_non_negative_int(receipt.get("amount")) \
-                    or receipt["amount"] <= 0 \
-                    or receipt["amount"] != amount \
-                    or not self._safe_non_negative_int(receipt.get("balance_after")) \
-                    or receipt.get("sku") != context.get("sku_id") \
-                    or context.get("unit") != "credits" \
-                    or context.get("kind") != "customization_purchase":
-                return {"ok": False, "reason": "debit_unavailable"}
-            nonce = receipt.get("nonce")
-            if not isinstance(nonce, str) or CUSTOMIZATION_WALLET_NONCE.fullmatch(nonce) is None:
-                return {"ok": False, "reason": "debit_unavailable"}
-            timestamp = receipt.get("ts")
-            if not isinstance(timestamp, str) \
-                    or CUSTOMIZATION_WALLET_TIMESTAMP.fullmatch(timestamp) is None:
-                return {"ok": False, "reason": "debit_unavailable"}
-            try:
-                parsed = dt.datetime.fromisoformat(timestamp[:-1] + "+00:00")
-            except ValueError:
-                return {"ok": False, "reason": "debit_unavailable"}
-            if parsed.utcoffset() != dt.timedelta(0):
-                return {"ok": False, "reason": "debit_unavailable"}
-            key = (str(session), nonce)
-            fingerprint = (
-                _debit_id, receipt["amount"], receipt["sku"],
-                receipt["balance_after"], timestamp,
-            )
-            with self._lock:
-                prior = self._accepted.get(key)
-                if prior is not None and prior != fingerprint:
-                    return {"ok": False, "reason": "debit_unavailable"}
-                # An exact replay is the reconciliation path after the debit
-                # stood but entitlement persistence returned pending.
-                self._accepted[key] = fingerprint
-            return {"ok": True, "at": timestamp}
-
-        return debit
-
-
 class Handler(BaseHTTPRequestHandler):
     world: world.World
     building: building.Building | None = None
@@ -180,15 +124,19 @@ class Handler(BaseHTTPRequestHandler):
     cockpit_flights: set[str] = set()
     cockpit_flights_lock = threading.Lock()
     secondary_root: Path | None = None
-    # The browser session wallet moves credits first; this seam validates its
-    # one-use receipt and deliberately owns no money or durable state.
-    customization_debit = CustomizationReceiptValidator()
+    # Optional test seam; production resolves one durable wallet per target.
+    customization_debit = None
+    customization_earned = None
     customization_clock = None
     customization_read_only = False
     readers_enabled = False
     usage_roots: list[str] = []
     usage_price_path: str | None = None
     index_override: bytes | None = None
+    # MVP-FEED-01: manifest-declared state keys MVP mode never serves.
+    mvp_excluded_state_keys: frozenset[str] = frozenset()
+    # Basenames a profile must never serve by any path (OFFICE_MODE=mvp).
+    blocked_static: frozenset[str] = frozenset()
     server_version = "CEOOffice/1.0"
     floor_config_dir = None  # explicit test seam; production resolves per org
     _floor_config_lock = threading.Lock()
@@ -692,9 +640,11 @@ class Handler(BaseHTTPRequestHandler):
                 )
         else:
             floor = self.building.resolve(floor_id)
+        # A secondary floor accepts decisions only, armed or not.
+        # --operate-floor arms decision writes; it never opens layout writes.
         is_secondary = floor.id == "secondary" \
             or self._root_is_configured_secondary(floor.spec.ctx.allrepos)
-        if is_secondary and type(self).secondary_root is None:
+        if is_secondary:
             raise MutatingTargetRefused(
                 "secondary floor customization writes are decision-only",
             )
@@ -1131,6 +1081,9 @@ class Handler(BaseHTTPRequestHandler):
         if active_layouts is not None \
                 and all(candidate is not self.world for candidate in active_layouts.worlds.values()):
             active_layouts = None
+        # MULTI-FLOOR-01: a legacy read passes no lane scope; a declared
+        # multi-floor building scopes each floor to its own seats.
+        economy_lanes = None
         if active_building is not None:
             if layout_name is not None:
                 raise customization_api.CustomizationAPIError(
@@ -1154,6 +1107,7 @@ class Handler(BaseHTTPRequestHandler):
                 ) from exc
             target_world = floor.world
             target = {"floor": floor.id, "layout": target_world.layout_name}
+            economy_lanes = multi_floor.floor_lanes(active_building, target_world)
         elif active_layouts is not None:
             if floor_id is not None:
                 raise customization_api.CustomizationAPIError(
@@ -1186,7 +1140,7 @@ class Handler(BaseHTTPRequestHandler):
         if debit is _DEFAULT_CUSTOMIZATION_DEBIT:
             debit = type(self).customization_debit
         clock = type(self).customization_clock
-        return customization_api.CustomizationService(
+        service = customization_api.CustomizationService(
             ctx=target_world.customization_ctx,
             layout=target_world.layout,
             agent_ids=tuple(row["lane"] for row in target_world.seats),
@@ -1198,7 +1152,21 @@ class Handler(BaseHTTPRequestHandler):
             read_only=bool(type(self).customization_read_only),
             writes_available=writes_available or target_world.demo,
             demo_seed=target_world.demo,
+            state_dir=getattr(target_world, "customization_state_dir", None),
         )
+        if debit is None:
+            def earned():
+                source = type(self).customization_earned
+                if source is not None:
+                    return source()
+                from server.agent_wallet import office_earned_usd
+                # Read the tally this floor's collector wrote (World ctx).
+                # MULTI-FLOOR-01: scope to the floor's seats so a building's
+                # floors never share one office number.
+                return office_earned_usd(target_world.ctx, economy_lanes)
+
+            service.debit = served_market_wallet(service.store, earned)
+        return service
 
     def _get_customization(self, query: str) -> None:
         try:
@@ -1220,6 +1188,37 @@ class Handler(BaseHTTPRequestHandler):
                 self._customization_error(exc.status, exc.code, exc.message, detail=exc.detail)
             else:
                 self._customization_error(400, "malformed_target", "invalid customization target")
+
+    def _get_economy(self, _query: str) -> None:
+        """ECON-VIEW-01 read-only feed. Flag off -> the same 404 as an unknown path.
+
+        Reads the default floor through the customization read path (snapshot +
+        persist=False ledger view); never writes. Unreadable sources are absent.
+        """
+        from server import agent_wallet, economy_feed
+        if not economy_feed.economy_view_enabled():
+            return self._send(404, b"not found", "text/plain")
+        wallet_on = agent_wallet.wallet_enabled()
+        state = snapshot = entries = None
+        if wallet_on:
+            target = self.world
+            active_building = self.building
+            if active_building is not None and active_building.first.world is self.world:
+                target = (self._default_own_floor() or active_building.resolve(None)).world
+            # The last collected snapshot only: this GET never triggers a scan
+            # (the floor's /api/state poll keeps it warm). None -> agents absent.
+            state = getattr(target, "snapshot", None) or None
+            try:
+                wallet = self._customization_target({}, writes_available=False).debit
+                snapshot = wallet.snapshot() if hasattr(wallet, "snapshot") else None
+                entries = economy_feed.read_entries(wallet)
+            except Exception:  # no customization authority -> balances/ledger absent
+                snapshot = entries = None
+        self._json(200, economy_feed.build_feed(
+            wallet_on=wallet_on, world=state, snapshot=snapshot, entries=entries,
+            upkeep=economy_feed.upkeep_rows() if wallet_on else [],
+            where=economy_feed.live_where() if wallet_on else (),
+        ))
 
     def _read_customization_body(self) -> dict | None:
         try:
@@ -1265,15 +1264,9 @@ class Handler(BaseHTTPRequestHandler):
                         400, "malformed_target", f"{key} must be a non-empty string",
                     )
                 selectors[key] = [value]
-        debit = type(self).customization_debit
-        if payload.get("resource") == "entitlements" \
-                and payload.get("action") == "purchase":
-            receipt = payload.pop("wallet_receipt", None)
-            if hasattr(debit, "for_receipt"):
-                debit = debit.for_receipt(receipt, type(self).office_session)
         try:
             service = self._customization_target(
-                selectors, writes_available=True, mutating=True, debit=debit,
+                selectors, writes_available=True, mutating=True,
             )
             self._json(200, service.apply(payload))
         except customization_api.CustomizationAPIError as exc:
@@ -1586,6 +1579,7 @@ class Handler(BaseHTTPRequestHandler):
         actions = self._actions_state()
         if actions["capability"]:
             payload["actions"] = actions
+        payload = mvp_profile.strip_state(payload, self.mvp_excluded_state_keys)
         body = json.dumps(payload).encode()
         return self._send(200, body, "application/json")
 
@@ -1621,7 +1615,8 @@ class Handler(BaseHTTPRequestHandler):
         rel = "index.html" if path == "/" else path.lstrip("/")
         static_root = roots.STATIC.resolve()
         target = (roots.STATIC / rel).resolve()
-        if not target.is_relative_to(static_root) or not target.is_file():
+        if not target.is_relative_to(static_root) or not target.is_file() \
+                or target.name in type(self).blocked_static:
             return self._send(404, b"not found", "text/plain")
         ctype = {
             ".html": "text/html; charset=utf-8",
@@ -1671,7 +1666,8 @@ class Handler(BaseHTTPRequestHandler):
         rel = "index.html" if path == "/" else path.lstrip("/")
         static_root = roots.STATIC.resolve()
         target = (roots.STATIC / rel).resolve()
-        if not target.is_relative_to(static_root) or not target.is_file():
+        if not target.is_relative_to(static_root) or not target.is_file() \
+                or target.name in type(self).blocked_static:
             return self._send(404, b"", "text/plain")
         ctype = {
             ".html": "text/html; charset=utf-8",
@@ -1780,6 +1776,9 @@ GET_ROUTES: dict[str, Callable[[Handler, str], None]] = {
     "/data/sku-map.json": Handler._get_catalog_data,
     "/data/sku-catalog.generated.json": Handler._get_catalog_data,
     "/data/standard-office-customization-catalog.json": Handler._get_catalog_data,
+    office_pet.PET_PATH: office_pet.get_pet,
+    "/api/economy": Handler._get_economy,
+    agent_spend_http.AGENT_SPEND_PATH: agent_spend_http.get_agent_spend,
 }
 
 POST_ROUTES: dict[str, Callable[[Handler], None]] = {
@@ -1790,4 +1789,6 @@ POST_ROUTES: dict[str, Callable[[Handler], None]] = {
     CUSTOMIZATION_PATH: Handler._post_customization,
     "/api/settings/write-mode": Handler._post_settings_write_mode,
     "/api/attach": Handler._post_attach,
+    office_pet.PET_PATH: office_pet.post_pet,
+    agent_spend_http.AGENT_SPEND_PATH: agent_spend_http.post_agent_spend,
 }

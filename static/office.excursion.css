@@ -1,0 +1,19 @@
+/* Generic excursion chrome: consent prompt, the FICTION badge, and the floor overlays a venue hides. */
+.office-excursion { position:fixed; z-index:110; color:#f5f1e8; font-family:inherit; }
+.office-excursion button { font:inherit; cursor:pointer; color:inherit; border:1px solid #536478; border-radius:7px; padding:11px 20px; background:#242d40; }
+.office-excursion button:hover,.office-excursion button:focus-visible { outline:2px solid #88e5df; outline-offset:3px; }
+.office-excursion .office-excursion-primary { background:#c7efa6; color:#152423; border-color:#c7efa6; font-weight:700; }
+#office-excursion-consent { inset:0; display:grid; place-items:center; background:#070a1280; }
+.office-excursion-card { width:min(480px,calc(100vw - 60px)); padding:34px; background:#111923; border:1px solid #566779; border-radius:16px; box-shadow:0 30px 90px #0009; }
+.office-excursion-eyebrow { color:#8ddfd8; font-size:11px; letter-spacing:.18em; text-transform:uppercase; }
+.office-excursion-card h2 { font-size:27px; line-height:1.22; font-weight:600; margin:22px 0 17px; }
+.office-excursion-card p { color:#aebccc; line-height:1.6; }
+.office-excursion-actions { display:flex; gap:12px; margin-top:25px; }
+@media(prefers-reduced-motion:no-preference) { .office-excursion-card { animation:office-excursion-in .3s ease-out; } }
+@keyframes office-excursion-in { from { opacity:0; } to { opacity:1; } }
+#office-excursion-fiction { left:50%; top:58px; transform:translateX(-50%); z-index:112; padding:6px 12px; border-radius:999px; background:#111923e6; border:1px solid #455164; color:#c7efa6; font-size:11px; letter-spacing:.06em; pointer-events:none; }
+/* A venue is a cutaway: floor-anchored labels, nameplates and panels would float over it.
+   Top bar (needs-me, office time) and the inspector stay; everything returns the moment the venue closes. */
+body[data-office-excursion] :is(#office-webgl-overlay,#ticker,#legend,#needs,#officeTour,#people,#vignette-decision-card) { visibility:hidden; }
+body[data-office-excursion] #inspector { z-index:111; }
+body[data-office-excursion] #inspector::before { content:'🎭 Fictional excursion · live status below'; display:block; color:#8ddfd8; font-size:11px; margin:0 26px 12px 0; }

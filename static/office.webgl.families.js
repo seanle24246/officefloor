@@ -53,6 +53,11 @@ export const FIXTURE_FAMILY_OVERRIDES = Object.freeze({
   smashscreen: 'fixtures',
   smashcouch: 'fixtures',
   beerpong: 'fixtures',
+  // MULTI-FLOOR-02: the server declares the shaft prop as family 'elevator',
+  // but its mesh builder lives in the kind-driven fixtures module. Route the
+  // kind to that family here; without this row the scene entry keeps the
+  // unregistered 'elevator' family and the shaft renders nothing.
+  elevator: 'fixtures',
 });
 
 // Keep the admitted 2D catalog explicit. Category is only a forward-compatible
@@ -255,20 +260,7 @@ export const SKU_FAMILY_OVERRIDES = Object.freeze({
 
 // These admitted 2D silhouettes have a logical registered family but no
 // matching builder yet. GL-P-FIXTURE-MESHES owns replacing their billboards.
-export const FIXTURE_MESH_TODOS = Object.freeze({
-  'sku-0806': 'convertible',
-  'sku-0810': 'pickup',
-  'sku-0812': 'suv',
-  'sku-0815': 'limousine',
-  'sku-0820': 'muscle-car',
-  'sku-0823': 'school-bus',
-  'sku-0825': 'fire-truck',
-  'sku-0826': 'tow-truck',
-  'sku-0829': 'camper',
-  'sku-0830': 'beetle',
-  'sku-0831': 'jeep',
-  'sku-0832': 'food-truck',
-});
+export const FIXTURE_MESH_TODOS = Object.freeze({});
 
 export function familyForFixture(fixture) {
   const kind = String(fixture?.kind || fixture?.type || '').trim().toLowerCase();

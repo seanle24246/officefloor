@@ -410,8 +410,9 @@ body.office-edit-grid-visible { --office-edit-grid-overlay: 1; }
 
 /* Edit Office is a deliberately isolated workspace. The floor canvases and
    the edit chrome remain; every ordinary direct-body HUD mount disappears and
-   returns automatically when the lifecycle class is removed. */
-body.office-editing > :is(div, aside, section, header, nav, dialog):not(.office-edit-shell):not(#office-webgl-edit-actions):not(#office-webgl-edit-placement) {
+   returns automatically when the lifecycle class is removed. The toast stays:
+   it is where a refused move says why. */
+body.office-editing > :is(div, aside, section, header, nav, dialog):not(.office-edit-shell):not(#office-webgl-edit-actions):not(#office-webgl-edit-placement):not(#toast) {
   display: none !important;
 }
 

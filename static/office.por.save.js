@@ -140,8 +140,9 @@ function parseOffice(text) {
     const widthOK = hasW && typeof w === 'number' && Number.isInteger(w) && w >= 0 && Number.isSafeInteger(w);
     const heightOK = hasH && typeof h === 'number' && Number.isInteger(h) && h >= 0 && Number.isSafeInteger(h);
 
-    if (!widthOK && hasW) errors.push('bad-width');
-    if (!heightOK && hasH) errors.push('bad-height');
+    // A world without a width or height has no bounds to save against: reject it.
+    if (!widthOK) errors.push('bad-width');
+    if (!heightOK) errors.push('bad-height');
 
     // Bounds known only when width/height are present and valid
     const boundsKnown = widthOK && heightOK;

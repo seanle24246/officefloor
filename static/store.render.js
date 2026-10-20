@@ -138,6 +138,12 @@
     const custom = customizationRenderers?.descriptor?.(sku?.sku_id || sku?.id, rotation * 90, loadAsset);
     const kind = rendererFor(sku);
     const sprite = custom?.kind === 'sprite4' || kind === 'sprite4';
+    const storeArt = root.OfficeFeatureFlags?.enabled?.('store_item_art') === true;
+    // STORE-AISLES-01: with store_item_art on, every opaque SKU tile may ask for
+    // its thumbnail. thumbnailFor() returns the registered art for art-bearing
+    // SKUs that have no procedural mesh family (the bathroom amenities) and
+    // renders the rest through the registry.
+    const artSku = String(sku?.sku_id || sku?.id || '');
     const rotated = Boolean(sprite || (kind && ROTATABLE.has(kind)));
     const tinted = Boolean(kind && options.tint && TINTABLE.has(kind));
     const p = plinth(g, size, options.scene === 'inoffice' ? 'inoffice' : 'plinth');
@@ -145,7 +151,7 @@
     const skuCanvas = canvasFor(size, options.canvasFactory, 'sku');
     const skuG = skuCanvas.getContext('2d'); if (!skuG) throw new Error('store renderer needs an SKU canvas');
     skuG.save();
-    if (sprite) {
+    if (sprite && !(storeArt && options.thumbnail)) {
       if (custom?.readiness === 'ready' && custom.image) {
         try {
           // Authored sprite frames already encode direction; never rotate them
@@ -158,24 +164,32 @@
       } else {
         placeholder(skuG, p, sku); usedPlaceholder = true;
       }
-    } else if (kind && options.thumbnail) {
+    } else if (options.thumbnail && (kind || storeArt)) {
       try {
         drawThumbnail(skuG, options.thumbnail, p, size);
-        mappedDraw = `webgl:${sku?.sku_id || sku?.id || kind}:${rotation * 90}`;
+        mappedDraw = `webgl:${sku?.sku_id || sku?.id || kind || artSku}:${rotation * 90}`;
       } catch {
         placeholder(skuG, p, sku); usedPlaceholder = true;
       }
+    } else if (storeArt && !kind) {
+      skuG.fillStyle = '#c6d4e1'; skuG.textAlign = 'center';
+      skuG.font = `${Math.max(9, Math.round(10 * p.scale))}px sans-serif`;
+      skuG.fillText(String(sku?.name || 'Catalog item'), p.x, p.y, size * 0.85);
+      mappedDraw = `label:${sku?.sku_id || ''}`;
     } else { placeholder(skuG, p, sku); usedPlaceholder = true; }
     if (tinted) applyTint(skuG, size, hex(options.tint, '#5f7f9e'));
     skuG.restore();
     g.drawImage(skuCanvas, 0, 0);
     if (options.scene === 'inoffice') { box(g, p.x + 23 * p.scale, p.y + 12 * p.scale, 23 * p.scale, 16 * p.scale, 10 * p.scale, '#68472b'); ellipse(g, p.x - 25 * p.scale, p.y + 13 * p.scale, 6 * p.scale, 3 * p.scale, '#25303d'); }
-    canvas.storeRender = Object.freeze({ renderer: kind || 'placeholder', mappedDraw,
+    canvas.storeRender = Object.freeze({ renderer: kind || (storeArt ? 'labelled' : 'placeholder'), mappedDraw,
       placeholder: usedPlaceholder, readiness: custom?.readiness || null, rotated, tinted,
       rotation: rotated ? rotation : 0, scene: options.scene === 'inoffice' ? 'inoffice' : 'plinth',
       preview: options.preview === true,
       // The caller can ask the WebGL registry for this figure and repaint.
-      wantsThumbnail: Boolean(kind && !sprite && !options.thumbnail) });
+      wantsThumbnail: storeArt
+        ? Boolean(/^sku-[0-9]{4}$/.test(artSku) && !options.thumbnail
+          && (!sprite || custom?.readiness !== 'ready'))
+        : Boolean(kind && !sprite && !options.thumbnail) });
     return canvas;
   }
   return Object.freeze({ PROP_TYPE_TO_RENDERER, categoryInitial, previewDescriptor,

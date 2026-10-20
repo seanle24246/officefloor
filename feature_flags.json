@@ -1,4 +1,32 @@
 {
+  "agent_talk": {
+    "default": false,
+    "desc": "Paired idle conversations with alternating speech."
+  },
+  "agent_wallet": {
+    "default": false,
+    "desc": "Show measured shipped source additions and dollar totals for agents and the office."
+  },
+  "agent_spending": {
+    "default": false,
+    "desc": "Agents spend measured money: buy_food idle activity at registered vendors (vending = agent's own book, taco truck seam = office book)."
+  },
+  "demo_economy": {
+    "default": false,
+    "desc": "Demo floor only: seed a deterministic starting office balance and seat earnings so demo vendors (taco truck, vending) can be paid."
+  },
+  "multi_floor_v2": {
+    "default": false,
+    "desc": "Per-floor economy in a multi-floor building: each floor's office book and seat earnings are its own, and a visible elevator prop rides the floor switcher. Single-floor serves are unchanged."
+  },
+  "living_demo": {
+    "default": false,
+    "desc": "Demo floors only: force the demo economy flags on for serve --demo and the public web-demo bake; a live floor is unchanged."
+  },
+  "office_excursions": {
+    "default": false,
+    "desc": "Scene-teleport infrastructure: OfficeExcursion.start(scene) sends idle seats to a registered fiction scene. No scene is scheduled by default."
+  },
   "cockpit_chat": {
     "default": false,
     "desc": "Enable the founder-to-CEO cockpit chat client."
@@ -43,6 +71,10 @@
     "default": false,
     "desc": "Enable session-only fictional agent vitals and needs-weighted safe idle behavior."
   },
+  "agent_lives": {
+    "default": false,
+    "desc": "Agent lives: a Life tab in the Agent Manager plus a deterministic, rate-limited idle speech-bubble bank. Turns on no other flag; each section degrades to what is on."
+  },
   "naughty_mode": {
     "default": false,
     "desc": "Permit signed-in, age-attested accounts to activate live-only M2 naughty content."
@@ -78,5 +110,61 @@
   "public_room_creation": {
     "default": false,
     "desc": "Let a visitor mint a room from the door without the operator token (guardrailed: rate-limited, capped). Default-flip reverses founder-ruling-13 and is founder-gated."
+  },
+  "agent_drive_home": {
+    "default": false,
+    "desc": "DRIVE-HOME-02 fiction: idle and benched agents clock out at the go-home hour, get into their car through an animated driver door, drive home, and return when the office opens. Real work recalls them at once. Off = the original single clock-out vignette."
+  },
+  "agent_activity_events": {
+    "default": false,
+    "desc": "Read the org's hook event log (.org-events/events.jsonl) into live agent activity: working/idle/unknown. Events animate; STATUS still decides meaning."
+  },
+  "store_item_art": {
+    "default": false,
+    "desc": "Use Blender-rendered art for the 56 public store preview items."
+  },
+  "office_pet_dog": {
+    "default": false,
+    "desc": "Adoptable office dog: bought in the store with office money, fed daily in office money; rehomed after 3 unpaid days."
+  },
+  "economy_view": {
+    "default": false,
+    "desc": "Economy mini pane, top-bar pill and full-screen view over the read-only /api/economy feed."
+  },
+  "office_basketball_court": {
+    "default": false,
+    "desc": "Add an outdoor half court behind the office (north of review), reached by a back door, where idle agents shoot hoops."
+  },
+  "blackjack": {
+    "default": false,
+    "desc": "Idle agents play seeded fiction-only blackjack (\u00a2r scrip, no wallet): an OFFICE EVENT prompt offers a watchable 2D table, hands play out in 20-30 s."
+  },
+  "activity_collapsed_default": {
+    "default": false,
+    "desc": "Floor activity panel starts collapsed (compact row) until the viewer expands it; a stored viewer preference still wins."
+  },
+  "store_hide_empty_categories": {
+    "default": false,
+    "desc": "Store rail hides categories with no items, and (with store_item_art) categories none of whose items have art yet; Featured follows the visible rail."
+  },
+  "store_aisles_v2": {
+    "default": false,
+    "desc": "Store v2: venue Theme SKUs (beach/manhattan/naruto/tokyo) that activate through the existing theme switch, plus Featured-wide search."
+  },
+  "rave_schedule": {
+    "default": false,
+    "desc": "With office_excursions on, the rave scene offers its consent prompt once a week: Friday 18:00 on the office clock (core.weeklyWindow(5, 18)). Off: the rave stays registered but unscheduled."
+  },
+  "office_calendar": {
+    "default": false,
+    "desc": "Weekly office rhythm: the clock pill names the current/next event, a 'This week' list sits in the HUD, idle agents gather for Birthday cake, and Beer o'clock boosts the beer idle pick when a tap is placed. Off: no pill event text, no list, no idle-weight change."
+  },
+  "director_mode": {
+    "default": false,
+    "desc": "Director mode: install window.director + window.__office3d so a filming seat can drive the floor camera, go chrome-free (?film=1), set an aspect box and record. Off: nothing installs and the floor is unchanged."
+  },
+  "city_customization": {
+    "default": false,
+    "desc": "City customization (founder 2026-10-17): placed store items render inside the Manhattan/Tokyo worlds on the city's placement grid, re-coloured with the city palette; later, edit mode in city zones. Off: city worlds draw only their authored scene."
   }
 }

@@ -1,0 +1,182 @@
+/* office.economy.css — ECON-VIEW-01 Economy mini pane, top-bar pill and full screen.
+ * Nodes exist only when the economy_view flag is on (office.economy.js).
+ * The mini pane uses the Floor Activity panel surface (#ticker in office.css). */
+
+.econ-mini {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  width: min(400px, calc(100vw - var(--office-hud-rail-width, 0px) - 24px));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ink);
+  font-size: 11px;
+  z-index: 12;
+}
+.econ-mini[hidden], .econ-full[hidden], .econ-pill[hidden] { display: none !important; }
+
+.econ-head, .econ-full-head { display: flex; align-items: center; gap: 8px; }
+.econ-title { font-size: 10px; letter-spacing: 1.4px; color: var(--dim); text-transform: uppercase; }
+.econ-hold {
+  padding: 2px 7px; border-radius: 6px; background: #3a1f1a; color: #f59e74; font-size: 9px; letter-spacing: .04em;
+}
+.econ-expand, .econ-collapse, .econ-close, .econ-filter {
+  font: inherit; cursor: pointer; border: 1px solid var(--edge); border-radius: 6px;
+  background: rgba(22, 33, 54, .9); color: #c9d4e6; min-height: 28px;
+}
+.econ-expand { margin-left: auto; padding: 3px 9px; color: #f2c14e; }
+.econ-close { width: 28px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+.econ-expand:hover, .econ-collapse:hover, .econ-close:hover, .econ-filter:hover { color: #fff; border-color: #f2c14e; }
+:is(.econ-expand, .econ-collapse, .econ-close, .econ-filter, .econ-pill):focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+.econ-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.econ-kpi {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  padding: 8px 10px; border: 1px solid #22314d; border-radius: 8px; background: rgba(22, 33, 54, .9);
+}
+.econ-kpi-label { font-size: 9px; letter-spacing: .08em; color: #9aa8bf; }
+.econ-kpi-value { font-size: 18px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.econ-kpi-sub { font-size: 10px; color: #9aa8bf; min-height: 1em; }
+
+.econ-latest { display: flex; flex-direction: column; gap: 2px; }
+.econ-section-label { font-size: 10px; color: #9aa8bf; letter-spacing: .06em; }
+.econ-row {
+  display: grid; grid-template-columns: 44px 14px minmax(0, 1fr) 64px; gap: 6px; align-items: center;
+  padding: 4px 0; border-bottom: 1px solid #22314d;
+}
+.econ-time { color: #9aa8bf; }
+.econ-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
+.econ-what { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e6ecf5; }
+.econ-amount { text-align: right; font-weight: 600; white-space: nowrap; }
+.econ-empty { color: var(--dim); padding: 6px 0; }
+.econ-unavailable { margin: 4px 0; color: var(--dim); }
+
+.econ-upkeep {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  border: 1px solid #22314d; border-radius: 8px; background: rgba(22, 33, 54, .9);
+}
+.econ-badge {
+  flex: 0 0 auto; width: 30px; height: 26px; border-radius: 6px; background: #22314d; color: #f2c14e;
+  display: inline-flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700;
+}
+.econ-upkeep-name { color: #fff; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; }
+.econ-upkeep-cost { color: #f59e74; white-space: nowrap; }
+.econ-status { font-size: 10px; padding: 1px 7px; border-radius: 999px; background: #173a2a; color: #7fd8a6; }
+.econ-legend { display: flex; gap: 12px; color: #9aa8bf; font-size: 10px; }
+.econ-legend .econ-dot { margin-right: 5px; vertical-align: -1px; }
+
+.econ-pill { cursor: pointer; font: inherit; }
+.econ-pill:hover { border-color: #f2c14e; }
+
+/* ---- full screen ---- */
+.econ-full { position: fixed; inset: 0; z-index: 40; }
+.econ-full-dim {
+  position: absolute; inset: var(--office-hud-topbar-height, 0px) 0 0 var(--office-hud-rail-width, 0px);
+  background: rgba(8, 13, 24, .82);
+}
+.econ-full-panel {
+  position: absolute;
+  top: calc(var(--office-hud-topbar-height, 0px) + 20px);
+  left: calc(var(--office-hud-rail-width, 0px) + 24px);
+  right: 24px; bottom: 20px;
+  box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; overflow: auto;
+  padding: 18px 22px; background: #111b2e; border: 1px solid #2a3a5a; border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55); color: #e6ecf5; font-size: 12px;
+}
+.econ-full-title { margin: 0; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: .02em; }
+.econ-full-note { font-size: 11px; color: #9aa8bf; }
+.econ-filters { margin-left: auto; display: flex; gap: 6px; }
+.econ-filter { padding: 5px 11px; min-height: 32px; background: #0f192c; border-color: #2a3a5a; }
+.econ-filter[aria-pressed="true"] { border-color: #f2c14e; background: #2a2412; color: #f2c14e; }
+.econ-collapse { padding: 5px 11px; min-height: 32px; color: #9aa8bf; }
+.econ-full-head .econ-close { min-height: 32px; width: 32px; }
+.econ-full-head:not(:has(.econ-filters)) .econ-collapse { margin-left: auto; }
+
+.econ-full-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.econ-full-kpis .econ-kpi { background: #0f192c; border-radius: 10px; padding: 12px 14px; gap: 4px; }
+.econ-full-kpis .econ-kpi-label { font-size: 10px; }
+.econ-full-kpis .econ-kpi-value { font-size: 26px; }
+.econ-full-kpis .econ-kpi-sub { font-size: 11px; }
+
+.econ-full-grid { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 14px; min-height: 0; }
+.econ-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.econ-card {
+  display: flex; flex-direction: column; gap: 6px; padding: 12px 14px;
+  background: #0f192c; border: 1px solid #22314d; border-radius: 10px;
+}
+.econ-card h2 { margin: 0 0 4px; font-size: 13px; color: #fff; }
+.econ-card-head { display: flex; align-items: baseline; gap: 10px; }
+.econ-card-head h2 { margin: 0; }
+.econ-card-note { font-size: 10px; font-weight: 400; color: #9aa8bf; }
+
+.econ-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.econ-table th {
+  padding: 5px 4px; border-bottom: 1px solid #22314d; color: #9aa8bf; font-size: 10px; font-weight: 500;
+  letter-spacing: .06em; text-align: left;
+}
+.econ-table td { padding: 6px 4px; border-bottom: 1px solid #1b2943; }
+.econ-table .num { text-align: right; white-space: nowrap; }
+.econ-name { color: #fff; }
+.econ-spent { color: #f59e74; }
+.econ-balance { color: #f2c14e; font-weight: 600; }
+.econ-share { width: 130px; height: 6px; background: #22314d; border-radius: 3px; overflow: hidden; }
+.econ-share-fill { height: 6px; border-radius: 3px; background: #5aa9ff; }
+.econ-last { color: #c9d4e6; }
+
+.econ-ledger-row {
+  display: grid; grid-template-columns: 50px 80px minmax(0, 1fr) 90px; gap: 10px; align-items: center;
+  padding: 6px 2px; border-bottom: 1px solid #1b2943;
+}
+.econ-book { justify-self: start; font-size: 10px; padding: 2px 7px; border-radius: 999px; }
+
+.econ-upkeep-card .econ-upkeep { background: #131f35; }
+.econ-upkeep-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.econ-upkeep-detail { font-size: 10px; color: #9aa8bf; }
+.econ-upkeep-card .econ-badge { width: 34px; height: 34px; font-size: 10px; }
+
+.econ-where-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 8px; padding: 8px 10px;
+  border: 1px solid #22314d; border-radius: 8px; background: #131f35;
+}
+.econ-where-name { color: #fff; font-weight: 600; }
+.econ-payer {
+  justify-self: end; font-size: 10px; padding: 1px 7px; border-radius: 999px; background: #22314d; color: #c9d4e6;
+}
+.econ-where-row[data-book="office"] .econ-payer { background: #2a2412; color: #f2c14e; }
+.econ-where-row[data-book="agent"] .econ-payer { background: #14304f; color: #8cc4ff; }
+.econ-where-detail { grid-column: 1 / -1; font-size: 11px; color: #9aa8bf; }
+
+@media (max-width: 900px) {
+  .econ-full-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .econ-full-grid { grid-template-columns: minmax(0, 1fr); }
+  .econ-full-head { flex-wrap: wrap; }
+  .econ-share { width: 72px; }
+}
+@media (max-width: 720px) {
+  .econ-mini { right: 8px; bottom: 8px; width: calc(100vw - 16px); }
+  .econ-full-panel { left: 8px; right: 8px; top: calc(var(--office-hud-topbar-height, 0px) + 8px); bottom: 8px; padding: 12px; }
+}
+
+/* Colour by book / tone (markup carries data attributes, never style=: the served CSP is style-src 'self'). */
+.econ-dot[data-book="office"] { background: #f2c14e; }
+.econ-dot[data-book="agent"] { background: #8cc4ff; }
+.econ-dot[data-book="credits"] { background: #c9a6ff; }
+.econ-book { background: #22314d; color: #c9d4e6; }
+.econ-book[data-book="office"] { background: #2a2412; color: #f2c14e; }
+.econ-book[data-book="agent"] { background: #14304f; color: #8cc4ff; }
+.econ-book[data-book="credits"] { background: #2b1f3d; color: #c9a6ff; }
+.econ-kpi[data-tone="office"] .econ-kpi-value { color: #f2c14e; }
+.econ-kpi[data-tone="agent"] .econ-kpi-value { color: #8cc4ff; }
+.econ-kpi[data-tone="credits"] .econ-kpi-value { color: #c9a6ff; }
+.econ-kpi[data-tone="in"] .econ-kpi-value { color: #7fd8a6; }
+.econ-out { color: #f59e74; }
+.econ-in { color: #7fd8a6; }
+.econ-share-fill { width: 0; }

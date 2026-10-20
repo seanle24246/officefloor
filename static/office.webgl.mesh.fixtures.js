@@ -179,6 +179,25 @@ function ashcan(entry, ctx) {
   ]);
 }
 
+function elevatorProp(entry, ctx) {
+  const { w, d } = dimensions(entry, 1.4, 1.4);
+  const front = d / 2;
+  // The shaft is set back from the footprint edge so the front-facing detail
+  // (recess, doors, panel, indicator) stays inside the prop's declared 1.4x1.4
+  // claim. The claims ledger blocks exactly those tiles, so the drawn shaft
+  // must not overhang them.
+  const shaftDepth = Math.max(0.5, d - 0.18);
+  return finish(ctx, 'elevator', w, d, [
+    part(ctx, 'shaft frame', box(ctx, w, shaftDepth, 2.3, 'metal-dark', 0, 0.02, 0)),
+    part(ctx, 'door recess', box(ctx, w * 0.72, 0.06, 1.9, 'graphite-dark', 0, 0.18, front - 0.08)),
+    part(ctx, 'sliding doors',
+      box(ctx, w * 0.3, 0.04, 1.82, 'metal', -w * 0.16, 0.22, front - 0.04),
+      box(ctx, w * 0.3, 0.04, 1.82, 'metal', w * 0.16, 0.22, front - 0.04)),
+    part(ctx, 'call panel', box(ctx, 0.16, 0.04, 0.28, ctx.screenMat('led'), w / 2 - 0.12, 0.95, front - 0.08)),
+    part(ctx, 'floor indicator', box(ctx, w * 0.42, 0.05, 0.14, ctx.screenMat('amber'), 0, 2.14, front - 0.08)),
+  ]);
+}
+
 function pingpong(entry, ctx, volleyball = false) {
   const tableRoot = table(entry, ctx, volleyball ? 'ocean-upholstery' : 'blue', 0.78);
   const { w, d } = dimensions(entry, 3, 1.6);
@@ -362,6 +381,7 @@ function officeObject(entry, ctx, kind) {
     case 'fridge': return appliance(entry, ctx, { w: 0.9, d: 0.9, h: 1.35, body: 'metal-mid', front: 'metal' });
     case 'crate': return finish(ctx, kind, w, d, [part(ctx, 'beer crate', box(ctx, 0.8, 0.7, 0.28, 'wood-dark', 0, 0, 0)), part(ctx, 'bottles', move(ctx.greeble(0.58, 0.48, 6, 'amber', 0.1), 0, 0.3, 0))]);
     case 'beerpong': return pingpong({ ...entry, w, d }, ctx);
+    case 'elevator': return elevatorProp(entry, ctx);
     case 'table': return table(entry, ctx);
     case 'plant': return leafy(entry, ctx, 'plant');
     case 'tree': return leafy(entry, ctx, 'tree');

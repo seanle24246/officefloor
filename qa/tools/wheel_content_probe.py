@@ -43,6 +43,7 @@ FORBIDDEN_MEMBERS = frozenset((
     "static/office.sku.generator.js",
     "static/office.sku.schema.js",
     "server/hosted_contract.py",
+    "server/live_only_scripts.py",
     "static/office.sweep.js",
 ))
 PUBLIC_SWEEP_UI_MARKERS = {

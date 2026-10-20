@@ -56,6 +56,12 @@ def classify(a: dict) -> str:
     if a["owes_reply"]:
         return "reading"
 
+    # Hook events (flag agent_activity_events) are direct evidence of whether
+    # a live seat is mid-turn; they decide only this last working/idle split.
+    # Unknown activity falls through to the output-age heuristic below.
+    if a.get("activity") in ("working", "idle"):
+        return a["activity"]
+
     # Silence changes only the presentation of a measured live seat. Missing
     # output evidence is not silence: unknown is a state, not a guess.
     age = a.get("last_output_age")

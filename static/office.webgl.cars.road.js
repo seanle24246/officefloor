@@ -375,14 +375,32 @@ export function requestDeparture(laneId, options = {}) {
   const reservation = typeof laneId === 'string' ? reservationByLane.get(laneId) : null;
   if (!reservation) return false;
   const { controller, index } = reservation;
-  const awayMs = Number(options.awayMs);
+  const hold = options.hold === true;
+  const awayMs = hold ? 0 : Number(options.awayMs);
   const record = controller.records[index];
   if (!Number.isFinite(awayMs) || awayMs < 0 || controller.mode !== 'parked'
       || controller.reservedTrip || !record || !record.object.visible
       || record.object.userData.carsRoadMotion !== 'parked') return false;
   controller.activeIndex = index;
-  controller.reservedTrip = { laneId, index, awayS: awayMs / 1000 };
+  controller.reservedTrip = hold
+    ? { laneId, index, awayS: 0, hold: true }
+    : { laneId, index, awayS: awayMs / 1000 };
   beginMotion(controller, 'departing');
+  return true;
+}
+
+// DRIVE-HOME-02: a held car stays off-floor ('away') without occupying the
+// single road motion slot; the commuter calls this to bring it back.
+export function requestArrival(laneId) {
+  const reservation = typeof laneId === 'string' ? reservationByLane.get(laneId) : null;
+  if (!reservation) return false;
+  const { controller, index } = reservation;
+  const record = controller.records[index];
+  if (!record || controller.mode !== 'parked' || controller.reservedTrip
+      || record.object.userData.carsRoadMotion !== 'away') return false;
+  controller.activeIndex = index;
+  controller.reservedTrip = { laneId, index, awayS: 0 };
+  beginMotion(controller, 'entering');
   return true;
 }
 
@@ -403,6 +421,11 @@ export function releaseCar(laneId) {
     controller.waitS = PARKED_DWELL_S;
     controller.motion = null;
     controller.reservedTrip = null;
+  } else if (record?.object.userData.carsRoadMotion === 'away') {
+    record.object.position.set(record.spot.x, 0, record.spot.z);
+    record.object.rotation.y = record.spot.rotationY;
+    record.object.visible = true;
+    record.object.userData.carsRoadMotion = 'parked';
   }
   controller.reservations.delete(laneId);
   reservationByLane.delete(laneId);
@@ -470,6 +493,21 @@ function advanceMotion(controller, dt) {
 
 function finishDeparture(controller) {
   const record = controller.records[controller.activeIndex];
+  if (controller.reservedTrip?.hold && controller.reservedTrip.index === controller.activeIndex) {
+    const departedIndex = controller.activeIndex;
+    record.object.visible = false;
+    record.object.userData.carsRoadMotion = 'away';
+    controller.reservedTrip = null;
+    const next = nextAmbientIndex(controller, (departedIndex + 1) % controller.records.length);
+    controller.activeIndex = next === null ? departedIndex : next;
+    controller.mode = 'parked';
+    controller.waitS = PARKED_DWELL_S;
+    controller.motion = null;
+    if (record.spot.spatialId) {
+      globalThis.OfficeSpatial?.clearDynamicObstacle?.(record.spot.spatialId);
+    }
+    return;
+  }
   record.object.visible = false;
   record.object.userData.carsRoadMotion = 'off-floor';
   controller.mode = 'off-floor';
@@ -555,6 +593,7 @@ if (typeof globalThis !== 'undefined') {
     reserveCar,
     releaseCar,
     requestDeparture,
+    requestArrival,
     carsRoadReservation,
   });
 }

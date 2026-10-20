@@ -28,7 +28,6 @@
     'coffee-run':        { kind: 'buff',  scope: 'agent',  stat: 'wired',     magnitude: 0.10, ttl: 180 },
     'shared-meal':       { kind: 'mood',  scope: 'office', magnitude: 0.06, ttl: 240 },
     'smoke-break-chat':  { kind: 'mood',  scope: 'office', magnitude: 0.03, ttl: 180 },
-    'nap':               { kind: 'buff',  scope: 'agent',  stat: 'tiredness', magnitude: -0.20, ttl: 200 },
     'argument':          { kind: 'debuff', scope: 'office', magnitude: -0.07, ttl: 240 },
     'visitor-arrival':   { kind: 'event_card', scope: 'office', magnitude: 0.08, ttl: 300 },
   });

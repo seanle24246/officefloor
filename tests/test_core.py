@@ -248,9 +248,20 @@ class SmokingAreaTests(unittest.TestCase):
         layout = floorplan.build_layout([], [])
         self.assertEqual(layout["world"]["building_h"], 25)
         self.assertEqual(layout["world"]["h"], 36)
+        # 270645a9 added the paddock: an outdoor animal zone on the east edge,
+        # level with the building rather than below it, overlapping no room.
+        indoor = [room for room in layout["rooms"] if not room.get("outdoor")]
+
+        def overlaps(a, b):
+            return (a["x"] < b["x"] + b["w"] and b["x"] < a["x"] + a["w"]
+                    and a["y"] < b["y"] + b["h"] and b["y"] < a["y"] + a["h"])
+
         for room in layout["rooms"]:
-            if room["id"] == "lot":
-                self.assertGreaterEqual(room["y"], layout["world"]["building_h"])
+            if room.get("outdoor"):
+                if room["y"] < layout["world"]["building_h"]:
+                    self.assertTrue(room.get("animal_zone"), room["id"])
+                    self.assertEqual(room["x"] + room["w"], layout["world"]["w"], room["id"])
+                    self.assertFalse(any(overlaps(room, other) for other in indoor), room["id"])
                 self.assertLessEqual(room["y"] + room["h"], layout["world"]["h"])
             else:
                 self.assertLessEqual(room["y"] + room["h"], layout["world"]["building_h"])
@@ -313,13 +324,25 @@ class SmokingAreaTests(unittest.TestCase):
             "21": {"type": "tree", "x": 33.4, "y": 2.5},
             "22": {"type": "tree", "x": 34.6, "y": 8.0},
             "23": {"type": "tree", "x": 33.6, "y": 14.5},
-            "24": {"type": "tree", "x": 34.4, "y": 21.0},
+            # ef445d98 (OFFICE-BATH-01) lifted this tree clear of the restroom.
+            "24": {"type": "tree", "x": 34.4, "y": 17.0},
             "25": {"type": "tree", "x": 29.0, "y": 27.0},
             "26": {"type": "tree", "x": 30.2, "y": 29.4},
             "27": {"type": "shrub", "x": 22.5, "y": 30.2},
             "28": {"type": "shrub", "x": 28.0, "y": 30.6},
             "29": {"type": "planter", "x": 25.0, "y": 27.0},
             "30": {"type": "planter", "x": 27.0, "y": 27.0},
+            # ef445d98 (OFFICE-BATH-01): two restroom stalls and their divider.
+            "restroom-stall-0": {"activity_target": {"x": 33.06, "y": 20.4},
+                                 "d": 1.72, "family": "restroom", "passable": True,
+                                 "stall_id": "restroom-stall-0", "type": "restroom-stall",
+                                 "w": 1.72, "x": 32.2, "y": 19.2},
+            "restroom-stall-1": {"activity_target": {"x": 35.06, "y": 20.4},
+                                 "d": 1.72, "family": "restroom", "passable": True,
+                                 "stall_id": "restroom-stall-1", "type": "restroom-stall",
+                                 "w": 1.72, "x": 34.2, "y": 19.2},
+            "restroom-divider": {"d": 1.9, "family": "restroom", "type": "restroom-divider",
+                                 "w": 0.12, "x": 34.0, "y": 19.0},
         }
         canonical = lambda value: json.dumps(
             value, sort_keys=True, separators=(",", ":"), ensure_ascii=False,

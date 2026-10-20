@@ -1,0 +1,17 @@
+/* office.director.css — DIRECTOR-01 chrome-free footage mode.
+ *
+ * body.office-clean is the film switch: every DOM layer except the floor
+ * canvas goes invisible, so a runner records the floor and nothing else. It is
+ * the same technique wook.fm's `wook-clean` uses (visibility, not display, so
+ * removing the class restores exactly what was there) with the office's canvas
+ * id. The canvas itself keeps its own visibility and loses the grab cursor. */
+body.office-clean *:not(canvas):not(:has(canvas)) { visibility: hidden !important; }
+body.office-clean *::before,
+body.office-clean *::after { visibility: hidden !important; }
+body.office-clean #glstage { visibility: visible !important; cursor: none !important; }
+body.office-clean { background: #070a12; }
+
+/* In-world labels (speech bubbles, name tags) are part of the scene: they stay in clean footage unless
+ * body.office-clean-nolabels (clean {labels:false} / ?labels=0). */
+body.office-clean:not(.office-clean-nolabels) #office-webgl-overlay,
+body.office-clean:not(.office-clean-nolabels) #office-webgl-overlay * { visibility: visible !important; }

@@ -95,6 +95,8 @@ function createCustomizationCoordinator() {
   let catalogRows = [];
   let catalogBySku = new Map();
   let inventory = null;
+  let marketEconomy = null;
+  let marketWallet = null;
   let placement = null;
   let placementUnsubscribe = null;
   let editor = null;
@@ -206,6 +208,10 @@ function createCustomizationCoordinator() {
       live: servedCustomization,
       snapshot,
       actions,
+      // The floor-config file (built-in furniture, entity moves) is written
+      // only through the armed action gate. A demo's isolated authority keeps
+      // placements without it, so the two are tracked apart.
+      layout_writable: next?.actions?.capability === true && next?.actions?.armed === true,
       allowed,
       target,
       key,
@@ -323,6 +329,7 @@ function createCustomizationCoordinator() {
     mountStore({
       placementStore: null,
       customizationInventory: inventory,
+      economy: marketEconomy,
     });
   }
 
@@ -739,6 +746,7 @@ function createCustomizationCoordinator() {
   }
 
   function moveEntity(intent) {
+    if (layoutWriteRefused()) return false;
     const kind = intent?.entity_kind;
     const id = intent?.entity_id;
     const key = entityKey(kind, id);
@@ -767,6 +775,7 @@ function createCustomizationCoordinator() {
   }
 
   function removeEntity(intent) {
+    if (layoutWriteRefused()) return false;
     const kind = intent?.entity_kind;
     const id = intent?.entity_id;
     const key = entityKey(kind, id);
@@ -982,7 +991,7 @@ function createCustomizationCoordinator() {
     } catch (_) { validity = null; }
     if (validity?.ok !== true) {
       restoreAuthoredOverride(stableId, prior);
-      if (validity?.reason) toast(`Illegal placement — ${validity.reason}.`);
+      if (validity?.reason) toast(placementRefusal(validity.reason));
       return false;
     }
 
@@ -1017,7 +1026,10 @@ function createCustomizationCoordinator() {
     return true;
   }
 
+  // Every built-in furniture and entity edit (editor intents and the WebGL
+  // surface's direct calls alike) passes layoutWriteRefused() first.
   function moveAuthoredFurnishing(stableId, tile, roomId, rotation) {
+    if (layoutWriteRefused()) return false;
     const row = authoredFurnishing(stableId);
     if (!row || !Number.isFinite(tile?.x) || !Number.isFinite(tile?.y)) return false;
     return commitAuthoredOverride(row, {
@@ -1028,6 +1040,7 @@ function createCustomizationCoordinator() {
   }
 
   function rotateAuthoredFurnishing(stableId) {
+    if (layoutWriteRefused()) return false;
     const row = authoredFurnishing(stableId);
     if (!row) return false;
     return commitAuthoredOverride(row, {
@@ -1060,6 +1073,7 @@ function createCustomizationCoordinator() {
   }
 
   function removeAuthoredFurnishing(stableId) {
+    if (layoutWriteRefused()) return false;
     stableId = String(stableId || '');
     const row = effectiveModel?.furnishings?.find((candidate) =>
       candidate.stable_furnishing_id === stableId && candidate.source?.kind !== 'placement');
@@ -1073,6 +1087,7 @@ function createCustomizationCoordinator() {
   }
 
   function restoreAuthoredFurnishing(stableId) {
+    if (layoutWriteRefused()) return false;
     stableId = String(stableId || '');
     if (authoredOverrides.get(stableId)?.removed !== true) return false;
     return commitAuthoredRemoval(stableId, false);
@@ -1268,7 +1283,15 @@ function createCustomizationCoordinator() {
   async function saveEditorDesign() {
     if (!placement) return Object.freeze({ ok: false, reason: 'placement-unavailable' });
     const authority = await placement.save();
-    if (!authority?.ok) return authority;
+    if (!authority?.ok) {
+      if (authority?.reason) toast(`Not saved — ${placementRefusal(authority.reason)}`);
+      return authority;
+    }
+    // Demo without --allow-actions: the isolated authority above is the save.
+    if (context.layout_writable !== true) {
+      toast('Office layout saved for this demo session.');
+      return authority;
+    }
     const persisted = await saveFloorConfig();
     if (!persisted.ok) {
       toast(`office layout save failed — ${persisted.reason}`);
@@ -1280,12 +1303,27 @@ function createCustomizationCoordinator() {
     return authority;
   }
 
+  // A blocked move says why in words; the bare contract code stays in the
+  // parenthesis so it still matches what the server would have answered.
+  const PLACEMENT_REFUSALS = Object.freeze({
+    corridor: "Can't put furniture there — that's a walkway",
+    door: "Can't put furniture there — it would block a door",
+    structural: "Can't put furniture there — that's a wall",
+    out_of_bounds: "Can't put furniture there — it's off the floor",
+    cross_room: "Can't move it there — furniture stays inside one room",
+    occupied: "Can't put furniture there — something is already there",
+  });
+  function placementRefusal(reason) {
+    const words = PLACEMENT_REFUSALS[reason];
+    return words ? `${words} (${reason}).` : `placement: ${reason}`;
+  }
+
   function dispatchPlacement(intent) {
     if (!placement) return Object.freeze({ ok: false, reason: 'placement-unavailable' });
     let result;
     try { result = placement.intent(intent); }
     catch (error) { result = { ok: false, reason: String(error?.message || error) }; }
-    if (result?.ok === false && result.reason) toast(`placement: ${result.reason}`);
+    if (result?.ok === false && result.reason) toast(placementRefusal(result.reason));
     else if (result?.ok === false && result.readiness) {
       toast(`placement asset ${result.readiness} — retry when ready`);
     }
@@ -1333,7 +1371,7 @@ function createCustomizationCoordinator() {
     if (!session || !tile) return false;
     const roomId = roomForTile(tile);
     if (!roomId) {
-      toast('Illegal placement — choose a tile inside one room.');
+      toast(placementRefusal('cross_room'));
       return false;
     }
     if (session.tool === 'place') {
@@ -1354,6 +1392,14 @@ function createCustomizationCoordinator() {
       return placed;
     }
     return false;
+  }
+
+  // Built-in furniture and entity moves persist only through the floor-config
+  // write. Where that is off, refuse them before anything moves, with the reason.
+  function layoutWriteRefused() {
+    if (context.layout_writable === true) return false;
+    toast('Built-in furniture stays put here — layout writes are off (start with --allow-actions).');
+    return true;
   }
 
   function handleEditorIntent(intent = {}) {
@@ -1379,7 +1425,10 @@ function createCustomizationCoordinator() {
           || !Number.isFinite(current.anchor?.y)) return false;
       const anchor = { x: current.anchor.x + delta.x, y: current.anchor.y + delta.y };
       const roomId = roomForTile(anchor);
-      if (!roomId) return false;
+      if (!roomId) {
+        toast(placementRefusal('cross_room'));
+        return false;
+      }
       if (current.authored === true) {
         return moveAuthoredFurnishing(intent.placement_id, anchor, roomId);
       }
@@ -1434,24 +1483,46 @@ function createCustomizationCoordinator() {
     return true;
   }
 
-  function decideExit() {
-    if (typeof root.confirm !== 'function') return Promise.resolve('cancel');
-    if (root.confirm('Save office changes before leaving edit mode?')) return Promise.resolve('save');
-    if (root.confirm('Discard the unsaved office changes?')) {
-      placement?.rollback?.();
-      restorePersistedOverrides();
-      if (authoredSessionBaseline) {
-        authoredOverrides.clear();
-        for (const [stableId, override] of authoredSessionBaseline) {
-          authoredOverrides.set(stableId, override);
-        }
+  function discardEditorSession() {
+    placement?.rollback?.();
+    restorePersistedOverrides();
+    if (authoredSessionBaseline) {
+      authoredOverrides.clear();
+      for (const [stableId, override] of authoredSessionBaseline) {
+        authoredOverrides.set(stableId, override);
       }
-      authoredUndoRecord = null;
-      rebuildEffective();
-      refreshEntityProjection();
-      return Promise.resolve('discard');
     }
+    authoredUndoRecord = null;
+    rebuildEffective();
+    refreshEntityProjection();
+    return Promise.resolve('discard');
+  }
+
+  function decideExit(request = {}) {
+    if (typeof root.confirm !== 'function') return Promise.resolve('cancel');
+    // After a failed save, say why before offering the retry, so declining it
+    // leads straight to the discard that always closes the editor.
+    const reason = request.state === 'failed' ? editor?.controller?.snapshot?.().failure : null;
+    const ask = request.state === 'failed'
+      ? `The last change was not saved${reason ? ` (${reason})` : ''}. Try saving again?`
+      : 'Save office changes before leaving edit mode?';
+    if (root.confirm(ask)) return Promise.resolve('save');
+    if (root.confirm('Discard the unsaved office changes?')) return discardEditorSession();
     return Promise.resolve('cancel');
+  }
+
+
+
+  // Say up front what this floor's editor can keep, so the demo's limits are
+  // a tooltip and not a failed save.
+  function describeOpener(opener = editor?.opener) {
+    if (!opener) return;
+    try {
+      opener.title = context.layout_writable === true
+        ? 'Edit Office — move and place furniture'
+        : 'Edit Office — placed items save for this session; built-in furniture is fixed '
+          + '(layout writes are off: start with --allow-actions)';
+    } catch { /* a tooltip never blocks the editor (frozen host stubs) */ }
   }
 
   function mountEditor() {
@@ -1479,6 +1550,7 @@ function createCustomizationCoordinator() {
       decideExit,
     });
     if (!mounted) return null;
+    describeOpener(mounted.opener);
     editorUnsubscribe = mounted.controller.subscribe((message) => {
       if (message?.event === 'entered') {
         authoredSessionBaseline = new Map(authoredOverrides);
@@ -1564,12 +1636,26 @@ function createCustomizationCoordinator() {
       catalog: catalogRows,
       catalogDigest: root.OfficeCustomizationCatalog.catalogDigest,
       wallet: economy.wallet,
-      purchase: async (request) => postAction('entitlements', 'purchase', {
-        sku_id: request.sku_id,
-        debit_id: request.debit_id,
-        price_ref: request.price_ref,
-        wallet_receipt: request.wallet_receipt,
-      }, revisions.entitlements),
+      purchase: async (request) => {
+        const token = generation;
+        const result = await postAction('entitlements', 'purchase', {
+          sku_id: request.sku_id, debit_id: request.debit_id,
+          price_ref: request.price_ref, book: request.book,
+        }, revisions.entitlements, token);
+        if (!activeToken(token)) return result;
+        try {
+          const refreshed = validateSnapshot(await getSidecar(token),
+            root.OfficeCustomizationCatalog.catalogDigest, context.target);
+          marketWallet.hydrate(refreshed.balances);
+          inventory.hydrate(refreshed.entitlements);
+          revisions = { ...refreshed.revisions };
+          sidecar = refreshed;
+        } catch {
+          marketWallet.hydrate({ credits: null, office: null });
+        }
+        configureStore();
+        return result;
+      },
       prepare: async () => postAction('upkeep', 'prepare', {}, revisions.upkeep),
       confirm: async (invoice, outcome, expectedRevision) => postAction('upkeep', 'confirm', {
         debit_id: invoice.debit_id,
@@ -1633,6 +1719,9 @@ function createCustomizationCoordinator() {
     editorUnsubscribe = null;
     openerGate = null;
     inventory = null;
+    marketEconomy?.stop?.();
+    marketEconomy = null;
+    marketWallet = null;
     placement = null;
     selectedSku = null;
     selectedAuthoredItemId = null;
@@ -1656,7 +1745,7 @@ function createCustomizationCoordinator() {
     assetCache.clear();
     writeTail = Promise.resolve();
     if (root.__OFFICE_PLACEMENTS__ === coordinator) delete root.__OFFICE_PLACEMENTS__;
-    mountStore({ placementStore: null, customizationInventory: null });
+    mountStore({ placementStore: null, customizationInventory: null, economy: null });
     status = reason;
   }
 
@@ -1700,7 +1789,10 @@ function createCustomizationCoordinator() {
       catalogManifest = manifest;
       catalogRows = root.OfficeCustomizationCatalog.admitted();
       catalogBySku = new Map(catalogRows.map((item) => [item.sku_id, item]));
-      inventory = createInventory(economy);
+      marketWallet = economy.createServerWallet();
+      marketWallet.hydrate(loaded.balances || { credits: null, office: null });
+      marketEconomy = economy.createEconomy({ wallet: marketWallet, document: null });
+      inventory = createInventory(marketEconomy);
       inventory.hydrate(loaded.entitlements);
       const bootDesign = floorConfigDesign(loaded.active_design || emptyDesign());
       placement = createPlacementController(bootDesign);
@@ -1747,6 +1839,7 @@ function createCustomizationCoordinator() {
     } else {
       context = nextContext;
       editor?.controller?.updateCapability?.();
+      describeOpener();
       if (placement && !rebuildEffective()) {
         readyFlight = Promise.resolve(snapshot());
         return readyFlight;
@@ -1796,7 +1889,7 @@ function createCustomizationCoordinator() {
     ready: () => readyFlight.then(() => snapshot()),
     snapshot,
     capability: () => context,
-    storeOptions: () => Object.freeze({ placementStore: null, customizationInventory: inventory }),
+    storeOptions: () => Object.freeze({ placementStore: null, customizationInventory: inventory, economy: marketEconomy }),
     requestPlace,
     chooseSku,
     ensureActiveDesign,

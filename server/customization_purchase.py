@@ -6,6 +6,8 @@ import copy
 import datetime as dt
 import hashlib
 import json
+import logging
+import threading
 from typing import Any, Callable
 
 from server import customization_contract as contract
@@ -14,8 +16,11 @@ from server.customization_store import (
 )
 
 
+LOGGER = logging.getLogger("office.market")
+_REGRESSION_LOCK = threading.Lock()
+_REGRESSIONS_LOGGED: set[tuple[str, int]] = set()
 LOCAL_DEMO_DISCLOSURE = "LOCAL DEMO · credits (¢r/sc) only · no real money"
-PURCHASE_FIELDS = {"sku_id", "debit_id", "catalog_digest", "price_ref"}
+PURCHASE_FIELDS = {"sku_id", "debit_id", "catalog_digest", "price_ref", "book"}
 CONTEXT_FIELDS = {"supported_live", "persisted", "preview", "snapshot", "city_plate", "standalone"}
 
 
@@ -62,6 +67,135 @@ def _utc_timestamp(value: dt.datetime) -> str:
     return value.astimezone(dt.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+class MarketWallet:
+    """Server-only marketplace adapter; caller supplies authoritative earnings.
+
+    ``read_factory`` opens the ledger for snapshots without persisting it; when
+    omitted, snapshots use ``ledger_factory`` but still only run SELECTs.
+    """
+
+    def __init__(self, store, earned, ledger_factory, read_factory=None):
+        self.store = store
+        self.earned = earned
+        self.ledger_factory = ledger_factory
+        self.read_factory = read_factory or ledger_factory
+
+    def _earned(self) -> int:
+        earned = self.earned()
+        if isinstance(earned, bool) or not isinstance(earned, int) \
+                or earned < 0 or earned > (1 << 53) - 1:
+            raise ValueError("cumulative office earnings must be a safe integer")
+        return earned
+
+    @staticmethod
+    def _credited(ledger) -> int:
+        row = ledger._connection.execute(
+            "SELECT COALESCE(SUM(amount), 0) AS total FROM office_entries "
+            "WHERE account = 'office' AND reason = 'office_earned'",
+        ).fetchone()
+        return row["total"]
+
+    def _sync(self, ledger):
+        """Sync cumulative office earnings under the caller's store transaction."""
+        earned = self._earned()
+        credited = self._credited(ledger)
+        if earned < credited:
+            raise ValueError("cumulative office earnings regressed")
+        if earned > credited:
+            ledger.office.credit(
+                "office", earned - credited,
+                idempotency_key=f"office-earned:{earned}",
+                reason="office_earned", actor="collector",
+            )
+
+    def _log_regression(self, credited: int, earned: int) -> None:
+        key = (str(getattr(self.store, "path", id(self.store))), credited)
+        with _REGRESSION_LOCK:
+            if key in _REGRESSIONS_LOGGED:
+                return
+            _REGRESSIONS_LOGGED.add(key)
+        LOGGER.warning(
+            "office earnings regressed below already-credited total "
+            "(earned %d < credited %d); office spending held until earnings recover",
+            earned, credited,
+        )
+
+    def _clear_regression(self, credited: int) -> None:
+        key = (str(getattr(self.store, "path", id(self.store))), credited)
+        with _REGRESSION_LOCK:
+            _REGRESSIONS_LOGGED.discard(key)
+
+    def snapshot(self):
+        """Read-only balances computed in memory; nothing is synced or persisted.
+
+        Unavailable earnings mean office=None. Earnings below what was already
+        credited (history rewrite, removed lane) show the balance those earnings
+        actually support, clamped at 0, with ``office_hold`` naming why; the
+        debit path stays fail-closed until earnings recover.
+        """
+        with self.store.transaction():
+            with self.read_factory() as ledger:
+                credits = ledger.credits.balance("office")
+                try:
+                    earned = self._earned()
+                    credited = self._credited(ledger)
+                    balance = ledger.office.balance("office")
+                except Exception:
+                    return {"credits": credits, "office": None}
+                if earned >= credited:
+                    self._clear_regression(credited)
+                    return {"credits": credits, "office": balance + (earned - credited)}
+                self._log_regression(credited, earned)
+                return {"credits": credits,
+                        "office": max(0, balance - (credited - earned)),
+                        "office_hold": "earnings_regressed"}
+
+    def __call__(self, amount, debit_id, context):
+        """Debit one server-priced purchase in its explicitly selected book."""
+        if isinstance(amount, bool) or not isinstance(amount, int) \
+                or amount <= 0 or amount > (1 << 53) - 1:
+            raise ValueError("amount must be a positive safe integer")
+        if not isinstance(debit_id, str) or not debit_id:
+            raise ValueError("debit_id must be a non-empty string")
+        if not isinstance(context, dict) or context.get("kind") != "customization_purchase":
+            raise ValueError("context must be a customization_purchase context")
+        book = context.get("book")
+        if book not in ("office", "credits"):
+            raise ValueError("book must be 'office' or 'credits'")
+        sku_id = context.get("sku_id")
+        price_ref = context.get("price_ref")
+        if not isinstance(sku_id, str) or not sku_id:
+            raise ValueError("sku_id must be a non-empty string")
+        if not isinstance(price_ref, str) or not price_ref:
+            raise ValueError("price_ref must be a non-empty string")
+        key = f"market:{debit_id}"
+        metadata = {"sku_id": sku_id, "price_ref": price_ref, "book": book}
+        with self.store.transaction():
+            with self.ledger_factory() as ledger:
+                other = "credits" if book == "office" else "office"
+                other_table = f"{other}_entries"
+                row = ledger._connection.execute(
+                    f"SELECT 1 FROM {other_table} WHERE idempotency_key = ?", (key,),
+                ).fetchone()
+                if row is not None:
+                    raise ValueError("debit id already names another book")
+                if book == "office":
+                    self._sync(ledger)
+                handle = ledger.office if book == "office" else ledger.credits
+                return handle.debit(
+                    "office", amount, idempotency_key=key,
+                    reason="customization_purchase", actor="viewer",
+                    metadata=metadata,
+                )
+
+
+def served_market_wallet(store, earned) -> MarketWallet:
+    """The served floor's wallet: debits persist, snapshots never write."""
+    from server.economy_ledger import market_ledger
+    return MarketWallet(store, earned, lambda: market_ledger(store),
+                        lambda: market_ledger(store, persist=False))
+
+
 class CustomizationPurchaseService:
     """Catalog-authoritative domain service over one SOC-02 authority."""
 
@@ -93,10 +227,14 @@ class CustomizationPurchaseService:
 
     def purchase(self, request: dict, expected_revision: int) -> dict:
         _reject_real_money_fields(request)
-        if not isinstance(request, dict) or set(request) != PURCHASE_FIELDS:
+        if not isinstance(request, dict) or not set(request) <= PURCHASE_FIELDS \
+                or not {"sku_id", "debit_id", "catalog_digest", "price_ref"} <= set(request):
             raise CustomizationPurchaseError("invalid_request", "purchase request has unknown or missing fields")
         sku_id = request["sku_id"]
         debit_id = request["debit_id"]
+        book = request.get("book", "credits")
+        if book not in ("credits", "office"):
+            raise CustomizationPurchaseError("invalid_book", "book must be 'credits' or 'office'")
         item = self.items.get(sku_id)
         if item is None:
             raise CustomizationPurchaseError("unknown_sku", "SKU is not admitted")
@@ -106,46 +244,61 @@ class CustomizationPurchaseService:
         if request["price_ref"] != price_ref:
             raise CustomizationPurchaseError("invalid_price_ref", "price reference is not catalog-authoritative")
 
-        document = self.store.load()
-        prior = document["purchase_receipts"].get(debit_id)
-        if prior is not None:
-            if prior["sku_id"] != sku_id:
-                raise CustomizationPurchaseError("idempotency_conflict", "debit id already names another SKU")
-            return {"ok": True, "charged": 0, "owned": True, "replayed": True,
-                    "revision": document["entitlements_revision"], "entitlement": prior}
-        owned = document["entitlements"].get(sku_id)
-        if owned is not None:
-            return {"ok": True, "charged": 0, "owned": True, "replayed": False,
-                    "revision": document["entitlements_revision"], "entitlement": owned}
+        if isinstance(expected_revision, bool) or not isinstance(expected_revision, int):
+            raise CustomizationPurchaseError("invalid_revision", "expected_revision must be a non-negative integer")
 
-        price = credit_price(price_ref)
-        try:
-            outcome = self.debit(price, debit_id, {
-                "kind": "customization_purchase", "sku_id": sku_id,
-                "price_ref": price_ref, "unit": "credits", "local_demo": True,
-            })
-        except Exception:
-            return {"ok": False, "reason": "debit_unavailable", "charged": 0,
-                    "retryable": True, "revision": document["entitlements_revision"]}
-        if outcome is not True and not (isinstance(outcome, dict) and outcome.get("ok") is True):
-            reason = "insufficient_credits" if isinstance(outcome, dict) \
-                and outcome.get("reason") == "insufficient_credits" else "debit_unavailable"
-            return {"ok": False, "reason": reason, "charged": 0, "retryable": True,
-                    "revision": document["entitlements_revision"]}
-        acquired_at = outcome.get("at") if isinstance(outcome, dict) else None
-        if acquired_at is None:
-            acquired_at = _utc_timestamp(self.clock())
-        entitlement = {"sku_id": sku_id, "acquired_at": acquired_at, "debit_id": debit_id}
-        try:
-            stored = self.store.record_entitlement(entitlement, expected_revision)
-        except CustomizationStoreError:
-            # The debit callback is idempotent by debit_id. A retry reconciles
-            # the same debit before attempting the durable CAS again.
-            return {"ok": False, "reason": "persistence_pending", "charged": price,
-                    "retryable": True, "revision": self.store.load()["entitlements_revision"]}
-        return {"ok": True, "charged": price, "owned": True,
-                "replayed": stored["replayed"], "revision": stored["revision"],
-                "entitlement": stored["value"]}
+        with self.store.transaction():
+            document = self.store.load()
+            prior = document["purchase_receipts"].get(debit_id)
+            if prior is not None:
+                if prior["sku_id"] != sku_id or prior.get("book", "credits") != book:
+                    raise CustomizationPurchaseError("idempotency_conflict", "debit id already names another SKU or book")
+                return {"ok": True, "charged": 0, "owned": True, "replayed": True,
+                        "revision": document["entitlements_revision"], "entitlement": prior}
+            owned = document["entitlements"].get(sku_id)
+            if owned is not None:
+                return {"ok": True, "charged": 0, "owned": True, "replayed": False,
+                        "revision": document["entitlements_revision"], "entitlement": owned}
+            if expected_revision != document["entitlements_revision"]:
+                return {"ok": False, "reason": "stale_revision", "charged": 0,
+                        "retryable": True, "revision": document["entitlements_revision"]}
+
+            price = credit_price(price_ref)
+            try:
+                outcome = self.debit(price, debit_id, {
+                    "kind": "customization_purchase", "sku_id": sku_id,
+                    "price_ref": price_ref, "book": book, "unit": book, "local_demo": True,
+                })
+            except Exception:
+                return {"ok": False, "reason": "debit_unavailable", "charged": 0,
+                        "retryable": True, "revision": document["entitlements_revision"]}
+            if outcome is not True and not (isinstance(outcome, dict) and outcome.get("ok") is True):
+                reason = "debit_unavailable"
+                if isinstance(outcome, dict):
+                    if outcome.get("reason") == "insufficient_credits":
+                        reason = "insufficient_credits"
+                    elif outcome.get("reason") == "insufficient_office":
+                        reason = "insufficient_office"
+                return {"ok": False, "reason": reason, "charged": 0, "retryable": True,
+                        "revision": document["entitlements_revision"]}
+            # An exact ledger replay (retry after persistence_pending) moved no
+            # money now; report the zero charge instead of the original price.
+            debit_replayed = isinstance(outcome, dict) and outcome.get("replayed") is True
+            charged = 0 if debit_replayed else price
+            acquired_at = outcome.get("at") if isinstance(outcome, dict) else None
+            if acquired_at is None:
+                acquired_at = _utc_timestamp(self.clock())
+            entitlement = {"sku_id": sku_id, "acquired_at": acquired_at, "debit_id": debit_id}
+            if "book" in request:
+                entitlement["book"] = book
+            try:
+                stored = self.store.record_entitlement(entitlement, expected_revision)
+            except CustomizationStoreError:
+                return {"ok": False, "reason": "persistence_pending", "charged": charged,
+                        "retryable": True, "revision": self.store.load()["entitlements_revision"]}
+            return {"ok": True, "charged": charged, "owned": True,
+                    "replayed": stored["replayed"] or debit_replayed, "revision": stored["revision"],
+                    "entitlement": stored["value"]}
 
     def _context(self, context: dict | None) -> bool:
         if context is None:

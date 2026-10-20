@@ -46,7 +46,7 @@ let suspendedDrawer = null; // { id, element, home, registration, returnFocus, s
 let mobileNavOpen = false;
 let lastFocused = null;
 let observer = null;
-let storePanelWatch = null;
+let modalRouteWatch = null;
 let mountsSettled = false;
 
 let shell;
@@ -290,7 +290,7 @@ function closeMobileNavLow({ restoreFocus = false } = {}) {
 // paints. The rail owns only WHEN it is open, so every route transition shuts
 // it the way it shuts a drawer — by driving the store's own opener.
 function closeStoreOverlay() {
-  const optionalStore = root['Office' + 'Store'];
+  const optionalStore = root.OfficeStore;
   if (optionalStore?.closePreview?.({ restoreFocus: false })) return true;
   const panel = byId('storePanel');
   if (!panel || panel.hidden) return false;
@@ -298,20 +298,23 @@ function closeStoreOverlay() {
   return true;
 }
 
-// The panel can also be dismissed on its own terms — its close button, Escape,
-// `b`, or the modal backdrop. Watch the one attribute that says so, so the rail
-// button never stays lit on a surface that is no longer there.
-function watchStorePanel(panel) {
-  if (storePanelWatch || typeof root.MutationObserver !== 'function') return;
-  storePanelWatch = new root.MutationObserver(() => {
+// A modal-hosted route (the store panel, CostView) can also be dismissed on its
+// own terms — its close button, Escape, `b`, or the modal backdrop. Watch the
+// one attribute that says so, so the rail button never stays lit on a surface
+// that is no longer there.
+function watchModalRoute(panel, routeId) {
+  if (typeof root.MutationObserver !== 'function') return;
+  modalRouteWatch?.disconnect();
+  const watch = new root.MutationObserver(() => {
     if (!panel.hidden) return;
-    storePanelWatch?.disconnect();
-    storePanelWatch = null;
-    if (activeRouteId !== 'marketplace') return;
+    watch.disconnect();
+    if (modalRouteWatch === watch) modalRouteWatch = null;
+    if (activeRouteId !== routeId) return;
     setActiveRoute(activeDrawer?.id || activeUtility?.id || 'office');
-    routeButton('marketplace')?.focus?.();
+    routeButton(routeId)?.focus?.();
   });
-  storePanelWatch.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+  modalRouteWatch = watch;
+  watch.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
 }
 
 function closeShellSurfaces() {
@@ -423,7 +426,8 @@ function openCosts() {
     return;
   }
   if (typeof root.OFFICE?.mounts?.openCostView === 'function') {
-    root.OFFICE.mounts.openCostView();
+    const panel = root.OFFICE.mounts.openCostView();
+    if (panel && !panel.hidden) watchModalRoute(panel, 'costs');
   } else {
     byId('costViewBtn')?.click?.();
   }
@@ -434,11 +438,19 @@ function openCosts() {
 function openMarketplace() {
   closeShellSurfaces();
   try {
-    const optionalStore = root['Office' + 'Store'];
+    const optionalStore = root.OfficeStore;
+    if (optionalStore?.storeLiveEnabled?.() === true) {
+      optionalStore.mount()?.click?.();
+      const panel = byId('storePanel');
+      if (panel && !panel.hidden) {
+        watchModalRoute(panel, 'marketplace');
+        return;
+      }
+    }
     if (typeof optionalStore?.openPreview === 'function') {
       const panel = optionalStore.openPreview({ returnFocus: routeButton('marketplace') });
       if (panel && !panel.hidden) {
-        watchStorePanel(panel);
+        watchModalRoute(panel, 'marketplace');
         return;
       }
     }
@@ -499,7 +511,7 @@ function destinationFor(element, requested) {
 function shouldHoldProducerAnchor(element) {
   if (element.id === 'costViewBtn') return !mountsSettled && !byId('dispatchBoardBtn');
   if (element.id === 'economyBalance') {
-    const optionalStore = root['Office' + 'Store'];
+    const optionalStore = root.OfficeStore;
     return optionalStore?.storeLiveEnabled?.() === true && !byId('storeBtn');
   }
   return false;

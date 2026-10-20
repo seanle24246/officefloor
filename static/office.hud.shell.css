@@ -61,6 +61,22 @@
   white-space: nowrap;
 }
 
+/* A demo's mode chip carries the SIMULATED disclosure (office.hud.js); it
+   never shrinks or ellipsizes, so a narrow bar compacts the clock instead. */
+#office-hud-shell > #topbar > #mode:has(> .mode-label) {
+  flex: 0 0 auto;
+  max-width: none;
+}
+
+@media (max-width: 1100px) {
+  #office-hud-shell > #topbar .brand-subtitle { display: none; }
+}
+
+/* Narrower still: "DEMO FLEET · ⚠️" — the full sentence stays in the title. */
+@media (max-width: 1000px) {
+  #office-hud-shell > #topbar > #mode .mode-warn-word { display: none; }
+}
+
 #office-hud-shell > #topbar > #counters {
   flex: 1 1 auto;
   min-width: 72px;
@@ -110,6 +126,16 @@
   padding: 2px 10px;
   letter-spacing: .2px;
   white-space: nowrap;
+}
+
+/* The weekday made the full label overflow ~900px topbars. Below 1024px the
+   pill drops its "OFFICE TIME ·" prefix and shows the compact value. */
+@media (max-width: 1023px) {
+  #office-hud-shell > #topbar > #officeHudClock { font-size: 0; }
+  #office-hud-shell > #topbar > #officeHudClock::after {
+    content: attr(data-compact);
+    font-size: 10.5px;
+  }
 }
 
 #office-hud-nav-toggle {

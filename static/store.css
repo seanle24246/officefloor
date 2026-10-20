@@ -43,8 +43,19 @@
 .store-currency { display: grid !important; grid-template-columns: 32px minmax(0, 1fr) auto !important; align-items: center; column-gap: 9px; min-height: 50px; box-sizing: border-box; padding: 9px 11px; margin: 8px 0; border: 1px solid #203c32; border-radius: 7px; background: #091a18; }
 .store-currency.scrip { border-color: #3b2955; background: #120d21; }
 .store-currency-glyph { color: #91df5d; font-size: 15px; }.scrip .store-currency-glyph { color: #c485ed; }
-.store-currency-value { display: block; min-width: 0; color: #91df5d; font-size: 20px; letter-spacing: 1px; white-space: nowrap; }.scrip .store-currency-value { color: #d493f4; }
+.store-currency-value { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: #91df5d; font-size: 20px; letter-spacing: 1px; white-space: nowrap; }.scrip .store-currency-value { color: #d493f4; }
 .store-currency-label { display: block; color: #91df5d; font-size: 10px; letter-spacing: 1px; white-space: nowrap; }.scrip .store-currency-label { color: #d493f4; }
+/* An unknown balance is a word, not a number, and a narrow rail has no room
+   beside its label: stack value over label so neither runs into the other. */
+.store-currency.is-unknown { grid-template-columns: 32px minmax(0, 1fr) !important; row-gap: 2px; }
+.store-currency.is-unknown .store-currency-glyph { grid-row: span 2; }
+.store-currency.is-unknown .store-currency-value { font-size: 14px; }
+@media (max-width: 1120px) {
+  .store-currency { grid-template-columns: 32px minmax(0, 1fr) !important; row-gap: 2px; }
+  .store-currency .store-currency-glyph { grid-row: span 2; }
+  .store-currency .store-currency-value { font-size: 16px; }
+  .store-currency.is-unknown .store-currency-value { font-size: 14px; }
+}
 .store-search { width: 100%; box-sizing: border-box; margin: 11px 0; padding: 12px; color: #dbe4ed; font: inherit; font-size: 12px; border: 1px solid #26384a; border-radius: 6px; background: #07111b; }
 .store-rail-nav { display: grid; gap: 6px; }.store-rail-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 40px; padding: 0 12px; color: #cbd2da; text-align: left; font: inherit; font-size: 12px; border: 1px solid #182837; border-radius: 5px; background: #08131f; }.store-rail-row.active { color: #f0bf43; border-color: #ba811c; background: rgba(121, 77, 12, .14); }.store-rail-row.locked { margin-top: 12px; color: #cf91f0; border-color: #653e84; background: #140e21; }.store-rail-note { margin-top: 12px; padding: 14px; color: #d398f4; font-size: 10px; line-height: 1.8; border: 1px solid #76469a; border-radius: 6px; }
 .store-market-main { min-width: 0; overflow: auto; padding: 26px 28px; }.store-market-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 18px; }.store-market-title { margin: 0; color: #e8ad31; font-size: 18px; font-weight: 500; letter-spacing: 2px; }.store-market-subtitle { margin: 7px 0 20px; color: #afb7c0; font-size: 12px; }.store-sort { min-width: 190px; padding: 10px 12px; color: #d9dee5; font: inherit; border: 1px solid #26384a; border-radius: 6px; background: #09131e; }

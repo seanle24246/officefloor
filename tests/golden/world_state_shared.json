@@ -10,6 +10,7 @@
     "x": 3,
     "y": 2
    },
+   "done": false,
    "emoji": "owl",
    "engine": "claude",
    "errand": "",
@@ -20,6 +21,7 @@
     "y": 3
    },
    "lane": "ada",
+   "last_output_age": null,
    "liveness_known": true,
    "model": "",
    "name": "Ada",
@@ -46,6 +48,7 @@
     "x": 3,
     "y": 2
    },
+   "done": false,
    "emoji": "hog",
    "engine": "claude",
    "errand": "",
@@ -56,6 +59,7 @@
     "y": 3
    },
    "lane": "bob",
+   "last_output_age": null,
    "liveness_known": true,
    "model": "",
    "name": "Bob",
@@ -82,6 +86,7 @@
     "x": 3,
     "y": 2
    },
+   "done": false,
    "emoji": "alien",
    "engine": "codex",
    "errand": "",
@@ -92,6 +97,7 @@
     "y": 3
    },
    "lane": "cyn",
+   "last_output_age": null,
    "liveness_known": false,
    "model": "",
    "name": "Cyn",
@@ -166,27 +172,27 @@
   },
   "ceo_queue": [
    {
-    "x": 27,
+    "x": 29,
     "y": 2
    },
    {
-    "x": 28,
+    "x": 30,
     "y": 2
    },
    {
-    "x": 27,
+    "x": 29,
     "y": 4
    },
    {
-    "x": 28,
+    "x": 30,
     "y": 4
    },
    {
-    "x": 27,
+    "x": 29,
     "y": 6
    },
    {
-    "x": 28,
+    "x": 30,
     "y": 6
    }
   ],
@@ -237,6 +243,12 @@
    }
   ],
   "doors": [
+   {
+    "edge": "w",
+    "label": "RESTROOM",
+    "x": 32,
+    "y": 21
+   },
    {
     "edge": "s",
     "label": "TO THE FLOOR",
@@ -443,57 +455,59 @@
     "y": 11
    },
    {
-    "d": 1.6,
-    "type": "pingpong",
-    "w": 3.0,
-    "x": 16,
-    "y": 21
-   },
-   {
     "d": 1.0,
+    "id": 6,
     "type": "counter",
     "w": 5.0,
     "x": 3,
     "y": 20
    },
    {
+    "id": 7,
     "type": "espresso",
     "x": 3.3,
     "y": 20.1
    },
    {
+    "id": 8,
     "type": "fridge",
     "x": 9,
     "y": 20
    },
    {
+    "id": 9,
     "type": "crate",
     "x": 10.4,
     "y": 20.2
    },
    {
+    "id": 10,
     "type": "cooler",
     "x": 1.1,
     "y": 20.1
    },
    {
+    "id": 11,
     "type": "table",
     "x": 4,
     "y": 22
    },
    {
+    "id": 12,
     "type": "table",
     "x": 7,
     "y": 22
    },
    {
     "edge": "n",
+    "id": 13,
     "type": "smashscreen",
     "x": 19.1,
     "y": 19
    },
    {
     "d": 0.7,
+    "id": 14,
     "type": "smashcouch",
     "w": 3.2,
     "x": 18.1,
@@ -501,17 +515,20 @@
    },
    {
     "d": 1.0,
+    "id": 15,
     "type": "beerpong",
     "w": 4.0,
     "x": 4,
     "y": 22
    },
    {
+    "id": 16,
     "type": "ashcan",
     "x": 27.4,
     "y": 26.2
    },
    {
+    "id": 17,
     "model": "fable",
     "plate": "FABLE 5",
     "type": "car",
@@ -520,6 +537,7 @@
     "y": 28.0
    },
    {
+    "id": 18,
     "model": "opus",
     "plate": "OPUS 5",
     "type": "car",
@@ -528,6 +546,7 @@
     "y": 28.0
    },
    {
+    "id": 19,
     "model": "haiku",
     "plate": "HAIKU 45",
     "type": "car",
@@ -536,6 +555,7 @@
     "y": 28.0
    },
    {
+    "id": 20,
     "model": "sonnet",
     "plate": "SONNET 5",
     "type": "car",
@@ -544,34 +564,103 @@
     "y": 28.0
    },
    {
+    "id": 21,
+    "type": "tree",
+    "x": 33.4,
+    "y": 2.5
+   },
+   {
+    "id": 22,
+    "type": "tree",
+    "x": 34.6,
+    "y": 8.0
+   },
+   {
+    "id": 23,
+    "type": "tree",
+    "x": 33.6,
+    "y": 14.5
+   },
+   {
+    "id": 24,
+    "type": "tree",
+    "x": 34.4,
+    "y": 17.0
+   },
+   {
+    "id": 25,
     "type": "tree",
     "x": 29.0,
     "y": 27.0
    },
    {
+    "id": 26,
     "type": "tree",
     "x": 30.2,
     "y": 29.4
    },
    {
+    "id": 27,
     "type": "shrub",
     "x": 22.5,
     "y": 30.2
    },
    {
+    "id": 28,
     "type": "shrub",
     "x": 28.0,
     "y": 30.6
    },
    {
+    "id": 29,
     "type": "planter",
     "x": 25.0,
     "y": 27.0
    },
    {
+    "id": 30,
     "type": "planter",
     "x": 27.0,
     "y": 27.0
+   },
+   {
+    "activity_target": {
+     "x": 33.06,
+     "y": 20.4
+    },
+    "d": 1.72,
+    "family": "restroom",
+    "id": "restroom-stall-0",
+    "passable": true,
+    "stall_id": "restroom-stall-0",
+    "type": "restroom-stall",
+    "w": 1.72,
+    "x": 32.2,
+    "y": 19.2
+   },
+   {
+    "activity_target": {
+     "x": 35.06,
+     "y": 20.4
+    },
+    "d": 1.72,
+    "family": "restroom",
+    "id": "restroom-stall-1",
+    "passable": true,
+    "stall_id": "restroom-stall-1",
+    "type": "restroom-stall",
+    "w": 1.72,
+    "x": 34.2,
+    "y": 19.2
+   },
+   {
+    "d": 1.9,
+    "family": "restroom",
+    "id": "restroom-divider",
+    "type": "restroom-divider",
+    "w": 0.12,
+    "x": 34.0,
+    "y": 19.0
    }
   ],
   "rooms": [
@@ -599,7 +688,7 @@
     "id": "review",
     "label": "REVIEW + SECURITY",
     "tint": "#5b2f2f",
-    "w": 13,
+    "w": 9,
     "x": 23,
     "y": 0
    },
@@ -617,9 +706,30 @@
     "id": "bench",
     "label": "THE LOUNGE",
     "tint": "#2c3f2c",
-    "w": 13,
+    "w": 9,
     "x": 23,
     "y": 10
+   },
+   {
+    "animal_zone": true,
+    "desk_cols": 0,
+    "h": 19,
+    "id": "paddock",
+    "label": "THE PADDOCK",
+    "outdoor": true,
+    "tint": "#548b38",
+    "w": 4,
+    "x": 32,
+    "y": 0
+   },
+   {
+    "h": 5,
+    "id": "restroom",
+    "label": "RESTROOM",
+    "tint": "#486365",
+    "w": 4,
+    "x": 32,
+    "y": 19
    },
    {
     "h": 5,
@@ -680,6 +790,7 @@
   "delivering": 0,
   "frozen": 0,
   "ghosts": 1,
+  "idle": 0,
   "reading": 0,
   "refused_pushes": 0,
   "total": 3,

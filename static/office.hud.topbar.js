@@ -8,17 +8,6 @@ const { deriveFleetHealth } = truth;
 const BAR_ID = 'officeHudTruthBar';
 const CLOCK_ID = 'officeHudClock';
 const CLOCK_TICK_MS = 1000;
-const PHASE_GLYPHS = Object.freeze({
-  graveyard: '🌙',
-  dawn: '🌅',
-  early: '🌅',
-  morning: '☀️',
-  midday: '☀️',
-  afternoon: '☀️',
-  golden: '🌇',
-  dusk: '🌇',
-  night: '🌙',
-});
 let clockTimer = null;
 
 // Needs Me is the operator's primary top-bar action.
@@ -52,11 +41,45 @@ function installModePill() {
   function renderCountersWithOrgResolution(...args) {
     const result = renderCounters.apply(hud, args);
     renderModePill();
+    renderOfficeWallet();
     return result;
   }
   renderCountersWithOrgResolution.officeSetupWrapped = true;
   hud.renderCounters = renderCountersWithOrgResolution;
   return true;
+}
+
+function renderOfficeWallet(world = OFFICE.state?.world) {
+  const doc = globalThis.document;
+  let element = doc?.getElementById?.('officeWallet');
+  if (globalThis.OfficeFeatureFlags?.enabled?.('agent_wallet') !== true) {
+    element?.remove?.();
+    return;
+  }
+  const topbar = doc?.getElementById?.('topbar');
+  if (!topbar || !globalThis.OfficeHudShell?.adoptControl) return;
+  if (!element) {
+    element = doc.createElement('span');
+    element.id = 'officeWallet';
+    element.className = 'pill';
+    globalThis.OfficeHudShell.adoptControl(element, 'topbar');
+  }
+  const amount = world?.office_wallet_usd;
+  // UI-POLISH-01: a demo fleet ships no real lines, so "unavailable" read as broken next to a live
+  // economy. Demo floors show the demo book's balance (labelled DEMO) or say plainly it is not measured.
+  // A demo floor's office number is the demo book (fiction), labelled DEMO, never MEASURED.
+  const served = world?.mode === 'demo' && Number.isSafeInteger(amount) && amount >= 0 ? amount : undefined;
+  const demoBalance = world?.mode === 'demo'
+    ? (globalThis.OfficeDemoEconomy?.book?.()?.office?.balance_office ?? served) : undefined;
+  const measured = Number.isSafeInteger(amount) && amount >= 0 && world?.mode !== 'demo';
+  element.textContent = measured
+    ? `🏢 $${amount.toLocaleString('en-US')} · MEASURED`
+    : Number.isSafeInteger(demoBalance) && demoBalance >= 0
+      ? `🏢 $${demoBalance.toLocaleString('en-US')} · DEMO`
+      : world?.mode === 'demo' ? '🏢 demo · not measured' : '🏢 unavailable · MEASURED';
+  element.title = measured || world?.mode !== 'demo'
+    ? 'lines of code shipped × $1' : 'demo office book: fiction, not measured work';
+  element.setAttribute('aria-label', `Office wallet: ${element.textContent}`);
 }
 
 function ensureClockElement() {
@@ -72,6 +95,7 @@ function ensureClockElement() {
   element.className = 'pill office-clock-pill';
   element.setAttribute('aria-label', 'Office game time');
   element.textContent = 'OFFICE TIME · …';
+  element.dataset.compact = '…';
   topbar.appendChild(element);
   return element;
 }
@@ -87,10 +111,14 @@ function clockDisplay(world, nowSec) {
   const reading = effects.clockReading(world, nowSec);
   if (!Number.isFinite(reading?.hour)) return null;
   const phase = clock.phaseFor(reading.hour);
-  const glyph = PHASE_GLYPHS[phase.id] || '🕐';
   const gameDay = Number.isFinite(reading.gameDay) ? reading.gameDay : '—';
+  const weekday = clock.WEEKDAYS?.[clock.weekdayFor?.(gameDay)] || '—';
+  // OFFICE-EVENTS-01: the weekly calendar (flag off = null) names the current
+  // or next event; the pill text itself is untouched without it.
+  const event = globalThis.OfficeCalendar?.pillText?.(gameDay, reading.hour) || null;
   return Object.freeze({
-    text: clock.pillText(glyph, gameDay, reading.hour),
+    text: `${weekday} · ${clock.pillText('', gameDay, reading.hour).trim()}`,
+    event,
     phase,
   });
 }
@@ -101,11 +129,16 @@ function renderClock(world = OFFICE.state?.world, nowSec = Date.now() / 1000) {
   const display = clockDisplay(world, nowSec);
   if (!display) {
     element.textContent = 'OFFICE TIME · …';
+    element.dataset.compact = '…';
     element.removeAttribute?.('data-phase');
     return null;
   }
 
-  element.textContent = `OFFICE TIME · ${display.text}`;
+  element.textContent = `OFFICE TIME · ${display.text}${display.event ? ` · ${display.event}` : ''}`;
+  // Narrow topbars show only this value (office.hud.shell.css); the full
+  // label stays in textContent and aria-label. With the calendar on, the
+  // compact pill names the current/next event instead of the raw day/time.
+  element.dataset.compact = display.event || display.text;
   element.dataset.phase = display.phase.id;
   element.title = `Simulated office/game time — ${display.phase.label}`;
   element.setAttribute('aria-label', `${element.textContent}; ${display.phase.label}`);

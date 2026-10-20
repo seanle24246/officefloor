@@ -17,6 +17,19 @@ RELEASE_MANIFEST_FILE = "release_manifest.json"
 FLAG_NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 RELEASE_ID_RE = re.compile(r"^\d+\.\d+\.\d+$")
 
+# LIVING-DEMO-01: flags a --demo floor (and the public web-demo bake) forces
+# on behind the ``living_demo`` switch. The list lives in one place so serve.py
+# and build_standalone.py cannot drift. It is applied only while ``living_demo``
+# resolves true, and only for a demo floor: a live (non-demo) floor resolves
+# exactly what its release always did.
+DEMO_FLAG_OVERRIDES = (
+    "agent_wallet",
+    "agent_spending",
+    "demo_economy",
+    "economy_view",
+    "agent_talk",
+)
+
 
 def _data_path(name: str) -> Path:
     source = ROOT / name
@@ -117,9 +130,45 @@ def resolve_feature_flags(
     return {name: name in enabled for name in registry}
 
 
+def demo_overrides(flags: dict[str, bool]) -> dict[str, bool]:
+    """Apply the demo-only overrides when ``living_demo`` is enabled.
+
+    Pure and total: a flag absent from the registry is left absent, and a
+    missing/false ``living_demo`` returns the input unchanged. A live floor
+    never calls this.
+    """
+    if flags.get("living_demo") is not True:
+        return dict(flags)
+    result = dict(flags)
+    for name in DEMO_FLAG_OVERRIDES:
+        if name in result:
+            result[name] = True
+    return result
+
+
+def _demo_floor_active() -> bool:
+    """Whether this process launched the demo floor (``serve.py --demo``).
+
+    Imported lazily: ``server.roots`` is the one mutable floor seam, and the
+    flag module must not depend on it at import time. A failure to read it is
+    a live floor (never invent demo behaviour).
+    """
+    try:
+        from server import roots
+        return roots.demo_state()
+    except Exception:
+        return False
+
+
 def is_feature_enabled(name: str, release: str | None = None) -> bool:
-    """Return one resolved flag, rejecting misspelled names."""
+    """Return one resolved flag, rejecting misspelled names.
+
+    On a demo floor the demo-only overrides are applied first, so the served
+    demo's server accessors agree with its client bootstrap.
+    """
     flags = resolve_feature_flags(release)
+    if _demo_floor_active():
+        flags = demo_overrides(flags)
     if name not in flags:
         raise KeyError(name)
     return flags[name]
@@ -129,10 +178,20 @@ def client_bootstrap(
     release: str | None = None,
     *,
     registry_defaults: bool = False,
+    demo: bool | None = None,
 ) -> str:
-    """Return CSP-safe client data shared by serve and standalone bake."""
+    """Return CSP-safe client data shared by serve and standalone bake.
+
+    ``demo`` forces the demo-only overrides on (or off) explicitly; None means
+    infer from the served floor (``roots.demo_state()``), which keeps a live
+    floor byte-identical. The web-demo bake passes demo=True.
+    """
     selected = release or current_release()
     flags = resolve_feature_flags(None if registry_defaults else selected)
+    if demo is None:
+        demo = _demo_floor_active()
+    if demo:
+        flags = demo_overrides(flags)
     payload = json.dumps(
         {"release": selected, "flags": flags},
         sort_keys=True,

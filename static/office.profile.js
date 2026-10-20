@@ -7,8 +7,7 @@
  *
  * Pure given its inputs. Reads OfficeStats + OfficeVitals (browser globals or node require).
  * Client-only; no /api/state, no new source of truth. Gated by the overlay's agent_needs flag
- * at the CALL site (this module just shapes data). Not tagged in index.html until the overlay
- * UI (design pending) wires it — then it lands data-office-side-effect for the boot seal.
+ * at the CALL site. The browser adapter reads the current scene registry without copying state.
  */
 (function installProfile(root, factory){
   const api = factory();
@@ -17,8 +16,16 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, () => {
   'use strict';
 
-  const NEED_IDS = ['tiredness', 'drunkenness', 'wired', 'hunger', 'thirst'];
+  const NEED_IDS = ['tiredness', 'drunkenness', 'wired', 'hunger', 'thirst', 'bladder'];
   const TRAIT_IDS = ['fun', 'goof', 'nerve', 'social', 'chaos', 'vanity'];
+
+  // Registry publishes the same live vitals on each agent mesh. Resolve the
+  // current scene every time so a floor switch cannot retain another floor's data.
+  function liveVitalsFor(lane) {
+    if (globalThis.OfficeFeatureFlags?.enabled?.('agent_needs') !== true) return null;
+    const content = globalThis.OFFICE?.webgl?.getRuntime?.()?.content;
+    return content?.getObjectByName?.(`agent:${lane}`)?.userData?.vitals || null;
+  }
 
   function resolveStats(deps) {
     if (deps && deps.stats) return deps.stats;
@@ -55,6 +62,7 @@
       },
       // 🎭 FICTION — render as 1–10 bars, never a unit.
       traits: Object.fromEntries(TRAIT_IDS.map((k) => [k, traits[k] ?? null])),
+      mouth: Stats?.mouthFor ? Stats.mouthFor(lane) : null,
       archetype: archetype ? { id: archetype.id, label: archetype.label } : null,
       // 🎭 FICTION — render as live 0–1 meters.
       vitals: Object.fromEntries(NEED_IDS.map((k) => [k, typeof vitals[k] === 'number' ? vitals[k] : null])),
@@ -72,5 +80,5 @@
     };
   }
 
-  return { profileFor, NEED_IDS, TRAIT_IDS };
+  return { profileFor, liveVitalsFor, NEED_IDS, TRAIT_IDS };
 }));

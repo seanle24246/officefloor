@@ -123,16 +123,6 @@
       body: 'A brief conversation outside softens the fictional room\'s mood for a moment.',
     }),
     row({
-      id: 'rested-reset',
-      proposes: 'Temporarily reduce one fictional participant\'s tiredness after a nap.',
-      from: ['nap'],
-      blastRadius: 'First fictional participant\'s tiredness value only.',
-      kind: 'buff', scope: 'agent', stat: 'tiredness', magnitude: -0.20, ttl: 200,
-      surface: 'agent_vitals',
-      title: 'Rested Reset',
-      body: 'A short nap clears some fictional tiredness until the rested window closes.',
-    }),
-    row({
       id: 'argument-cloud',
       proposes: 'Apply a small, temporary fictional morale dip after an argument.',
       from: ['argument'],

@@ -57,6 +57,7 @@ class PublicWheelBuildPy(_build_py):
 
     _EXCLUDED_MEMBERS = (
         "server/hosted_contract.py",
+        "server/live_only_scripts.py",
         "static/office.vitals.naughty.js",
         "static/office.npcvig.bank.naughty-cast.js",
         "static/office.idle.naughty.gate.js",

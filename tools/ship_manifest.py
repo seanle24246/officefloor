@@ -170,13 +170,17 @@ INCLUSIONS: tuple[dict, ...] = (
         "name": "naughty_catalog",
         "area": "Naughty",
         "private": True,
-        "desc": "Naughty vitals, idle-gate, and NPC-cast modules delivered only "
-                "after sign-in; never present in a public wheel.",
-        "cite": "pyproject.toml exclude-package-data; MANIFEST.in excludes",
+        "desc": "Naughty vitals, idle-gate, and NPC-cast modules plus their "
+                "served loader, injected only when naughty_mode resolves on "
+                "(the client gate still requires sign-in + attestation); never "
+                "present in a public wheel.",
+        "cite": "pyproject.toml exclude-package-data; MANIFEST.in excludes; "
+                "server/live_only_scripts.py",
         "wheel_globs": (
             "static/office.vitals.naughty.js",
             "static/office.idle.naughty.gate.js",
             "static/office.npcvig.bank.naughty-cast.js",
+            "server/live_only_scripts.py",
         ),
     },
     {

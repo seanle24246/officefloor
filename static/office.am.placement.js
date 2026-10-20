@@ -38,6 +38,8 @@ function homeBase(entry) {
   return { room, desk, status };
 }
 
+API.homeBase = homeBase;
+
 function allowedRooms(entry) {
   const rooms = get(entry, 'rooms');
   if (!Array.isArray(rooms)) return { rooms: [], allowed: [], off: [] };

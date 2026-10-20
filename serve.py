@@ -58,6 +58,11 @@ from server.claude_source import ClaudeSource
 from server.dir_source import DirSource
 from server.feature_flags import is_feature_enabled
 
+try:
+    from server import live_only_scripts
+except ImportError:  # public wheel: ships neither the modules nor their loader
+    live_only_scripts = None
+
 # Compatibility facade: runtime code reads mutable values through `roots`.
 HERE = roots.HERE
 STATIC = roots.STATIC
@@ -143,20 +148,34 @@ def _installed_mvp_manifest() -> Path | None:
     return None
 
 
-def mvp_index_html(
-    index_path: Path | None = None,
-    manifest_path: Path | None = None,
-) -> bytes:
-    """Return the served index with canonical MVP script tags removed."""
-    index_path = index_path or roots.STATIC / "index.html"
+def mvp_state_keys(manifest_path: Path | None = None) -> frozenset[str]:
+    """Return the /api/state keys the canonical MVP manifest excludes."""
+    from server import mvp_profile
+
     if manifest_path is None:
         manifest_path = roots.HERE / MVP_MANIFEST.name
         if not manifest_path.is_file():
             manifest_path = _installed_mvp_manifest()
     if manifest_path is None:
         raise FileNotFoundError(MVP_MANIFEST.name)
+    return mvp_profile.excluded_state_keys(manifest_path)
 
-    html_source = index_path.read_text(encoding="utf-8")
+
+MVP_MOUNT_LITERAL_RE = re.compile(r"""['"]([\w.-]+\.js)['"]""")
+# Any src= reference, quoted or not, that a browser would fetch.
+MVP_ANY_SRC_RE = re.compile(
+    r"""\bsrc\s*=\s*["']?([^"'\s>]+)""", re.IGNORECASE,
+)
+
+
+def mvp_excluded_scripts(manifest_path: Path | None = None) -> list[str]:
+    """Return the canonical MVP exclusion basenames."""
+    if manifest_path is None:
+        manifest_path = roots.HERE / MVP_MANIFEST.name
+        if not manifest_path.is_file():
+            manifest_path = _installed_mvp_manifest()
+    if manifest_path is None:
+        raise FileNotFoundError(MVP_MANIFEST.name)
     payload = json.loads(manifest_path.read_text(encoding="utf-8"))
     excluded = payload.get("excluded_scripts")
     if (not isinstance(excluded, list) or not excluded
@@ -166,10 +185,27 @@ def mvp_index_html(
         raise ValueError(
             "mvp_manifest.json excluded_scripts must be unique basenames"
         )
+    return excluded
 
-    expected = set(excluded)
-    removed: set[str] = set()
-    for match in MVP_SCRIPT_TAG_RE.finditer(html_source):
+
+def mvp_index_html(
+    index_path: Path | None = None,
+    manifest_path: Path | None = None,
+) -> bytes:
+    """Return the served index with canonical MVP script tags removed.
+
+    An exclusion is satisfied when no served loader would load the module:
+    its whole-line tag is stripped here, and it must then be absent from every
+    remaining index tag and from the office.mounts.js served/side-effect lists.
+    A tag already absent from the source index is not an error (the public
+    wheel and the 2026-09-04 private-module split both remove tags upstream);
+    a loader that would still serve it is.
+    """
+    index_path = index_path or roots.STATIC / "index.html"
+    expected = set(mvp_excluded_scripts(manifest_path))
+    html_source = index_path.read_text(encoding="utf-8")
+
+    for match in list(MVP_SCRIPT_TAG_RE.finditer(html_source)):
         name = match.group("script")
         basename = Path(name).name
         if basename not in expected:
@@ -181,13 +217,23 @@ def mvp_index_html(
         html_source, count = whole_line.subn("", html_source, count=1)
         if count != 1:
             raise ValueError(f"{name}: MVP exclusion is not a whole script line")
-        removed.add(basename)
 
-    missing = sorted(expected - removed)
-    if missing:
-        raise ValueError(
-            "MVP exclusions absent from static/index.html: " + ", ".join(missing)
+    loaders = {
+        index_path.name: {
+            Path(src).name for src in MVP_ANY_SRC_RE.findall(html_source)
+        },
+    }
+    mounts = index_path.parent / "office.mounts.js"
+    if mounts.is_file():
+        loaders[mounts.name] = set(
+            MVP_MOUNT_LITERAL_RE.findall(mounts.read_text(encoding="utf-8"))
         )
+    leaks = [
+        f"{loader}: {', '.join(sorted(names & expected))}"
+        for loader, names in loaders.items() if names & expected
+    ]
+    if leaks:
+        raise ValueError("MVP exclusions still loaded by " + "; ".join(leaks))
     return html_source.encode("utf-8")
 
 
@@ -450,7 +496,7 @@ def main() -> int:
                     for seat in seats
                 ]
             return World(demo=True, poll=args.poll, ctx=spec.ctx, seats=seats,
-                         demo_seed=demo_seed + index)
+                         demo_seed=demo_seed + index, floors=args.floors)
 
         registry = building.Building.create(specs, demo_world)
     elif declared:
@@ -464,7 +510,7 @@ def main() -> int:
             specs,
             lambda spec: World(demo=args.demo, poll=args.poll, ctx=spec.ctx,
                                session_discovery=args.session_discovery,
-                               demo_seed=demo_seed),
+                               demo_seed=demo_seed, floors=len(specs)),
         )
     else:
         if args.allrepos and selected_source is None:
@@ -523,7 +569,24 @@ def main() -> int:
         )
         return 2
     try:
-        profile_index = mvp_index_html() if office_mode == "mvp" else None
+        if office_mode == "mvp":
+            profile_index = mvp_index_html()
+            blocked_static = frozenset(mvp_excluded_scripts())
+        elif live_only_scripts is None:
+            # Public wheel: neither this loader nor the live-only bytes ship.
+            profile_index = None
+            blocked_static = frozenset()
+        else:
+            live_on = live_only_scripts.enabled()
+            profile_index = live_only_scripts.served_index_html(
+                roots.STATIC / "index.html", roots.STATIC, on=live_on,
+            )
+            # Fleet review B3: live-only bytes are never served unless the
+            # release resolves the flag on -- not just left out of the index.
+            blocked_static = (
+                frozenset() if live_on else frozenset(live_only_scripts.SCRIPTS)
+            )
+        profile_state_keys = mvp_state_keys() if office_mode == "mvp" else frozenset()
         index_override = feature_flag_index_html(profile_index)
         index_override = local_credential_session.configure_server(
             globals(), index_override, host=args.host,
@@ -553,6 +616,8 @@ def main() -> int:
     Handler.cockpit_flights = set()
     Handler.cockpit_flights_lock = threading.Lock()
     Handler.index_override = index_override
+    Handler.mvp_excluded_state_keys = profile_state_keys
+    Handler.blocked_static = blocked_static
     Handler.readers_enabled = not world.demo and world.source is None
     configured_usage = os.environ.get("OFFICE_COSTVIEW_TRANSCRIPT_ROOTS")
     Handler.usage_roots = (

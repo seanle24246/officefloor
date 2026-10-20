@@ -10,6 +10,12 @@ const { cam, centerOnWorld } = camera;
 // ---------------------------------------------------------------------------
 const $ = (id) => document.getElementById(id);
 
+// The one fleet-mode label. The header pill and the Agent Manager both read
+// it, so a demo can never call itself live anywhere on the page.
+function fleetModeLabel(world = OFFICE.state.world) {
+  return world?.mode === 'demo' ? 'DEMO FLEET' : 'LIVE FLEET';
+}
+
 function renderCounters() {
   const s = OFFICE.state.world.summary;
   // A demo is always invented. Keep that disclosure in the persistent mode
@@ -20,7 +26,23 @@ function renderCounters() {
   const warn = (demo ? ' · ⚠️ SIMULATED — not live data' : '')
              + (OFFICE.state.world.liveness_known === false ? ' · ⚠️ no lsof — liveness UNKNOWN' : '')
              + (OFFICE.state.world.pr_known === false && !demo ? ' · ⚠️ PR state UNKNOWN' : '');
-  $('mode').textContent = (OFFICE.state.world.mode === 'demo' ? 'DEMO FLEET' : 'LIVE FLEET') + warn;
+  // A demo's disclosure must survive a narrow top bar: its label and short
+  // SIMULATED chip never ellipsize (office.hud.shell.css); the whole sentence
+  // stays in the title.
+  if (demo && typeof $('mode').replaceChildren === 'function') {
+    const label = document.createElement('span');
+    label.className = 'mode-label';
+    label.textContent = fleetModeLabel();
+    const chip = document.createElement('span');
+    chip.className = 'mode-warn';
+    const word = document.createElement('span');
+    word.className = 'mode-warn-word';
+    word.textContent = 'SIMULATED';
+    chip.append(' · ⚠️ ', word);
+    $('mode').replaceChildren(label, chip, warn.replace(' · ⚠️ SIMULATED — not live data', ''));
+  } else {
+    $('mode').textContent = fleetModeLabel() + warn;
+  }
   $('mode').title = (OFFICE.state.world.mode === 'demo'
     ? 'Demo fleet — simulated data, not live seats'
     : 'Live fleet — connected office data') + warn;
@@ -85,6 +107,7 @@ return {
   esc,
   escText,
   escAttr,
+  fleetModeLabel,
   renderCounters,
   toast,
   get followMode() { return followMode; },

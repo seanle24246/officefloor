@@ -1,0 +1,20 @@
+/* office.city.editor.css — CITY-EDIT-03 Furnish button + panel (a file, not inline: the page CSP blocks inline
+ * styles). */
+body > #office-city-furnish{position:fixed;right:14px;top:58px;z-index:30;padding:8px 12px;border-radius:9px;border:0;
+  background:#1d2b3d;color:#f1eee8;font:600 12px system-ui;cursor:pointer;box-shadow:0 2px 8px #0006}
+#office-city-furnish.pill{cursor:pointer;color:inherit;font:inherit;background:inherit;border:inherit}
+#office-city-furnish:focus-visible,#office-city-editor button:focus-visible{outline:2px solid #6cc7ff;outline-offset:2px}
+#office-city-editor{position:fixed;right:14px;top:58px;z-index:40;width:248px;max-height:calc(100vh - 150px);display:flex;
+  flex-direction:column;gap:8px;padding:12px;border-radius:11px;background:#101b28f2;color:#e5e9ec;font:12px/1.35 system-ui;
+  box-shadow:0 6px 22px #0008}
+#office-city-editor h2{margin:0;font-size:13px}
+#office-city-editor .items{display:flex;flex-direction:column;gap:4px;overflow:auto}
+#office-city-editor .items button{text-align:left;padding:6px 8px;border-radius:7px;border:1px solid #2a3b50;
+  background:#172536;color:inherit;font:inherit;cursor:pointer}
+#office-city-editor .items button[aria-pressed=true]{border-color:#6cc7ff;background:#1f3550}
+#office-city-editor .row{display:flex;gap:6px}
+#office-city-editor .row button{flex:1;padding:6px;border-radius:7px;border:0;background:#26384e;color:inherit;font:600 12px system-ui;cursor:pointer}
+#office-city-editor .row button.primary{background:#2f7d4f}
+#office-city-editor .row button:disabled{opacity:.45;cursor:default}
+#office-city-editor .status{min-height:16px;color:#b7c2cc}
+#office-city-editor .hint{color:#8d9aa6;font-size:11px}

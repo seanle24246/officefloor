@@ -12,6 +12,10 @@ from typing import Any, Callable
 
 SCHEMA_VERSION = 1
 ARCHITECTURE_ID = "standard-office-v1"
+# CITY-EDIT-02: designs may also belong to a city office (server/city_zones.py CITY_ARCHITECTURES). The authority
+# itself (catalog, entitlements) stays standard-office-v1: one SKU everywhere.
+CITY_ARCHITECTURE_IDS = ("city-manhattan-v1", "city-tokyo-v1")
+DESIGN_ARCHITECTURE_IDS = (ARCHITECTURE_ID, *CITY_ARCHITECTURE_IDS)
 ROTATIONS = (0, 90, 180, 270)
 MAX_STRING = 128
 MAX_PLACEMENTS = 2048
@@ -163,8 +167,8 @@ def normalize_placement(value: Any) -> dict[str, Any]:
 
 def normalize_design(value: Any) -> dict[str, Any]:
     row = _object(value, ("design_id", "name", "architecture_id", "revision", "placements"), "design")
-    if row["architecture_id"] != ARCHITECTURE_ID:
-        _fail("invalid_value", "design.architecture_id", f"must be {ARCHITECTURE_ID}")
+    if row["architecture_id"] not in DESIGN_ARCHITECTURE_IDS:
+        _fail("invalid_value", "design.architecture_id", f"must be one of {', '.join(DESIGN_ARCHITECTURE_IDS)}")
     if not isinstance(row["placements"], list) or len(row["placements"]) > MAX_PLACEMENTS:
         _fail("invalid_type", "design.placements", f"must be an array of at most {MAX_PLACEMENTS} placements")
     placements = [normalize_placement(item) for item in row["placements"]]
@@ -176,7 +180,7 @@ def normalize_design(value: Any) -> dict[str, Any]:
     return {
         "design_id": _opaque_id(row["design_id"], "design.design_id", "dsn_"),
         "name": _string(row["name"], "design.name"),
-        "architecture_id": ARCHITECTURE_ID,
+        "architecture_id": row["architecture_id"],
         "revision": _integer(row["revision"], "design.revision"),
         "placements": placements,
     }

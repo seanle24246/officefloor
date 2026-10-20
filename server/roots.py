@@ -159,6 +159,16 @@ def configure_state(override: str | None = None, *, demo: bool = False) -> None:
     _STATE_OVERRIDE, _STATE_DEMO = override, demo
 
 
+def demo_state() -> bool:
+    """Whether this process launched the demo floor (``serve.py --demo``).
+
+    The same switch ``state_dir`` uses to route demo state under ``<state>/demo``;
+    the demo economy resolves through it so a tally read and the demo amounts
+    always agree about which floor is being served.
+    """
+    return _STATE_DEMO
+
+
 def state_dir(ctx: OrgCtx | None = None, *, override: str | None = None,
               demo: bool | None = None) -> Path:
     """One lazy state location: CLI, environment, legacy, then per-user default.

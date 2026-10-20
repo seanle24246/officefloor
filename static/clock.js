@@ -10,6 +10,15 @@
   const OPENING_HOUR = 9;
   const SUNRISE      = 6.2;
   const SUNSET       = 19.0;
+  const WEEKDAYS     = Object.freeze(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']);
+
+  // Office day 1 is Monday. Keep this independent from wall-clock dates: the
+  // accelerated office clock is a small fictional calendar of its own.
+  function weekdayFor(gameDay) {
+    const day = Number(gameDay);
+    if (!Number.isFinite(day)) return null;
+    return ((Math.trunc(day) - 1) % WEEKDAYS.length + WEEKDAYS.length) % WEEKDAYS.length;
+  }
 
   function officeClock(nowSec, bornSec, daySec = DAY_SECONDS, openHour = OPENING_HOUR) {
     const elapsed = Math.max(0, nowSec - bornSec);
@@ -136,5 +145,5 @@
 
 
 
-  return { DAY_SECONDS, OPENING_HOUR, SUNRISE, SUNSET, officeClock, realDaysSince, clockHands, pillText, pillFor, phaseFor, nightnessFor, litFraction, hash01, starField, skylineBlocks };
+  return { DAY_SECONDS, OPENING_HOUR, SUNRISE, SUNSET, WEEKDAYS, weekdayFor, officeClock, realDaysSince, clockHands, pillText, pillFor, phaseFor, nightnessFor, litFraction, hash01, starField, skylineBlocks };
 }));

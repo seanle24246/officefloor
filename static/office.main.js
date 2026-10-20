@@ -98,6 +98,17 @@ const renderInspector = OFFICE.inspector.renderInspector;
 
 
 
+// Typing belongs to the field: a store search for "cn" must not recenter,
+// open Needs, or (on Escape) close the inspector behind the field's owner.
+// Defined above the data-source block: build_standalone.py swaps that whole
+// block (up to the keydown listener) out of every bake.
+function isTypingTarget(target) {
+  const tag = target?.tagName;
+  return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+    || target?.isContentEditable || target?.contentEditable === 'true'
+    || Boolean(target?.closest?.('[contenteditable]'));
+}
+
 // ---------------------------------------------------------------------------
 // data source
 // ---------------------------------------------------------------------------
@@ -112,9 +123,20 @@ if (window.__OFFICE_SNAPSHOT__) {
   floorsRenderReady = loadFloorsRender();
   const poll = async () => {
     let wait = POLL_MS;
+    // DIRECTOR-02: a frozen film take holds the world still — no fetch leaves
+    // the page until thaw. Absent the film module this guard is inert.
+    if (globalThis.officeFilm?.world?.frozen?.() === true) {
+      setTimeout(poll, wait);
+      return;
+    }
     try {
       const r = await fetch('/api/state', { cache: 'no-store' });
       const s = await r.json();
+      // A response that lands after the freeze is discarded, never applied.
+      if (globalThis.officeFilm?.world?.frozen?.() === true) {
+        setTimeout(poll, wait);
+        return;
+      }
       applyAndRender(s);
       wait = s.poll_ms || POLL_MS;          // the server sets its own cadence
     } catch (e) {
@@ -127,6 +149,7 @@ if (window.__OFFICE_SNAPSHOT__) {
 }
 
 window.addEventListener('keydown', (e) => {
+  if (isTypingTarget(e.target) || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.key === 'c') centerOnWorld();
   if (e.key === 'n') toggleNeeds();
   if (e.key === 'Escape') {

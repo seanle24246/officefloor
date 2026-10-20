@@ -1,5 +1,7 @@
 /* office.webgl.vig.surface.js — WebGL actor + projected-DOM vignette surface. */
 
+import './office.npcvig.theme-gate.js';
+
 import { project as cameraProject } from './office.webgl.camera.js';
 import { editorHidesAgents } from './office.webgl.edit.lifecycle.js';
 import { OVERLAY_ID } from './office.webgl.overlay.js';
@@ -535,8 +537,15 @@ export function createVigRuntime(options = {}) {
   let frame = null;
   let running = false;
 
+  function themeAllowed() {
+    try {
+      const setting = typeof root.resolveSetting === 'function' ? root.resolveSetting('theme') : 'off';
+      return globalThis.NpcVigThemeGate.npcThemeAllowed(setting, root.OFFICE?.theme?.THEME);
+    } catch (_) { return false; }
+  }
+
   function flagEnabled() {
-    return optionValue(options.enabled, () => (
+    return themeAllowed() && optionValue(options.enabled, () => (
       root.OfficeFeatureFlags?.enabled?.('webgl_floor') === true
       && root.OfficeFeatureFlags?.enabled?.('npc_vignettes') === true
     )) === true;
@@ -548,7 +557,9 @@ export function createVigRuntime(options = {}) {
 
   function renderFrame() {
     if (!running) return 0;
-    if (!floorActive()) {
+    const enabled = flagEnabled();
+    if (!enabled || !floorActive()) {
+      if (!enabled) director?.release?.();
       surface.clear();
       return 0;
     }
@@ -578,7 +589,11 @@ export function createVigRuntime(options = {}) {
   }
 
   function start() {
-    if (running || !flagEnabled() || !floorActive()) return api;
+    // Start a dormant loop on themed floors too: a live switch can re-enable it.
+    if (running || optionValue(options.enabled, () => (
+      root.OfficeFeatureFlags?.enabled?.('webgl_floor') === true
+      && root.OfficeFeatureFlags?.enabled?.('npc_vignettes') === true
+    )) !== true || !floorActive()) return api;
     if (!director || typeof director.paint !== 'function' || typeof director.setSurface !== 'function') {
       throw new Error('WebGL vignette surface requires the live NPC vignette director');
     }

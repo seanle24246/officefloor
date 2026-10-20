@@ -46,6 +46,9 @@ _RESOURCE_FIELDS = {
 }
 _REVISION = {resource: f"{resource}_revision" for resource in _RESOURCE_FIELDS}
 _AUTHORITY_STABLE_FIELDS = ("schema", "architecture_id", "catalog_digest", "migration")
+# CITY-EDIT-02: optional top-level map {city architecture id: active design id}. Absent until a city design is first
+# activated, so every existing authority file loads and re-saves byte-identically.
+CITY_ACTIVE_FIELD = "active_city_designs"
 
 _LOCKS_GUARD = threading.Lock()
 _LOCKS: dict[Path, threading.RLock] = {}
@@ -99,6 +102,17 @@ def _safe_revision(value: Any, field: str) -> int:
             or value < 0 or value > contract.MAX_SAFE_INTEGER:
         raise CustomizationStoreError("invalid_revision", f"{field} must be a non-negative safe integer")
     return value
+
+
+def _normalize_entitlement(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict) and "book" in value:
+        book = value["book"]
+        if book not in ("credits", "office"):
+            raise CustomizationStoreError("invalid_book", "entitlement.book must be 'credits' or 'office'")
+        normalized = contract.normalize_entitlement({k: v for k, v in value.items() if k != "book"})
+        normalized["book"] = book
+        return normalized
+    return contract.normalize_entitlement(value)
 
 
 def _canonical_fragment(value: Any) -> str:
@@ -179,7 +193,7 @@ class CustomizationStore:
     @classmethod
     def _validate_document(cls, value: Any) -> dict[str, Any]:
         _reject_real_money_fields(value)
-        if not isinstance(value, dict) or set(value) != _DOCUMENT_FIELDS:
+        if not isinstance(value, dict) or set(value) - {CITY_ACTIVE_FIELD} != _DOCUMENT_FIELDS:
             raise InvalidStore("customization authority has unknown or missing top-level fields")
         try:
             metadata = contract.normalize_authority_metadata(cls._metadata(value))
@@ -195,6 +209,20 @@ class CustomizationStore:
             if metadata["active_design_id"] is not None \
                     and metadata["active_design_id"] not in designs:
                 raise InvalidStore("active_design_id does not name a stored design")
+            if metadata["active_design_id"] is not None \
+                    and designs[metadata["active_design_id"]]["architecture_id"] != contract.ARCHITECTURE_ID:
+                raise InvalidStore("active_design_id must name a standard-office design")
+            city_active = None
+            if CITY_ACTIVE_FIELD in value:
+                city_active = value[CITY_ACTIVE_FIELD]
+                if not isinstance(city_active, dict):
+                    raise InvalidStore("active_city_designs must be an object")
+                for arch, design_id in city_active.items():
+                    if arch not in contract.CITY_ARCHITECTURE_IDS:
+                        raise InvalidStore("active_city_designs names an unknown city")
+                    if design_id is not None and (design_id not in designs
+                                                  or designs[design_id]["architecture_id"] != arch):
+                        raise InvalidStore("active_city_designs must name a stored design of that city")
 
             entitlements_raw = value["entitlements"]
             purchases_raw = value["purchase_receipts"]
@@ -203,13 +231,13 @@ class CustomizationStore:
                 raise InvalidStore("entitlements and purchase receipts must be bounded objects")
             entitlements: dict[str, dict] = {}
             for key, row in entitlements_raw.items():
-                normalized = contract.normalize_entitlement(row)
+                normalized = _normalize_entitlement(row)
                 if key != normalized["sku_id"]:
                     raise InvalidStore("entitlement key does not match sku_id")
                 entitlements[key] = normalized
             purchases: dict[str, dict] = {}
             for key, row in purchases_raw.items():
-                normalized = contract.normalize_entitlement(row)
+                normalized = _normalize_entitlement(row)
                 if key != normalized["debit_id"] or normalized["sku_id"] not in entitlements:
                     raise InvalidStore("purchase receipt has invalid identity")
                 purchases[key] = normalized
@@ -255,6 +283,8 @@ class CustomizationStore:
             "purchase_receipts": purchases,
             "upkeep": {"last_service_day": last_day, "receipts": receipts, "attempts": attempts},
         }
+        if city_active is not None:
+            document[CITY_ACTIVE_FIELD] = dict(city_active)
         _canonical_bytes(document)
         return document
 
@@ -752,11 +782,12 @@ class CustomizationStore:
         return document["designs"][design_id]
 
     def create_design(self, design_id: str, name: str, placements: list[dict],
-                      expected_revision: int) -> dict[str, Any]:
+                      expected_revision: int,
+                      architecture_id: str = contract.ARCHITECTURE_ID) -> dict[str, Any]:
         _reject_real_money_fields(placements, "placements")
         design = contract.normalize_design({
             "design_id": design_id, "name": name,
-            "architecture_id": contract.ARCHITECTURE_ID,
+            "architecture_id": architecture_id,
             "revision": 0, "placements": placements,
         })
 
@@ -803,19 +834,38 @@ class CustomizationStore:
         _reject_real_money_fields(placements, "placements")
         return self._edit_design(design_id, expected_revision, lambda row: {**row, "placements": placements})
 
-    def activate_design(self, design_id: str | None, expected_revision: int) -> dict[str, Any]:
+    def activate_design(self, design_id: str | None, expected_revision: int,
+                        architecture_id: str = contract.ARCHITECTURE_ID) -> dict[str, Any]:
+        """Make design_id the active design of its architecture (None clears that architecture's pointer).
+
+        Standard designs use active_design_id; city designs use active_city_designs[architecture]. A design is only
+        ever activated for its own architecture.
+        """
         def change(document: dict) -> tuple[str | None, bool]:
-            if design_id is not None and design_id not in document["designs"]:
-                raise CustomizationStoreError("not_found", "design does not exist")
-            if document["active_design_id"] == design_id:
+            arch = architecture_id
+            if design_id is not None:
+                if design_id not in document["designs"]:
+                    raise CustomizationStoreError("not_found", "design does not exist")
+                arch = document["designs"][design_id]["architecture_id"]
+                if architecture_id not in (contract.ARCHITECTURE_ID, arch):
+                    raise CustomizationStoreError("invalid_value", "design belongs to another architecture")
+            if arch == contract.ARCHITECTURE_ID:
+                if document["active_design_id"] == design_id:
+                    return design_id, True
+                document["active_design_id"] = design_id
+                return design_id, False
+            if arch not in contract.CITY_ARCHITECTURE_IDS:
+                raise CustomizationStoreError("invalid_value", "unknown architecture")
+            city = document.setdefault(CITY_ACTIVE_FIELD, {})
+            if city.get(arch) == design_id and (design_id is not None or arch in city):
                 return design_id, True
-            document["active_design_id"] = design_id
+            city[arch] = design_id
             return design_id, False
         return self._mutation("designs", expected_revision, change)
 
     def record_entitlement(self, entitlement: dict, expected_revision: int) -> dict[str, Any]:
         _reject_real_money_fields(entitlement, "entitlement")
-        normalized = contract.normalize_entitlement(entitlement)
+        normalized = _normalize_entitlement(entitlement)
 
         def change(document: dict) -> tuple[dict, bool]:
             by_debit = document["purchase_receipts"].get(normalized["debit_id"])

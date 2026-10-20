@@ -933,6 +933,49 @@ export function tickAnimals(content, dt) {
   }
 }
 
+// ---- adopted pets (PET-DOG-01) ----
+// A non-roster animal (the office's adopted dog) built from the same mesh and
+// walked by the same wander rules: nav routes, agent + animal clearance, bob.
+// It never carries decorativeAnimalId, so the ambient roster never sees it.
+export function buildPetAnimal(kind, ctx) {
+  return build({ kind }, ctx);
+}
+
+export function wanderPetAnimal(animal, content, sceneSpec, dt, options = {}) {
+  if (!animal || animal.isObject3D !== true || !(dt > 0)) return false;
+  const context = contextByContent.get(content) || refreshAnimalMovement(content, sceneSpec);
+  if (!context) return false;
+  const room = options.room;
+  if (!animal.userData.wander || !sameWanderRoom(animal.userData.wander.room, room)) {
+    const profile = WANDER_PROFILE[animal.userData.species] || WANDER_PROFILE.dog;
+    const random = seededRandom(fnv1a(`${ANIMAL_PLACEMENT_SEED}:${options.seed || 'pet'}:wander`));
+    animal.userData.wander = {
+      random, speed: profile.speed, range: profile.range, cadence: profile.cadence,
+      pauseS: 0.4, route: [], routeIndex: 0, blockedS: 0, room,
+    };
+  }
+  const wander = animal.userData.wander;
+  const profile = WANDER_PROFILE[animal.userData.species] || WANDER_PROFILE.dog;
+  const pace = Number.isFinite(options.pace) && options.pace > 0 ? options.pace : 1;
+  wander.speed = profile.speed * pace;
+  wander.cadence = profile.cadence * pace;
+  wander.range = Number.isFinite(options.range) ? options.range : profile.range;
+  if (!contextAuthorityCurrent(context)) {
+    clearWanderRoute(wander);
+    return false;
+  }
+  const others = [...animalsIn(content), animal];
+  const simulatedS = Math.min(dt, 2);
+  const stepCount = Math.min(40, Math.max(1, Math.ceil(simulatedS / 0.05)));
+  let moving = false;
+  for (let step = 0; step < stepCount; step += 1) {
+    moving = stepWander(animal, others, context, simulatedS / stepCount);
+    advanceBob(animal, simulatedS / stepCount, moving);
+  }
+  applyBobPose(animal);
+  return moving;
+}
+
 // ---- registry initializer ----
 export function init(reg) {
   reg.registerMesh('animals', build);

@@ -14,6 +14,18 @@
   ],
   "render_scripts": [
     {
+      "name": "office.economy.model.js",
+      "side_effect": true
+    },
+    {
+      "name": "office.economy.html.js",
+      "side_effect": true
+    },
+    {
+      "name": "office.economy.js",
+      "side_effect": true
+    },
+    {
       "name": "office.customization.catalog.js",
       "side_effect": false
     },

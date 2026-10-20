@@ -13,7 +13,34 @@ from tools import gl_vault
 
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = ROOT / "static"
-EXPECTED_INVENTORY = [
+MESH_MANIFEST_RE = re.compile(
+    r"export const MESH_MODULE_MANIFEST = Object\.freeze\(\[(?P<rows>.*?)\n\]\);", re.S)
+MESH_MANIFEST_ROW_RE = re.compile(
+    r"Object\.freeze\(\{ family: '[a-z]+', path: '\./(?P<path>[^']+)', exportName: '[A-Za-z]+' \}\),")
+
+
+def mesh_manifest_modules() -> list[str]:
+    """Static paths named by the production MESH_MODULE_MANIFEST.
+
+    Every row must parse; a row this reader cannot understand fails the test
+    rather than silently shrinking the expected inventory."""
+    source = (STATIC / "office.webgl.registry.js").read_text(encoding="utf-8")
+    match = MESH_MANIFEST_RE.search(source)
+    if match is None:
+        raise AssertionError("MESH_MODULE_MANIFEST not found in office.webgl.registry.js")
+    rows = [row.strip() for row in match.group("rows").splitlines() if row.strip()]
+    paths = []
+    for row in rows:
+        parsed = MESH_MANIFEST_ROW_RE.fullmatch(row)
+        if parsed is None:
+            raise AssertionError(f"unparsed MESH_MODULE_MANIFEST row: {row}")
+        paths.append(parsed.group("path"))
+    return paths
+
+
+# Reachable modules that are NOT mesh-manifest rows. Mesh modules come from the
+# manifest itself so a new family never re-reds this pin.
+PINNED_NON_MANIFEST_INVENTORY = [
     "billboardIntegrations/controller.js",
     "billboardIntegrations/item-options.css",
     "billboardIntegrations/item-options.js",
@@ -21,15 +48,21 @@ EXPECTED_INVENTORY = [
     "office.anim.smoke.leaf.js",
     "office.vitals.behavior.js",
     "office.vitals.js",
+    "office.webgl.activity.icon.js",
     "office.webgl.adapter.js",
     "office.webgl.agent.face.js",
     "office.webgl.agent.position.js",
     "office.webgl.air.ads.js",
     "office.webgl.arm.rig.js",
     "office.webgl.avatar.variants.js",
+    "office.webgl.basketball.js",
+    "office.webgl.beerprop.js",
+    "office.webgl.beertap.js",
     "office.webgl.bout.surface.js",
     "office.webgl.camera.js",
     "office.webgl.cars.road.js",
+    "office.webgl.cigprop.js",
+    "office.webgl.court.js",
     "office.webgl.edit.lifecycle.js",
     "office.webgl.edit.move.leaf.js",
     "office.webgl.edit.pick.leaf.js",
@@ -38,27 +71,12 @@ EXPECTED_INVENTORY = [
     "office.webgl.families.js",
     "office.webgl.gltf.js",
     "office.webgl.lights.js",
-    "office.webgl.mesh.agent.js",
-    "office.webgl.mesh.amenities.js",
-    "office.webgl.mesh.animals.js",
-    "office.webgl.mesh.cars.js",
-    "office.webgl.mesh.desks.js",
-    "office.webgl.mesh.dungeon.js",
-    "office.webgl.mesh.equipment.js",
-    "office.webgl.mesh.fitness.js",
-    "office.webgl.mesh.fixtures.js",
-    "office.webgl.mesh.floorwalls.js",
-    "office.webgl.mesh.games.js",
+    "office.webgl.merge.static.js",
+    "office.webgl.mesh.accident.js",
+    "office.webgl.mesh.agent.customize.js",
     "office.webgl.mesh.handprop.js",
-    "office.webgl.mesh.lounge.js",
-    "office.webgl.mesh.outdoor.js",
     "office.webgl.mesh.peeprop.js",
-    "office.webgl.mesh.plants.js",
-    "office.webgl.mesh.seating.js",
-    "office.webgl.mesh.shelving.js",
-    "office.webgl.mesh.transit.js",
     "office.webgl.mesh.ufo.js",
-    "office.webgl.mesh.walls.js",
     "office.webgl.outdoor.kit.js",
     "office.webgl.overlay.css",
     "office.webgl.overlay.js",
@@ -74,7 +92,8 @@ EXPECTED_INVENTORY = [
     "office.webgl.primitives.js",
     "office.webgl.registry.js",
     "office.webgl.scene.js",
-    "office.webgl.smoking.js",
+    "office.webgl.snackprop.js",
+    "office.webgl.theme.tint.js",
     "office.webgl.ufo.flight.js",
     "office.webgl.vehicle.kit.js",
     "office.webgl.vig.leaf.js",
@@ -84,6 +103,7 @@ EXPECTED_INVENTORY = [
     "vendor/GLTFLoader.js",
     "vendor/three.module.js",
 ]
+EXPECTED_INVENTORY = sorted({*PINNED_NON_MANIFEST_INVENTORY, *mesh_manifest_modules()})
 
 
 class GLVaultTests(unittest.TestCase):

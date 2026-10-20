@@ -79,6 +79,54 @@ function rearLights(ctx, width, y, z) {
     box(ctx, 0.24, 0.05, 0.12, 'red', width * 0.31, y, z));
 }
 
+// DRIVE-HOME-02 driver door.  Front axis is +Z.  The hinge sits at the
+// door's front edge and the panel extends rearward.  The door is hidden while
+// closed so a parked car renders exactly as before; the commute arc shows it
+// only while someone is getting in or out.
+//
+// DRIVER_SIDE picks the driver's side in car-local X: +1 = left-hand drive
+// (local +X), -1 = right-hand drive (local -X).  Lot cars park nose-north, so
+// local -X faces the default isometric camera; with +1 the whole get-in plays
+// behind the car.  Flip this one constant to move every door, stand point and
+// seat to the other side.
+export const DRIVER_SIDE = -1;
+const DRIVER_DOORS = Object.freeze({
+  sports: { side: 0.89, front: 0.34, length: 0.92, sill: 0.24, belt: 0.80, roof: 1.18, paint: 'terracotta' },
+  luxsedan: { side: 0.87, front: 0.62, length: 0.86, sill: 0.24, belt: 0.89, roof: 1.36, paint: 'blue' },
+  hatchback: { side: 0.85, front: 0.42, length: 0.90, sill: 0.24, belt: 0.90, roof: 1.50, paint: 'green' },
+  convertible: { side: 0.88, front: 0.08, length: 0.84, sill: 0.24, belt: 0.79, roof: null, paint: 'honey-wood' },
+});
+const DEFAULT_DRIVER_DOOR = Object.freeze({
+  side: 0.90, front: 0.40, length: 0.90, sill: 0.26, belt: 0.86, roof: 1.40, paint: 'graphite-mid',
+});
+
+export function driverDoor(ctx, vehicle, sideSign = DRIVER_SIDE) {
+  const spec = DRIVER_DOORS[vehicle] || DEFAULT_DRIVER_DOOR;
+  const sign = sideSign < 0 ? -1 : 1;
+  const panels = [
+    box(ctx, 0.06, spec.length, spec.belt - spec.sill, spec.paint, sign * 0.03, spec.sill, -spec.length / 2),
+    box(ctx, 0.07, 0.16, 0.05, 'metal', sign * 0.07, spec.belt - 0.16, -spec.length + 0.16),
+  ];
+  if (spec.roof) {
+    panels.push(
+      box(ctx, 0.05, spec.length - 0.14, spec.roof - spec.belt - 0.06, 'glass',
+        sign * 0.03, spec.belt, -spec.length / 2 - 0.04),
+      box(ctx, 0.06, 0.07, spec.roof - spec.belt, spec.paint, sign * 0.03, spec.belt, -spec.length + 0.035),
+    );
+  }
+  const hinge = at(named(ctx, 'driver-door', ...panels), sign * spec.side, 0, spec.front);
+  hinge.visible = false;
+  // Swinging OUT: a rearward panel at local +X opens with -Y, at -X with +Y.
+  hinge.userData.doorSwing = -sign;
+  // Stand just behind the open door's tip (66 deg swing), tucked in by the
+  // body, so the door swings clear of the agent instead of through them.
+  hinge.userData.doorStand = Object.freeze({ x: sign * (spec.side + 0.36), z: spec.front - spec.length * 1.02 });
+  // Bay mouth in front of the car: parked bays are solid on the nav grid.
+  hinge.userData.doorApproach = Object.freeze({ x: sign * (spec.side + 0.36), z: 2.45 });
+  hinge.userData.doorSeat = Object.freeze({ x: sign * 0.24, y: -0.36, z: spec.front - spec.length * 0.62 });
+  return hinge;
+}
+
 function finish(ctx, entry, vehicle, width, depth, parts) {
   const shadow = ctx.contactShadow(width, depth);
   shadow.name = 'car-contact-shadow';
@@ -197,7 +245,7 @@ function convertible(entry, ctx) {
   return finish(ctx, entry, 'convertible', width, depth, parts);
 }
 
-function build(entry, ctx) {
+function buildBody(entry, ctx) {
   const kitKind = SKU_VEHICLE_KIT_KINDS[entry?.sku];
   if (kitKind) return buildVehicleKit({ ...entry, vehicle: kitKind }, ctx);
 
@@ -208,6 +256,12 @@ function build(entry, ctx) {
     case 'convertible': return convertible(entry, ctx);
     default: return buildVehicleKit(entry, ctx);
   }
+}
+
+function build(entry, ctx) {
+  const root = buildBody(entry, ctx);
+  if (root) root.add(driverDoor(ctx, root.userData?.vehicle));
+  return root;
 }
 
 export function init(reg) {

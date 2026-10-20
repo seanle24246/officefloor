@@ -174,9 +174,12 @@ function centerOnWorld() {
   // indoor envelope, so they continue to fit the complete venue.
   const openAir = OFFICE.theme.THEME?.openAir;
   const framedH = !openAir && Number.isFinite(buildingH) && buildingH > 0 ? buildingH : h;
+  // Flag-on court behind the building (negative y) joins the frame.
+  const courtY = OFFICE.state.world.layout.court?.y;
+  const north = Number.isFinite(courtY) && courtY < 0 ? -courtY : 0;
   const m = openAir ? 1.6 : 1;
-  const spanX = (w + framedH) * (TW / 2) * m;
-  const spanY = (w + framedH) * (TH / 2) * m + WALL_H;
+  const spanX = (w + framedH + north) * (TW / 2) * m;
+  const spanY = (w + framedH + north) * (TH / 2) * m + WALL_H;
   const verticalInset = openAir ? OPEN_AIR_VERTICAL_INSET : INDOOR_VERTICAL_INSET;
   const fitZoom = Math.min(
     Math.max(1, innerWidth - HORIZONTAL_INSET) / spanX,
@@ -187,7 +190,7 @@ function centerOnWorld() {
   const safeFitZoom = Number.isFinite(fitZoom) && fitZoom > 0 ? fitZoom : 0.35;
   const minZoom = Math.min(0.35, safeFitZoom);
   cam.zoom = clamp(safeFitZoom, minZoom, 1.6);
-  const c = iso(w / 2, framedH / 2);
+  const c = iso(w / 2, (framedH - north) / 2);
   cam.x = framedCenterX(spanX, cam.zoom, openAir) - c.x * cam.zoom;
   // On the open beach the seats sit low in the frame: what is above them is
   // the water they came for, and it should be in the picture.

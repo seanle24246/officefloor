@@ -329,8 +329,10 @@ class CustomizationAssignmentTests(unittest.TestCase):
             self.service.clear_all(AGENT, 2)
 
     def test_get_view_rejects_station_room_mismatch(self):
-        """get() must raise a typed error when the stored assignment's station belongs
-        to a different room than the assignment's room_id.
+        """A stored assignment whose station belongs to a different room than its
+        room_id is never presented: the view raises a typed error, and the read
+        path (get) drops the row with a WARN instead of sealing the authority
+        (FLOOR-FIX-02, 774c3a60 — reads drop, writes keep raising).
 
         This protects the safety-critical guarantee that an agent is never presented
         with a station target in the wrong room. If the station_room_mismatch check

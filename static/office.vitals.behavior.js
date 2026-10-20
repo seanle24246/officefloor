@@ -9,14 +9,12 @@
   const SAFE_ACTIONS = Object.freeze([
     Object.freeze({ id: 'drink', weight: 1 }),
     Object.freeze({ id: 'eat', weight: 1 }),
-    Object.freeze({ id: 'nap', weight: 1 }),
     Object.freeze({ id: 'smoke', weight: 1 }),
     Object.freeze({ id: 'social', weight: 1 }),
   ]);
   const ACTION_EFFECTS = Object.freeze({
     drink: 'beer',
     eat: 'eat',
-    nap: 'nap',
     smoke: 'cigarette',
     social: 'social',
   });

@@ -145,23 +145,14 @@
       sku = String(sku);
       if (isEntitled(sku)) return deepFreeze({ ok: true, owned: true, charged: 0, replayed: false });
       if (!catalogBySku.has(sku)) return deepFreeze({ ok: false, reason: 'unknown_sku' });
-      const debitId = debitIds.get(sku) || makeDebitId(sku);
-      debitIds.set(sku, debitId);
-      const item = catalogBySku.get(sku);
-      let debit;
-      try {
-        debit = await debitWallet(creditPrice(item?.source?.priceRef), debitId,
-          deepFreeze({ kind: 'customization_purchase', sku, unit: 'credits', localDemo: true }));
-      } catch {
-        debit = { ok: false, reason: 'debit_unavailable' };
-      }
-      if (debit !== true && debit?.ok !== true) {
-        return deepFreeze({ ok: false, reason: debit?.reason === 'insufficient_credits'
-          ? 'insufficient_credits' : 'debit_unavailable' });
-      }
+      const book = request.book ?? 'credits';
+      if (book !== 'credits' && book !== 'office') return deepFreeze({ ok: false, reason: 'invalid_book' });
+      const key = `${sku}:${book}`;
+      const debitId = debitIds.get(key) || `${makeDebitId(sku)}_${book}`;
+      debitIds.set(key, debitId);
       const result = await options.purchase({
         sku_id: sku, debit_id: debitId, catalog_digest: catalogDigest,
-        price_ref: item?.source?.priceRef, wallet_receipt: debit.receipt,
+        price_ref: catalogBySku.get(sku)?.source?.priceRef, book,
       });
       rejectRealMoney(result, 'purchase_result');
       if (result?.ok && result.entitlement) entitlements.set(sku, deepFreeze(structuredClone(result.entitlement)));

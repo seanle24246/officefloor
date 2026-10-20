@@ -4,6 +4,7 @@ import {
   familyForFixture,
   familyForSku,
 } from './office.webgl.families.js';
+import { activeCityDesign, cityCustomizationEnabled, cityItemsFromDesign } from './office.city.render.js';
 
 const ROTATIONS = Object.freeze([0, 90, 180, 270]);
 const ROTATION_SET = new Set(ROTATIONS);
@@ -542,6 +543,8 @@ export function toSceneSpec(world, sources = {}) {
   const entityOverrides = liveEntityOverrides(sources.entityOverrides);
   const smoking = sceneSmoking(world.layout);
   const pedestrianPaths = scenePedestrianPaths(world.layout);
+  const cityDesign = cityCustomizationEnabled(root) ? (world.city_design || activeCityDesign(root)) : null;
+  const cityItems = cityDesign ? cityItemsFromDesign(cityDesign, catalog, familyForSku) : [];
   const spec = Object.freeze({
     authority: editFrozen ? 'edit-frozen' : 'published',
     ...(editFrozen ? { sourceWorldId: sourceWorldIds.get(world) } : {}),
@@ -555,6 +558,8 @@ export function toSceneSpec(world, sources = {}) {
     agents: sceneAgents(world, entityOverrides),
     animal_overrides: sceneAnimalOverrides(entityOverrides),
     ...(pedestrianPaths.length ? { pedestrian_paths: pedestrianPaths } : {}),
+    // CITY-RENDER-01: a city design's placements, cell-local; absent unless the flag is on and a design exists.
+    ...(cityItems.length ? { cityItems } : {}),
     ...(smoking ? { smoking } : {}),
     ...(spatial ? { spatial } : {}),
   });

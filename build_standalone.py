@@ -249,8 +249,13 @@ def mvp_script_manifest(html: str) -> tuple[str, list[tuple[str, bool, str]]]:
         if count != 1:
             raise ValueError(f"{name}: MVP exclusion is not a whole script line")
     # A profile exclusion can already be satisfied when the public wheel has
-    # removed that client module from the served HTML.
-    return html, script_manifest(html)
+    # removed that client module from the served HTML. It fails only when the
+    # bake would still inline it (e.g. a second tag for the same module).
+    manifest = script_manifest(html)
+    leaked = sorted({Path(name).name for name, _, _ in manifest} & expected)
+    if leaked:
+        raise ValueError("MVP exclusions still in the bake manifest: " + ", ".join(leaked))
+    return html, manifest
 
 
 def _basename_list(payload: dict, key: str, *, manifest: Path) -> list[str]:
@@ -420,6 +425,61 @@ def webdemo_payload(layout: dict) -> dict:
     }
 
 
+# The one named exception to the bake's "store panel" scan. The HUD rail routes
+# Marketplace through a single optional global, OfficeStore; a bake ships no
+# store module, only the server-free stub below, which exposes the preview seam
+# and nothing else. These exact spans are the only sanctioned OfficeStore
+# references in a bake, each with an exact count per script. Any other
+# reference — another key on the stub, a write or call from another module, the
+# live store.panel.js — still fails. Split literals ('Office' + 'Store') are
+# rejoined before scanning (literal + literal, comments allowed between).
+# A regex is not a parser: template literals, .concat() and [].join() are not
+# rejoined, so review still owns any reference built at runtime.
+BAKE_SANCTIONED_OFFICESTORE = (
+    {
+        "name": "server-free stub preview seam",
+        "script": "store.panel.js",
+        "pattern": r"root\.OfficeStore = Object\.freeze\(\{\s*"
+                   r"openPreview: \(options = \{\}\) => open\(options\),\s*"
+                   r"closePreview: \(options = \{\}\) => shut\(options\),\s*\}\);",
+        "count": 1,
+    },
+    {
+        "name": "HUD rail optional read",
+        "script": "office.hud.shell.js",
+        "pattern": r"const optionalStore = root\.OfficeStore;",
+        "count": 3,
+    },
+)
+_SPLIT_GAP = r"(?:\s|/\*[^*]*\*/)*"
+_SPLIT_LITERAL = re.compile(
+    r"""(['"])([\w$./-]*)\1""" + _SPLIT_GAP + r"\+" + _SPLIT_GAP + r"""(['"])([\w$./-]*)\3"""
+)
+
+
+def join_split_literals(source: str) -> str:
+    """Rejoin 'Office' + 'Store' style splits so a literal scan sees the name."""
+    while True:
+        joined = _SPLIT_LITERAL.sub(lambda m: f"'{m.group(2)}{m.group(4)}'", source)
+        if joined == source:
+            return source
+        source = joined
+
+
+def strip_sanctioned_officestore(source: str, script: str) -> str:
+    """Remove the sanctioned OfficeStore spans for one script, exact counts."""
+    for seam in BAKE_SANCTIONED_OFFICESTORE:
+        if seam["script"] != script:
+            continue
+        source, found = re.subn(seam["pattern"], "", source)
+        if found != seam["count"]:
+            raise ValueError(
+                f"{script}: sanctioned OfficeStore seam '{seam['name']}' "
+                f"found {found}x, expected {seam['count']}x"
+            )
+    return source
+
+
 def inline_plate_assets(source: str) -> str:
     """Replace the live plate paths with self-contained PNG data URIs."""
     for asset in PLATE_ASSETS:
@@ -457,6 +517,14 @@ def escape_inline_json(serialized: str) -> str:
             .replace("\u2029", "\\u2029"))
 
 
+# GL vault modules with a live-only network path: the bake carries their server-free specialization instead.
+BAKE_SPECIALIZED_MODULES = frozenset(("office.city.render.js", "office.city.editor.js"))
+
+
+def vault_module_source(name: str, source: str) -> str:
+    return standalone_source(name) if name in BAKE_SPECIALIZED_MODULES else source
+
+
 def gl_vault_markup() -> str:
     """Return the embedded WebGL module vault tags, or '' when disabled."""
     if not BAKE_WEBGL_ENABLED:
@@ -466,7 +534,7 @@ def gl_vault_markup() -> str:
     except ImportError:  # tools/ on sys.path rather than the repo root
         import gl_vault
 
-    vault = gl_vault.vault(HERE / "static", encoding="data")
+    vault = gl_vault.vault(HERE / "static", encoding="data", transform=vault_module_source)
     return (
         '<script type="application/json" id="office-gl-vault">'
         f"{escape_inline_json(vault['json'])}</script>\n"
@@ -475,14 +543,16 @@ def gl_vault_markup() -> str:
     )
 
 
-def bake_feature_bootstrap() -> str:
+def bake_feature_bootstrap(mode: str = "") -> str:
     """Return served-release flags plus the bake's serverless safety overrides.
 
     The public demo is a served-product view, not a second product with registry
     defaults. It only differs where a serverless artifact cannot safely provide
-    a capability.
+    a capability, and (for the web demo) where LIVING-DEMO-01 turns the demo
+    economy on behind ``living_demo``. Other bakes keep the live resolution.
     """
-    markup = feature_flags.client_bootstrap(registry_defaults=False)
+    markup = feature_flags.client_bootstrap(
+        registry_defaults=False, demo=(mode == "webdemo"))
     overrides = {
         "webgl_floor": BAKE_WEBGL_ENABLED,
         "webgl_plate_themes": False,
@@ -797,6 +867,27 @@ return Object.freeze({
             "async function fetchFocusedFloor() {}\n\n",
             script=script,
         )
+    elif script == "office.city.render.js":
+        # CITY-EDIT-02: a server-free bake has no customization authority; the city design is never fetched (the
+        # editor preview still works in tests). No network primitive reaches a bake.
+        source = replace_bake_region(
+            source,
+            "export function activeCityDesign(root = globalThis, now = Date.now()) {\n",
+            "const ROTATIONS = new Set([0, 90, 180, 270]);\n",
+            "export function activeCityDesign(root = globalThis) {\n"
+            "  if (!cityCache.city || !cityCustomizationEnabled(root)) return null;\n"
+            "  return cityCache.preview || null;\n"
+            "}\n\n",
+            script=script,
+        )
+    elif script == "office.city.editor.js":
+        # CITY-EDIT-03: editing writes the server authority; a bake is read-only, so the Furnish editor is inert.
+        source = ("/* office.city.editor.js: live-only (customization authority writes); inert in bakes. */\n"
+                  "export function mountCityEditor() { return null; }\n")
+    elif script == "office.pet.dog.js":
+        # PET-DOG-01: the office dog lives in the server office ledger. A
+        # server-free bake has no ledger, so the module is an inert stub.
+        source = "/* office.pet.dog.js: live-only (server office ledger); inert in bakes. */\n"
     elif script == "cockpit.chat.js":
         source = replace_bake_region(
             source,
@@ -816,6 +907,71 @@ return Object.freeze({
             "  async function pollOnce() {\n",
             "  function buildShell() {\n",
             "  async function pollOnce() {}\n\n",
+            script=script,
+        )
+    elif script == "office.vendors.js":
+        if mode == "webdemo":
+            # LIVING-DEMO-01: the public web demo has no ledger, so the same
+            # two seams read the in-page fiction economy instead of going inert.
+            # OfficeDemoEconomy is installed before this module runs.
+            source = replace_bake_region(
+                source,
+                "  function refresh(now = Date.now(), force = false) {\n",
+                "  // A vendor's location: a function of the layout, a named activity zone, or a point.\n",
+                "  function refresh() {\n"
+                "    const economy = root.OfficeDemoEconomy;\n"
+                "    book = economy?.book?.() || null;\n"
+                "    render();\n"
+                "    return Promise.resolve(book);\n"
+                "  }\n\n",
+                script=script,
+            )
+            source = replace_bake_region(
+                source,
+                "  async function buy(lane, vendorId, item) {\n",
+                "  // Office ledger: company-lunch spend lives under office money in the topbar.\n",
+                "  async function buy(lane, vendorId, item) {\n"
+                "    const economy = root.OfficeDemoEconomy;\n"
+                "    if (!economy) return { ok: false, reason: 'disabled' };\n"
+                "    const result = economy.buy(lane, vendorId, item);\n"
+                "    book = economy.book();\n"
+                "    render();\n"
+                "    return result;\n"
+                "  }\n\n",
+                script=script,
+            )
+        else:
+            # AGENT-SPEND-01: money is server truth; the offline bake has no ledger.
+            # Both network seams become inert, so buy_food always keeps the snack.
+            source = replace_bake_region(
+                source,
+                "  function refresh(now = Date.now(), force = false) {\n",
+                "  // A vendor's location: a function of the layout, a named activity zone, or a point.\n",
+                "  function refresh() { return Promise.resolve(null); }\n\n",
+                script=script,
+            )
+            source = replace_bake_region(
+                source,
+                "  async function buy(lane, vendorId, item) {\n",
+                "  // Office ledger: company-lunch spend lives under office money in the topbar.\n",
+                "  async function buy() { return { ok: false, reason: 'disabled' }; }\n\n",
+                script=script,
+            )
+    elif script == "office.economy.js" and mode == "webdemo":
+        # LIVING-DEMO-01: the economy view reads the in-page fiction feed instead
+        # of GET /api/economy, so the public bake carries no network primitive.
+        source = replace_bake_region(
+            source,
+            "async function refresh() {\n",
+            "function setOpen(value) {\n",
+            "async function refresh() {\n"
+            "  try {\n"
+            "    feed = root.OfficeDemoEconomy?.feed?.() || null;\n"
+            "  } catch (_) {\n"
+            "    feed = null;\n"
+            "  }\n"
+            "  render();\n"
+            "}\n\n",
             script=script,
         )
     elif script == "office.main.js":
@@ -894,8 +1050,9 @@ root.CostView = api;
     if script == "store.panel.js":
         # The live marketplace reads catalog data and owns purchase actions.
         # A snapshot keeps only the launch panel's inert DOM and local close
-        # controls. Split identifiers keep the live-module census mutation-
-        # honest: none of its globals, data clients, or write paths survive.
+        # controls: none of its globals, data clients, or write paths survive.
+        # Its one OfficeStore reference is the sanctioned preview seam
+        # (BAKE_SANCTIONED_OFFICESTORE); the scan rejoins split literals.
         source = r"""/* Server-free marketplace: inert coming-soon view only. */
 (() => {
 'use strict';
@@ -925,36 +1082,63 @@ function mount() {
     opener, doc.getElementById('economyBalance') || doc.getElementById('needsBtn'),
   );
 
-  const panel = make('aside', 'store-market');
+  // The same preview shape the live panel renders: a coming-soon overlay over
+  // an inert, aria-hidden store underlay. No catalog: a snapshot has no server.
+  const panel = make('aside', 'store-market store-preview');
   panel.id = PANEL_ID;
   panel.hidden = true;
+  panel.dataset.storeMode = 'preview';
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-modal', 'false');
   panel.setAttribute('aria-label', 'Marketplace');
-  const card = make('section', 'store-coming-soon-card');
+  panel.setAttribute('aria-labelledby', 'storePreviewTitle');
+  const card = make('section', 'store-preview-overlay');
   card.setAttribute('aria-label', 'Marketplace — coming soon');
-  card.append(
-    make('div', 'store-coming-soon-mark', '✦'),
-    make('h2', 'store-coming-soon-title', 'COMING SOON'),
-    make('p', 'store-coming-soon-copy', 'A curated marketplace is coming soon.'),
-  );
-  const close = button('store-close store-market-close', '✕');
+  const title = make('h2', 'store-preview-title', 'Marketplace');
+  title.id = 'storePreviewTitle';
+  const close = button('store-preview-close store-market-close', '✕');
   close.setAttribute('aria-label', 'Close marketplace');
-  panel.append(card, close);
+  card.append(
+    title,
+    make('p', 'store-preview-status', 'COMING SOON'),
+    make('p', 'store-preview-copy', 'A curated marketplace is coming soon.'),
+    close,
+  );
+  const underlay = make('div', 'store-preview-underlay');
+  underlay.setAttribute('aria-hidden', 'true');
+  underlay.setAttribute('inert', '');
+  underlay.inert = true;
+  underlay.tabIndex = -1;
+  const rail = make('aside', 'store-rail');
+  rail.append(make('h2', 'store-rail-title', 'STORE'));
+  const main = make('section', 'store-market-main');
+  const head = make('div', 'store-market-head');
+  head.append(make('h1', 'store-market-title', 'MAKE THE FLOOR YOURS'));
+  main.append(head);
+  underlay.append(rail, main);
+  panel.append(card, underlay);
   doc.body.append(panel);
 
-  function shut() {
+  let returnFocus = null;
+  function shut(options = {}) {
+    if (panel.hidden) return false;
     panel.hidden = true;
     opener.setAttribute('aria-expanded', 'false');
-    opener.focus?.();
+    const target = returnFocus || opener;
+    returnFocus = null;
+    if (options.restoreFocus !== false) target.focus?.();
+    return true;
   }
-  function open() {
+  function open(options = {}) {
     root.OFFICE?.needs?.toggleNeeds(false);
+    returnFocus = options.returnFocus || null;
     panel.hidden = false;
     opener.setAttribute('aria-expanded', 'true');
+    close.focus?.();
+    return panel;
   }
   opener.addEventListener('click', () => { if (panel.hidden) open(); else shut(); });
-  close.addEventListener('click', shut);
+  close.addEventListener('click', () => shut());
   doc.getElementById('needsBtn')?.addEventListener('click', () => {
     if (!panel.hidden) shut();
   });
@@ -972,6 +1156,13 @@ function mount() {
       shut();
     }
   }, true);
+  // The HUD rail routes Marketplace through openPreview/closePreview. Only the
+  // preview seam is exposed; no live store action exists in a snapshot. This
+  // exact assignment is BAKE_SANCTIONED_OFFICESTORE's stub entry.
+  root.OfficeStore = Object.freeze({
+    openPreview: (options = {}) => open(options),
+    closePreview: (options = {}) => shut(options),
+  });
   return opener;
 }
 if (doc?.readyState === 'loading') {
@@ -1002,8 +1193,9 @@ if (doc?.readyState === 'loading') {
         # network. Every other import(/fetch/XHR/WebSocket stays banned.
         "network primitive": r"\bfetch\s*\(|\bXMLHttpRequest\b|\bWebSocket\b|\bimport\s*\((?!\s*['\"]office-gl:/)",
     }
+    scanned = strip_sanctioned_officestore(join_split_literals(source), script)
     for label, pattern in forbidden.items():
-        if re.search(pattern, source, re.IGNORECASE):
+        if re.search(pattern, scanned, re.IGNORECASE):
             raise ValueError(f"{script}: standalone still carries {label}")
     return inline_plate_assets(source)
 
@@ -1096,7 +1288,7 @@ def build(
     if version_stamp:
         css += "\n#office-demo-version { position:fixed; top:54px; left:72px; z-index:12; padding:4px 7px; border-radius:4px; background:#0b101bcc; color:#dfe6f2; font:10px/1.4 ui-monospace,monospace; pointer-events:none; }\n@media(max-width:640px) { #office-demo-version { left:12px; } }\n"
     gl_boot = gl_vault_markup()
-    feature_boot = bake_feature_bootstrap()
+    feature_boot = bake_feature_bootstrap(mode)
     webdemo_boot = (
         f"<script>window.__OFFICE_WEBDEMO__ = "
         f"{escape_inline_json(json.dumps(webdemo, separators=(',', ':')))};</script>\n"

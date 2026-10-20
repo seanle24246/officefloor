@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import importlib.metadata
+
 import json
 import logging
 import os
@@ -19,11 +21,15 @@ from typing import Iterable
 
 from server import agent_memory_shadow, agent_memory_store
 from server import (
+    activity_events,
+    agent_wallet,
     customization_contract,
+    feature_flags,
     floorplan,
     gitfacts,
     lanes,
     lanesource,
+    multi_floor,
     occupancy,
     officestate,
     org_capture,
@@ -135,6 +141,26 @@ def _memory_task_context(agent: dict) -> str:
     return "; ".join(parts)[:MEMORY_TASK_CONTEXT_MAX_CHARS]
 
 
+def _court_enabled() -> bool:
+    """office_basketball_court for the current release (fail closed).
+
+    Same release the client bootstrap resolves in serve and bake, so served
+    geometry and the client's activity table never disagree."""
+    try:
+        return feature_flags.is_feature_enabled(
+            "office_basketball_court", feature_flags.current_release())
+    except (KeyError, OSError, ValueError, importlib.metadata.PackageNotFoundError):
+        return False
+
+
+def _elevator_enabled(floors: int) -> bool:
+    """MULTI-FLOOR-01 shaft: multi_floor_v2 on AND this world is one of several.
+
+    A single-floor serve is byte-identical with the flag on or off, so the
+    floor count is part of the decision, not only the flag."""
+    return floors > 1 and multi_floor.multi_floor_enabled()
+
+
 class _MemoryShadowDispatcher:
     """Own the thread-affine SQLite store and append-only shadow log."""
 
@@ -227,10 +253,12 @@ class World:
                  enable_memory_shadow: bool = False,
                  session_discovery: bool = False,
                  demo_seed: int = 1337,
-                 source: Source | None = None) -> None:
+                 source: Source | None = None,
+                 floors: int = 1) -> None:
         self.demo = demo
         self.source = source
         self.poll = max(0.5, poll)
+        self.floors = max(1, int(floors))
         self.office_state_dir = office_state_dir
         self.ctx = ctx or roots.current_ctx()
         demo_customization_root = (
@@ -244,6 +272,14 @@ class World:
         self.customization_ctx = (
             roots.OrgCtx.from_root(demo_customization_root / "OfficeOrg")
             if demo_customization_root is not None else self.ctx
+        )
+        # MULTI-FLOOR-01: a multi-floor demo floor's customization book lives
+        # under its own isolated temp root, so two demo floors never share one
+        # office total. A single floor, or the flag off, keeps the ctx-resolved
+        # directory (None = resolve there), so those serves are byte-identical.
+        self.customization_state_dir = (
+            self.customization_ctx.allrepos / "state"
+            if demo and _elevator_enabled(self.floors) else None
         )
         self.layout_name = layout
         self.lock = threading.Lock()
@@ -321,6 +357,7 @@ class World:
         self.capture_roster: dict[str, str] | None = None
         self.org_history: list[dict] = []
         self.capture_skipped: list[dict] = []
+        self.activity_log = activity_events.ActivityLog(self.ctx.allrepos / activity_events.LOG_RELPATH)
 
     # -- layout ------------------------------------------------------------
     def _layout(self) -> dict:
@@ -329,7 +366,9 @@ class World:
         # stripped in favour of the customization showcase. The 12 catalog cars
         # stay owned/browsable in the separate showroom, not composited here
         # (see customization_api._seed_demo_authority).
-        return floorplan.build_layout(self.seats, props.PROPS, layout=self.layout_name)
+        return floorplan.build_layout(self.seats, props.PROPS, layout=self.layout_name,
+                                      basketball_court=_court_enabled(),
+                                      elevator=_elevator_enabled(self.floors))
 
     def invalidate(self) -> None:
         with self.lock:
@@ -488,6 +527,16 @@ class World:
             "events": self.events[-60:],
             "summary": self._summary(agents),
         }
+        if agent_wallet.wallet_enabled():
+            # Live git measurement only; demo/source-backed worlds do not invent earnings.
+            office_lines = getattr(self, "_office_lines_shipped", None) if not self.demo and self.source is None else None
+            office_usd = office_lines
+            if self.demo and office_usd is None:
+                # DEMO-ECON-01 / living demo (founder-signed 2026-10-18): a demo floor shows the demo office book, the
+                # same fallback agent_wallet.office_earned_usd uses. Never a live floor; flag off -> None as before.
+                from server import demo_economy
+                office_usd = demo_economy.demo_office_earned(True, [row.get("lane") for row in agents if isinstance(row, dict)])
+            world.update(office_lines_shipped=office_lines, office_wallet_usd=office_usd)
         # Demo advertises the same architecture only with an explicit synthetic
         # seed marker. Its customization authority lives under a process-local
         # temporary root, never under the real org context.
@@ -1017,6 +1066,10 @@ class World:
             )
             if shared_scans is None else shared_scans["processes"]
         )
+        activity = None
+        if feature_flags.is_feature_enabled("agent_activity_events"):
+            self.activity_log.poll()
+            activity = self.activity_log.snapshot(now)
         agents = []
         for s in self.seats:
             lane_dir = self.ctx.allrepos / s["lane"]
@@ -1119,6 +1172,31 @@ class World:
                     "look": roster.look_for(s),
                 }
             )
+            if activity is not None:
+                agents[-1].update(activity_events.fields_for(activity, s["lane"]))
+        if agent_wallet.wallet_enabled():
+            # Credit only roster NAME identities; duplicate names credit nobody.
+            names = {}
+            ambiguous = set()
+            for seat in self.seats:
+                name = roster.read_identity(lane_dirs[seat["lane"]]).get("NAME", "").strip().casefold()
+                if name in names and names[name] != seat["lane"]:
+                    ambiguous.add(name)
+                if name:
+                    names[name] = seat["lane"]
+            names = {name: lane for name, lane in names.items() if name not in ambiguous}
+            totals = None
+            self._office_lines_shipped = None
+            try:
+                measured = agent_wallet.refresh_earnings(roots.HERE, names, ctx=self.ctx,
+                                                          background=True)
+                if measured is not None:
+                    totals, self._office_lines_shipped = measured
+            except (RuntimeError, OSError, subprocess.TimeoutExpired):
+                LOGGER.warning("Agent wallet git measurement unavailable")
+            for agent in agents:
+                amount = totals.get(agent["lane"], 0) if totals is not None else None
+                agent.update(lines_shipped=amount, wallet_usd=amount)
         return agents
 
     # -- demo --------------------------------------------------------------

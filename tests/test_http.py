@@ -889,6 +889,7 @@ class HTTPContractTests(unittest.TestCase):
         ), mock.patch.object(serve, "ThreadingHTTPServer") as server_factory, mock.patch(
             "builtins.print"
         ), mock.patch("sys.stderr"), self.assertRaises(SystemExit) as caught:
+            os.environ.pop("OFFICE_SECONDARY_ROOT", None)
             serve.main()
         self.assertEqual(caught.exception.code, 2)
         server_factory.assert_not_called()
@@ -906,6 +907,7 @@ class HTTPContractTests(unittest.TestCase):
         ), mock.patch.object(
             serve.ledger.Ledger, "ensure_available",
         ), mock.patch("builtins.print"):
+            os.environ.pop("OFFICE_SECONDARY_ROOT", None)
             self.assertEqual(serve.main(), 0)
         self.assertEqual(serve.Handler.secondary_root, HERE)
         serve.Handler.allow_comms = False

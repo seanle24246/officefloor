@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="office.css" />
 <link rel="stylesheet" href="office.hud.shell.css" />
 <link rel="stylesheet" href="office.activity.shell.css" />
+<link rel="stylesheet" href="office.economy.css" />
 <link rel="stylesheet" href="office.utilities.css" />
 <link rel="stylesheet" href="office.keyboard.css" />
 <link rel="stylesheet" href="office.needscard.css" />
@@ -19,6 +20,10 @@
 <link rel="stylesheet" href="dispatch.css" />
 <link rel="stylesheet" href="office.vignette.card.css" />
 <link rel="stylesheet" href="office.npcvig.storypanel.css" />
+<link rel="stylesheet" href="office.excursion.css" />
+<link rel="stylesheet" href="office.excursion.rave.css" />
+<link rel="stylesheet" href="office.pet.dog.css" />
+<link rel="stylesheet" href="office.director.css" />
 </head>
 <body>
 <canvas id="glstage" aria-hidden="true"></canvas>
@@ -102,6 +107,9 @@
 <script src="office.states.js"></script>
 <script src="stats.js"></script>
 <script src="office.vitals.js" data-office-side-effect></script>
+<script src="office.profile.js" data-office-side-effect></script>
+<!-- AGENT-LIVES-01: pure mood/phrase core + the flag-gated session bubble runtime. -->
+<script src="office.lives.js" data-office-side-effect></script>
 <script src="idleflavor.js"></script>
 <!-- Shared 2.5D footprint/wall/occupancy snapshot; plain global side effect. -->
 <script src="office.spatial.js" data-office-side-effect></script>
@@ -121,6 +129,9 @@
 <script src="office.claims.js"></script>
 <script src="office.customization.contract.js"></script>
 <script src="office.edit.mode.js" data-office-side-effect></script>
+<!-- LIVING-DEMO-01: baked-only in-page fiction economy; self-gates on the
+     webdemo build profile + living_demo, so a served floor never loads it. -->
+<!-- office-bake-only: office.demo.economy.js -->
 <script src="office.state.js"></script>
 <script src="office.setup.js"></script>
 <!-- Play-money wager CORE (GAM1). Installs global OfficeWager, registers no
@@ -132,10 +143,13 @@
      side-effect markers keep OFFICE.seal() balanced. SOL glue wires them to
      the floor selector separately. -->
 <script src="office.idle.activity.core.js" data-office-side-effect></script>
+<script src="office.prop-scenes.talk.js" data-office-side-effect></script>
 <script src="office.idle.activities.js" data-office-side-effect></script>
 <script src="office.idle.demo.js" data-office-side-effect></script>
 <script src="office.idle.gamble.js" data-office-side-effect></script>
 <script src="office.idle.activity.glue.js" data-office-side-effect></script>
+<script src="office.vendors.js" data-office-side-effect></script>
+<script src="office.idle.buyfood.js" data-office-side-effect></script>
 <!-- PARKED FOR MVP (sun-only): WXP1 DSF weather ENGINE + now-seam PRODUCERS.
      They remain loaded/verified but are not consumed by the floor paint seam.
      weather.js installs global
@@ -148,6 +162,10 @@
 <!-- clock is a global pure helper; daynight is a real OFFICE module. The floor
      effects paint glue below composes both with WDN1 at the live frame seam. -->
 <script src="clock.js" data-office-side-effect></script>
+<script src="office.tacotruck.js" data-office-side-effect></script>
+<!-- Weekly office rhythm (Taco Tuesday / Beer o'clock / Birthday cake / rave).
+     Pure table + calendar flag guard; no DOM without office_calendar. -->
+<script src="office.calendar.js" data-office-side-effect></script>
 <script src="office.daynight.js"></script>
 <!-- WDN1 day/night VISIBLE core (weather overlays parked for MVP). Installs
      global OfficeAmbientVisual
@@ -250,6 +268,7 @@
 <script src="office.npcvig.continueui.js"></script>
 <script src="office.npcvig.activity.js" data-office-side-effect></script>
 <script src="office.npcvig.ufolife.js" data-office-side-effect></script>
+<script src="office.npcvig.theme-gate.js" data-office-side-effect></script>
 <script src="office.npcvig.director.js" data-office-side-effect></script>
 <script src="office.npcvig.story.js" data-office-side-effect></script>
 <script src="office.npcvig.storyarc.js" data-office-side-effect></script>
@@ -299,6 +318,18 @@
 <script src="office.influence.core.js" data-office-side-effect></script>
 <script src="office.influence.events.js"></script>
 <script src="office.webgl.required.js" data-office-side-effect></script>
+<script src="office.excursion.core.js" data-office-side-effect></script>
+<script src="office.excursion.runtime.js" data-office-side-effect></script>
+<script src="office.excursion.ui.js" data-office-side-effect></script>
+<script src="office.excursion.boot.js" data-office-side-effect></script>
+<script src="office.excursion.rave.view.js" data-office-side-effect></script>
+<script src="office.excursion.elsewhere.view.js" data-office-side-effect></script>
+<script src="office.pet.dog.js" data-office-side-effect></script>
+<!-- DIRECTOR-02: deterministic film clock + cast staging. Side-effect script:
+     installs window.officeFilm / OFFICE.film only when the director_mode flag
+     is on or ?film=1 is on a demo floor; loads before office.main.js so the
+     WebGL scene and overlay bind the wrapped requestAnimationFrame. -->
+<script src="office.film.js" data-office-side-effect></script>
 <script src="office.main.js"></script>
 <script src="office.tour.js"></script>
 <script src="office.talk.js"></script>
@@ -306,6 +337,9 @@
 <script src="office.contextmenu.js"></script>
 <script src="office.keyboard.js"></script>
 <script src="office.follow.js"></script>
+<!-- DIRECTOR-01: pure film math (side-effect global) + the flag/URL-gated window.director API. -->
+<script src="office.director.core.js" data-office-side-effect></script>
+<script src="office.director.js"></script>
 <script src="office.hovercard.js"></script>
 <!-- Shared layout contract loads last so standalone panels can be adopted.
      Side-effect script: installs window.OfficeDock; registers no module. -->

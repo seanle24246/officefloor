@@ -26,15 +26,29 @@ let CORR_ROWS = [9], CORR_COLS = [14];   // walking corridors; set from the layo
 const SPEED = 2.6;                   // tiles per second
 const IDLE_ACTIVITY_WINDOW_S = 60;
 const GAMBLE_ACTIVITY_KINDS = new Set(['slot-machine', 'dice-corner']);
+const talkPartners = new WeakMap();
+const talkEnabled = () => globalThis.OfficeFeatureFlags?.enabled?.('agent_talk') === true;
+// Every player on one court shares a team list; a game ends as a group.
+const basketballTeams = new WeakMap();
+// Flag on AND a live floor: plate themes are photographs with no court.
+const basketballEnabled = () => (
+  globalThis.OfficeFeatureFlags?.enabled?.('office_basketball_court') === true
+  && !globalThis.OFFICE?.theme?.THEME?.plateScene);
 const KEPT_IDLE_VARIANTS = new Set(['coffee', 'smoke', 'chat', 'water']);
 const normalizeIdleVariant = (variant) => (
   variant == null ? null : KEPT_IDLE_VARIANTS.has(variant) ? variant : 'chat');
 const ACTIVITY_VARIANTS = Object.freeze({
+  beer: 'chat',
   coffee: 'coffee',
   smoke: 'smoke',
   chat: 'chat',
+  talk: 'chat',
   water: 'water',
   snack: 'coffee',
+  buy_food: 'coffee',
+  restroom: 'chat',
+  basketball: 'chat',
+  cake: 'chat',
   // Plain 2D fallbacks stay inside the surviving pose vocabulary; WebGL reads kind.
   pee: 'chat',
   'slot-machine': 'chat',
@@ -201,6 +215,21 @@ function activityZones(layout) {
     }
   }
   const props = layout?.props || [];
+  const stalls = props.filter((prop) => prop.type === 'restroom-stall'
+    && typeof prop.stall_id === 'string' && finitePoint(prop.activity_target))
+    .map((prop) => Object.freeze({ ...prop.activity_target, stallId: prop.stall_id }));
+  if (stalls.length) zones.restroom = Object.freeze({ ...stalls[0], stalls: Object.freeze(stalls) });
+  // The court exists only on a flag-on layout (its `court` key): the hoop
+  // names its rim and the court names the spots players shoot from.
+  const hoop = basketballEnabled() && finitePoint(layout?.court?.hoop?.rim) ? layout.court.hoop : null;
+  const courtSpots = (layout?.court?.spots || []).filter(finitePoint)
+    .map((spot) => Object.freeze({ x: spot.x, y: spot.y }));
+  if (hoop && courtSpots.length) {
+    zones.court = Object.freeze({
+      ...courtSpots[0], hoopId: hoop.id, rim: Object.freeze({ x: hoop.rim.x, y: hoop.rim.y }),
+      spots: Object.freeze(courtSpots),
+    });
+  }
   const espresso = props.find((prop) => prop.type === 'espresso');
   const cooler = props.find((prop) => prop.type === 'cooler');
   const couch = props.find((prop) => prop.type === 'couch');
@@ -218,7 +247,32 @@ function activityZones(layout) {
     zones.smoking = { x: smoking.x + smoking.w * 0.5, y: smoking.y + smoking.h * 0.55 };
     zones.relief = { x: smoking.x + smoking.w - 0.6, y: smoking.y + smoking.h - 0.45 };
   }
+  const tap = beerTaps(layout)[0];
+  if (tap) zones.bar = {...tap.target, tapId:tap.id, tapFingerprint:tap.fingerprint};
   return zones;
+}
+
+// Only operational, live draft towers can host a beer break. Use the same
+// spatial anchors and quarter-turn convention as the furniture renderer.
+function beerTaps(layout, coordinator = globalThis.OFFICE?.state?.customization) {
+  if (globalThis.OFFICE?.theme?.THEME?.plateScene) return [];
+  const spatial = globalThis.OfficeSpatial;
+  const snapshot = spatial?.current?.();
+  return (coordinator?.effective?.()?.furnishings || []).flatMap(row => {
+    if (row.sku_id !== 'sku-1303' || row.operational?.behavior_enabled !== true) return [];
+    const entry = snapshot && spatial.entryFor?.(snapshot, row.stable_furnishing_id);
+    if (snapshot && !entry) return [];
+    const anchor = entry?.anchor || row.geometry?.anchor;
+    const rotation = entry?.rotation ?? row.rotation ?? 0;
+    if (!finitePoint(anchor) || ![0,90,180,270].includes(rotation)) return [];
+    const swapped = rotation % 180 !== 0;
+    const center = {x:anchor.x + (swapped ? .5 : 1), y:anchor.y + (swapped ? 1 : .5)};
+    const angle = rotation * Math.PI / 180;
+    const target = {x:center.x + .85*Math.cos(angle) + .8*Math.sin(angle),
+      y:center.y - .85*Math.sin(angle) + .8*Math.cos(angle)};
+    return [{id:row.stable_furnishing_id, target,
+      fingerprint:JSON.stringify([anchor.x,anchor.y,rotation])}];
+  });
 }
 
 // Only explicitly supported objects offer this idle activity. Resolve the same
@@ -282,6 +336,87 @@ function pingPongGames(actorMap) {
     && players[0].state.tableEnd !== players[1].state.tableEnd
     && players[0].state.tableFingerprint === players[1].state.tableFingerprint)
     .map(([id]) => id);
+}
+
+// A game is on when every player in a group stands on their spot, in a
+// playing beat. Players are ordered by participant index (shot order).
+function basketballGames(actorMap) {
+  const groups = new Map();
+  for (const actor of actorMap?.values?.() || []) {
+    const state = actor.idleActivity;
+    if (state?.kind !== 'basketball' || state.depth !== 'deep') continue;
+    const group = groups.get(state.groupId) || [];
+    group.push({ actor, state });
+    groups.set(state.groupId, group);
+  }
+  const games = [];
+  for (const [groupId, players] of groups) {
+    const expected = players[0].state.participantCount;
+    const playing = players.length === expected && players.every(({ actor, state }) => (
+      ['settling', 'active'].includes(state.beat) && !actor.moving
+      && samePoint(actor, state.target, 0.06)));
+    if (!playing) continue;
+    players.sort((a, b) => a.state.participant - b.state.participant);
+    games.push(Object.freeze({
+      groupId, hoopId: players[0].state.hoopId, rim: players[0].state.facingTarget,
+      players: Object.freeze(players.map(({ actor, state }) => Object.freeze({
+        lane: actor.lane, x: actor.x, y: actor.y, participant: state.participant,
+      }))),
+    }));
+  }
+  return games;
+}
+
+// Put a whole team on court at once: one spot each, one shared clock, all
+// facing the rim. All-or-nothing: if any player cannot route, nobody plays.
+function startBasketballTeam(participants, actorMap, court, window) {
+  if (!basketballEnabled() || !court?.spots?.length || participants.length > court.spots.length) return false;
+  const groupId = `basketball:${window}:${participants.map((row) => row.lane).join(':')}`;
+  const clock = { elapsed: 0, started: false };
+  const cast = participants.map((row) => actorMap.get(row.lane));
+  if (cast.some((actor) => !actor)) return false;
+  cast.forEach((actor, index) => {
+    basketballTeams.set(actor, cast);
+    actor.startIdleActivity(participants[index], {
+      system: 'idle', kind: 'basketball', selectedKind: 'basketball', depth: 'deep',
+      variant: 'chat', target: court.spots[index], facingTarget: court.rim, hoopId: court.hoopId,
+      groupId, participantCount: participants.length, participant: index, clock,
+      icon: iconForActivity('basketball'), line: null,
+    }, window);
+  });
+  if (cast.every((actor) => actor.idleActivity?.kind === 'basketball'
+      && actor.idleActivity.depth === 'deep')) return true;
+  // A blocked route cannot strand the rest of the team on court.
+  cast.forEach((actor, index) => actor.interruptIdleActivity(participants[index], window));
+  return false;
+}
+
+// DIRECTOR-02: stage one paired watercooler conversation from the outside. The
+// plan shape is the same one syncIdleActivities builds, so a staged talk runs
+// through the real talk lifecycle (partner map, shared clock, alternating
+// speaker). All-or-nothing: a pair that cannot start leaves nobody mid-scene.
+function startTalkPair(participants, actorMap, zones, window) {
+  const core = globalThis.OfficeIdleActivity;
+  if (!Array.isArray(participants) || participants.length !== 2) return false;
+  const spots = core?.pairSpots?.(zones?.watercooler || zones?.couch);
+  if (!spots || typeof globalThis.OfficeTalkScene?.conversationFor !== 'function') return false;
+  const cast = participants.map((row) => actorMap.get(row.lane));
+  if (cast.some((actor) => !actor)) return false;
+  const groupId = `talk:${window}:${participants[0].lane}:${participants[1].lane}`;
+  const conversation = globalThis.OfficeTalkScene.conversationFor(
+    window, 0, groupId, participants.map((row) => row.lane));
+  const clock = { elapsed: 0, started: false };
+  cast.forEach((actor, index) => {
+    talkPartners.set(actor, cast[1 - index]);
+    actor.startIdleActivity(participants[index], {
+      system: 'idle', kind: 'talk', selectedKind: 'talk', depth: 'deep',
+      variant: 'chat', ...spots[index], groupId, participantCount: 2,
+      conversation, participant: index, clock, speaker: false, line: null,
+    }, window);
+  });
+  if (cast.every((actor) => actor.idleActivity?.kind === 'talk')) return true;
+  cast.forEach((actor, index) => actor.interruptIdleActivity(participants[index], window));
+  return false;
 }
 
 // SIGNALS §5: alive:false is external evidence of absence, even on a bench.
@@ -392,6 +527,28 @@ function offsetActivityTarget(target, agent, kind, distribution = null, slotInde
   return Object.freeze({ x: target.x + dx, y: target.y + dy });
 }
 
+function idleNeedsContext(lane) {
+  if (globalThis.OfficeFeatureFlags?.enabled?.('agent_needs') !== true) return {};
+  return {
+    needsOn: true,
+    traits: globalThis.OfficeStats?.statsFor(lane),
+    vitals: globalThis.OfficeProfile?.liveVitalsFor(lane)
+      || globalThis.OfficeVitals?.initNeeds(lane),
+  };
+}
+
+// OFFICE-EVENTS-01: the weekly calendar owns the cake gather and the Beer
+// o'clock boost. Returns {} when the flag is off, so activitySelect is byte-
+// identical to before (the calendar context is simply absent).
+function idleCalendarContext(epochS) {
+  const calendar = globalThis.OFFICE?.calendar;
+  if (typeof calendar?.contextFor !== 'function' || !Number.isFinite(epochS)) return {};
+  const world = globalThis.OFFICE?.state?.world;
+  if (!world) return {};
+  const context = calendar.contextFor(world, epochS);
+  return context ? { calendar: context } : {};
+}
+
 function coreIdlePlan(
   agent, presentCount, activeDeep, seed, epochS, zones, reservations, mode, distribution,
 ) {
@@ -405,6 +562,8 @@ function coreIdlePlan(
     projection = glue.runIdle(agent.lane, presentCount, activeDeep, seed, zones, {
       hasRealWork: !idleActivityEligible(agent),
       mode,
+      ...idleNeedsContext(agent.lane),
+      ...idleCalendarContext(epochS),
     });
   } catch (_) {
     return { plan: null, reservations };
@@ -429,13 +588,24 @@ function coreIdlePlan(
     nextReservations = claim.reservations;
     slotIndex = nextReservations[selectedKind].indexOf(agent.lane);
   }
+  let restroomSlot = null;
+  if (selectedKind === 'restroom') {
+    const used = distribution?.restroomStalls || new Set();
+    restroomSlot = zones.restroom?.stalls?.find((slot) => !used.has(slot.stallId));
+    if (!restroomSlot) {
+      return { plan: shallowPlan(agent, selectedKind, seed, epochS, core, mode, 'slot-full'), reservations };
+    }
+    used.add(restroomSlot.stallId);
+  }
   return {
     reservations: nextReservations,
     plan: Object.freeze({
       system: 'idle', kind: selectedKind, selectedKind,
       depth: projection.depth,
-      target: offsetActivityTarget(
-        projection.path, agent, selectedKind, distribution, slotIndex),
+      ...(selectedKind === 'beer' ? {tapId:zones.bar?.tapId, tapFingerprint:zones.bar?.tapFingerprint} : {}),
+      target: selectedKind === 'beer' ? Object.freeze({...projection.path}) : restroomSlot ? Object.freeze({ x: restroomSlot.x, y: restroomSlot.y })
+        : offsetActivityTarget(projection.path, agent, selectedKind, distribution, slotIndex),
+      ...(restroomSlot ? { stallId: restroomSlot.stallId } : {}),
       variant: ACTIVITY_VARIANTS[selectedKind] || 'chat',
       icon: iconForActivity(selectedKind), downgraded: false,
       line: activityLine(core, selectedKind, epochS, mode), beats: projection.beats,
@@ -493,7 +663,17 @@ function gamblePlan(agent, kind, seed, epochS, zones, participantIndex = 0, part
   });
 }
 
+// BJ-WATCH-01: a fiction card table holds its players for the whole session
+// (holdS, set by office.bjwatch.js only when the `blackjack` flag is on).
+const CARDS_TICKS = Object.freeze({ pathing: 8, settling: 3, exiting: 4 });
+function cardsBounds(state) {
+  const settling = CARDS_TICKS.pathing + CARDS_TICKS.settling;
+  const active = settling + Math.max(0, Number(state.holdS) || 0);
+  return { pathing: CARDS_TICKS.pathing, settling, active, done: active + CARDS_TICKS.exiting };
+}
+
 function activityBounds(state) {
+  if (state.system === 'cards') return cardsBounds(state);
   if (state.system === 'gamble') {
     const p = globalThis.OfficeIdleGamble?.GAMBLE_TICKS;
     if (!p) return null;
@@ -504,11 +684,18 @@ function activityBounds(state) {
   }
   const p = globalThis.OfficeIdleActivity?.PHASE_TICKS;
   if (!p) return null;
-  return { pathing: p.pathing, done: p.pathing + p.settling + p.active + p.exiting };
+  return { pathing: p.pathing, settling: p.pathing + p.settling, done: p.pathing + p.settling + p.active + p.exiting };
 }
 
 function activityBeat(state, tick) {
   const wholeTick = Math.max(0, Math.floor(tick));
+  if (state.system === 'cards') {
+    const b = cardsBounds(state);
+    if (tick < b.pathing) return 'pathing';
+    if (tick < b.settling) return 'settling';
+    if (tick < b.active) return 'active';
+    return tick < b.done ? 'exiting' : 'done';
+  }
   if (state.system === 'gamble') return globalThis.OfficeIdleGamble?.gambleBeats?.(wholeTick)?.beat || null;
   return globalThis.OfficeIdleActivity?.activityBeats?.(wholeTick)?.beat || null;
 }
@@ -554,6 +741,16 @@ function syncIdleActivities({
   if (!(actorMap instanceof Map) || !Number.isFinite(epochS)) {
     throw new TypeError('idle activity sync needs an actor map and finite epoch');
   }
+  // DIRECTOR-02: while a take has paused autonomy, the floor runs only the
+  // actions the cast API staged. Absent the film module this is inert.
+  if (globalThis.officeFilm?.cast?.isAutonomyPaused?.() === true) {
+    const core = globalThis.OfficeIdleActivity;
+    return Object.freeze({
+      mode, window: Math.floor(epochS / IDLE_ACTIVITY_WINDOW_S),
+      K: Number.isInteger(core?.DEFAULT_K) ? core.DEFAULT_K : 2,
+      activeDeep: 0, zones: Object.freeze({}), activities: Object.freeze([]),
+    });
+  }
   const window = Math.floor(epochS / IDLE_ACTIVITY_WINDOW_S);
   const zones = activityZones(layout);
   const tables = pingPongTables(layout);
@@ -566,6 +763,9 @@ function syncIdleActivities({
   const eligibleLanes = new Set(eligible.map((agent) => agent.lane));
   const agentsByLane = new Map(rows.map((agent) => [agent.lane, agent]));
   const distribution = activityDistribution(eligible, actorMap);
+  // AGENT-SPEND-01: vendors + balances for buy_food (inert unless agent_spending).
+  const spendContext = { window, layout, zones, world: globalThis.OFFICE?.state?.world || null };
+  if (globalThis.OfficeVendors?.enabled?.() === true) globalThis.OfficeVendors.refresh();
 
   // Direct callers may not have office.state's stale-actor pruning. A departed
   // lane cannot keep an invisible activity or leak into the inspector count.
@@ -583,10 +783,20 @@ function syncIdleActivities({
     const invalid = !eligibleLanes.has(agent.lane)
       || !samePoint(home, actor.idleActivity.home)
       || (actor.idleActivity.system === 'gamble' && !modeAtLeast(mode, 'funny'))
+      || (actor.idleActivity.kind === 'talk' && !talkEnabled())
+      || (actor.idleActivity.kind === 'basketball' && (!basketballEnabled() || !zones.court
+        || zones.court.hoopId !== actor.idleActivity.hoopId))
+      || (actor.idleActivity.kind === 'beer' && (!modeAtLeast(mode, 'funny')
+        || !beerTaps(layout).some(tap => tap.id === actor.idleActivity.tapId
+          && tap.fingerprint === actor.idleActivity.tapFingerprint)))
       || (actor.idleActivity.kind === 'pee' && mode !== 'naughty')
+      || (actor.idleActivity.kind === 'restroom' && !zones.restroom?.stalls?.some((slot) =>
+        slot.stallId === actor.idleActivity.stallId && samePoint(slot, actor.idleActivity.target)))
       || (actor.idleActivity.kind === 'ping-pong' && !tables.some((table) =>
         table.id === actor.idleActivity.tableId
-        && table.fingerprint === actor.idleActivity.tableFingerprint));
+        && table.fingerprint === actor.idleActivity.tableFingerprint))
+      || (actor.idleActivity.kind === 'buy_food' && actor.idleActivity.purchase !== 'paid'
+        && !globalThis.OfficeIdleBuyFood?.stillAvailable?.(actor.idleActivity, spendContext));
     if (invalid) actor.interruptIdleActivity(agent, window);
     else if (actor.idleActivity.kind === 'smoke'
         && ['settling', 'active'].includes(actor.idleActivity.beat)
@@ -594,6 +804,12 @@ function syncIdleActivities({
       actor.downgradeIdleActivity('off-pad');
     }
   }
+
+  // Collect after truth/departure interruptions so newly freed stalls can
+  // be reserved immediately in this same scheduler pass.
+  distribution.restroomStalls = new Set([...actorMap.values()]
+    .map((actor) => actor.idleActivity).filter((state) => state?.kind === 'restroom'
+      && state.depth === 'deep').map((state) => state.stallId));
 
   // Social activities are atomic groups. If truth pulls one participant away,
   // release the survivor too instead of leaving a one-person dice/gossip scene.
@@ -707,6 +923,7 @@ function syncIdleActivities({
       const probe = glue.runIdle(agent.lane, presentCount, activeDeep + index, window, zones, {
         hasRealWork: false,
         mode,
+        ...idleNeedsContext(agent.lane),
       });
       return probe?.interrupted ? null : gamblePlan(agent, kind, window, epochS, zones, index, participants);
     });
@@ -720,51 +937,89 @@ function syncIdleActivities({
     }
   }
 
-  // The core marks watercooler as a partner activity. Pair deterministic
-  // selectors atomically; if a pair cannot fit K, both agents really become
-  // shallow instead of one deep actor waiting forever for company.
-  const watercoolerLanes = new Set(remaining.filter((agent) => {
+  // Reuse watercooler's atomic partner admission; one selected talker may
+  // invite any available idle colleague. Each pair owns two floor budget slots.
+  const talkLanes = new Set(talkEnabled() ? remaining.filter((agent) => {
     try {
       return glue?.runIdle(agent.lane, presentCount, 0, window, zones, {
         hasRealWork: false,
         mode,
-      })?.kind === 'watercooler';
+        ...idleNeedsContext(agent.lane),
+      })?.kind === 'talk';
     } catch (_) { return false; }
-  }).map((agent) => agent.lane));
+  }).map((agent) => agent.lane) : []);
+  const basketballLanes = new Set(basketballEnabled() && zones.court ? remaining.filter((agent) => {
+    try {
+      return glue?.runIdle(agent.lane, presentCount, 0, window, zones, {
+        hasRealWork: false,
+        mode,
+        ...idleNeedsContext(agent.lane),
+      })?.kind === 'basketball';
+    } catch (_) { return false; }
+  }).map((agent) => agent.lane) : []);
   const queue = [...remaining];
   while (queue.length) {
     const agent = queue.shift();
-    if (watercoolerLanes.has(agent.lane)) {
-      const partnerCandidates = queue
-        .filter((candidate) => watercoolerLanes.has(candidate.lane))
-        .map((candidate) => candidate.lane);
-      const partnerLane = typeof glue?.partnerPick === 'function'
-        ? glue.partnerPick(agent.lane, partnerCandidates, socialBoard, `watercooler:${window}`)
-        : partnerCandidates[0];
+    if (basketballLanes.has(agent.lane)) {
+      // One game on the court at a time. The selected player invites up to
+      // three colleagues (slotCap 4); nobody free means a solo shoot-around.
+      // Every player owns one floor budget slot, like any deep activity.
+      const court = zones.court;
+      const cap = core.ACTIVITIES.basketball?.slotCap || 1;
+      const occupied = [...actorMap.values()].some((actor) => actor.idleActivity?.kind === 'basketball');
+      const room = Math.min(cap, court.spots.length, K - activeDeep);
+      if (!occupied && room >= 1) {
+        const participants = [agent];
+        while (participants.length < room) {
+          const partnerLane = glue?.partnerPick?.(agent.lane, queue.map((candidate) => candidate.lane),
+            socialBoard, `basketball:${window}:${participants.length}`);
+          const partnerIndex = queue.findIndex((candidate) => candidate.lane === partnerLane);
+          if (partnerIndex < 0) break;
+          participants.push(queue.splice(partnerIndex, 1)[0]);
+          // A game, not a crowd: past two players each extra seat is a coin flip.
+          if (participants.length >= 2
+              && hash(`basketball-size:${window}:${agent.lane}:${participants.length}`) < 0.5) break;
+        }
+        if (startBasketballTeam(participants, actorMap, court, window)) activeDeep += participants.length;
+        continue;
+      }
+      const plan = shallowPlan(agent, 'basketball', window, epochS, core, mode, 'slot-full');
+      actorMap.get(agent.lane).startIdleActivity(agent, plan, window);
+      continue;
+    }
+    if (talkLanes.has(agent.lane)) {
+      const partnerCandidates = queue.map((candidate) => candidate.lane);
+      const partnerLane = glue?.partnerPick?.(agent.lane, partnerCandidates, socialBoard, `talk:${window}`);
       const partnerIndex = queue.findIndex((candidate) => candidate.lane === partnerLane);
-      if (partnerIndex >= 0 && activeDeep + 2 <= K) {
+      // One meeting at this spot at a time; no overlapping pairs at the cooler.
+      const occupied = [...actorMap.values()].some((actor) => actor.idleActivity?.kind === 'talk');
+      const spots = core.pairSpots(zones.watercooler || zones.couch);
+      if (partnerIndex >= 0 && activeDeep + 2 <= K && !occupied && spots
+          && globalThis.OfficeTalkScene?.conversationFor) {
         const partner = queue.splice(partnerIndex, 1)[0];
-        const first = coreIdlePlan(
-          agent, presentCount, activeDeep, window, epochS, zones, reservations, mode,
-          distribution);
-        const second = coreIdlePlan(
-          partner, presentCount, activeDeep + 1, window, epochS, zones,
-          first.reservations, mode, distribution);
-        if (first.plan?.kind === 'watercooler' && first.plan.depth === 'deep'
-            && second.plan?.kind === 'watercooler' && second.plan.depth === 'deep') {
-          const groupId = `watercooler:${window}:${agent.lane}:${partner.lane}`;
-          const paired = [first.plan, second.plan].map((plan) => Object.freeze({
-            ...plan, groupId, participantCount: 2,
-          }));
-          actorMap.get(agent.lane).startIdleActivity(agent, paired[0], window);
-          actorMap.get(partner.lane).startIdleActivity(partner, paired[1], window);
-          reservations = second.reservations;
+        const participants = [agent, partner];
+        const groupId = `talk:${window}:${agent.lane}:${partner.lane}`;
+        const conversation = globalThis.OfficeTalkScene.conversationFor(
+          window, 0, groupId, participants.map((row) => row.lane));
+        const clock = { elapsed: 0, started: false };
+        const cast = participants.map((row) => actorMap.get(row.lane));
+        cast.forEach((actor, index) => {
+          talkPartners.set(actor, cast[1 - index]);
+          actor.startIdleActivity(participants[index], {
+            system: 'idle', kind: 'talk', selectedKind: 'talk', depth: 'deep',
+            variant: 'chat', ...spots[index], groupId, participantCount: 2,
+            conversation, participant: index, clock, speaker: false, line: null,
+          }, window);
+        });
+        if (cast.every((actor) => actor.idleActivity?.kind === 'talk')) {
           activeDeep += 2;
           continue;
         }
-        queue.splice(partnerIndex, 0, partner);
+        // A blocked route cannot leave its partner talking alone, even one frame.
+        cast.forEach((actor, index) => actor.interruptIdleActivity(participants[index], window));
+        continue;
       }
-      const plan = shallowPlan(agent, 'watercooler', window, epochS, core, mode, 'partner');
+      const plan = shallowPlan(agent, 'talk', window, epochS, core, mode, 'partner');
       actorMap.get(agent.lane).startIdleActivity(agent, plan, window);
       continue;
     }
@@ -774,8 +1029,14 @@ function syncIdleActivities({
       distribution);
     reservations = result.reservations;
     if (!result.plan) continue;
-    actorMap.get(agent.lane).startIdleActivity(agent, result.plan, window);
-    if (result.plan.depth === 'deep') activeDeep++;
+    const walker = actorMap.get(agent.lane);
+    const plan = globalThis.OfficeIdleBuyFood?.upgradeSnack?.(result.plan, agent, {
+      ...spendContext,
+      reachable: (target) => samePoint(walker, target, 0.06)
+        || route(walker.x, walker.y, target.x, target.y).length > 0,
+    }) || result.plan;
+    actorMap.get(agent.lane).startIdleActivity(agent, plan, window);
+    if (plan.depth === 'deep') activeDeep++;
   }
 
   return Object.freeze({
@@ -914,6 +1175,24 @@ class Actor {
   downgradeIdleActivity(reason) {
     const state = this.idleActivity;
     if (!state) return;
+    if (state.kind === 'basketball' && state.depth === 'deep') {
+      const team = basketballTeams.get(this) || [this];
+      for (const player of team) {
+        if (player.idleActivity?.groupId !== state.groupId) continue;
+        const home = player.idleActivity.home;
+        player.interruptIdleActivity({ home, station: home }, state.window);
+      }
+      return;
+    }
+    if (state.kind === 'talk') {
+      const peer = talkPartners.get(this);
+      this.interruptIdleActivity({ home: state.home, station: state.home }, state.window);
+      if (peer?.idleActivity?.groupId === state.groupId) {
+        const home = peer.idleActivity.home;
+        peer.interruptIdleActivity({ home, station: home }, state.window);
+      }
+      return;
+    }
     const plan = shallowPlan(this, state.selectedKind || state.kind, state.window,
       state.window * IDLE_ACTIVITY_WINDOW_S, globalThis.OfficeIdleActivity, idleContentMode(), reason);
     Object.assign(state, plan, { tick: 0, beat: 'pathing', beatAge: 0, returning: false });
@@ -926,6 +1205,8 @@ class Actor {
   interruptIdleActivity(a, finishedWindow = null) {
     if (!this.idleActivity) return false;
     this.idleActivity = null;
+    talkPartners.delete(this);
+    basketballTeams.delete(this);
     this.idleFinishedWindow = finishedWindow;
     this.setIdleVariant(a, null);
     const home = homeTile(a);
@@ -937,12 +1218,30 @@ class Actor {
     if (!state) return;
     this.idleFinishedWindow = state.window;
     this.idleActivity = null;
+    talkPartners.delete(this);
+    basketballTeams.delete(this);
     this.idleVariant = null;
     this.idleIcon = '';
   }
   advanceIdleActivity(dt) {
     const state = this.idleActivity;
     if (!state) return;
+    if (state.kind === 'talk') {
+      const peer = talkPartners.get(this);
+      if (!talkEnabled() || peer?.idleActivity?.kind !== 'talk'
+          || peer.idleActivity.groupId !== state.groupId) {
+        this.interruptIdleActivity({ home: state.home, station: state.home }, state.window);
+        return;
+      }
+    }
+    if (state.kind === 'basketball' && state.depth === 'deep') {
+      const team = basketballTeams.get(this);
+      if (!basketballEnabled() || !team
+          || team.some((player) => player.idleActivity?.groupId !== state.groupId)) {
+        this.interruptIdleActivity({ home: state.home, station: state.home }, state.window);
+        return;
+      }
+    }
     const bounds = activityBounds(state);
     if (!bounds) return;
     state.beatAge += dt;
@@ -969,11 +1268,64 @@ class Actor {
       state.tick += dt;
     }
 
+    if (state.kind === 'talk') {
+      const peer = talkPartners.get(this);
+      const bothArrived = atTarget && !peer.path.length
+        && samePoint(peer, peer.idleActivity.target, 0.06);
+      if (!state.clock.started && bothArrived) state.clock.started = true;
+      if (state.clock.started) {
+        if (state.participant === 0) state.clock.elapsed += dt;
+        state.tick = bounds.pathing + state.clock.elapsed;
+        if (!atHome) state.tick = Math.min(state.tick, bounds.done - 0.001);
+      } else if (atTarget) state.tick = bounds.pathing;
+    }
+    if (state.kind === 'basketball' && state.depth === 'deep') {
+      // One shared game clock: tip-off waits for the whole team, and the
+      // first player (participant 0) keeps time so everyone leaves together.
+      const team = basketballTeams.get(this);
+      const allArrived = atTarget && team.every((player) => !player.path.length
+        && samePoint(player, player.idleActivity.target, 0.06));
+      if (!state.clock.started && allArrived) state.clock.started = true;
+      if (state.clock.started) {
+        if (state.participant === 0) state.clock.elapsed += dt;
+        state.tick = bounds.pathing + state.clock.elapsed;
+        if (!atHome) state.tick = Math.min(state.tick, bounds.done - 0.001);
+      } else if (atTarget) state.tick = bounds.pathing;
+    }
     const nextBeat = activityBeat(state, state.tick);
     if (nextBeat && nextBeat !== state.beat) {
       state.beat = nextBeat;
       state.beatAge = 0;
       this.idleVariant = normalizeIdleVariant(activityVariantForBeat(state));
+    }
+    // Players face the rim from the first playing frame (after the beat moves).
+    if (state.kind === 'basketball' && state.depth === 'deep'
+        && ['settling', 'active'].includes(state.beat)) {
+      const dx = state.facingTarget.x - this.x, dy = state.facingTarget.y - this.y;
+      this.facing = dx + dy >= 0 ? -1 : 1;
+    }
+    if (state.kind === 'talk') {
+      const elapsed = Math.max(0, state.tick - bounds.settling);
+      const turn = Math.floor(elapsed / 5) % state.conversation.length;
+      const speech = state.conversation[turn];
+      state.speaker = state.beat === 'active' && speech.participant === state.participant;
+      state.line = state.speaker ? speech.text : null;
+      state.speechLife = 5 - elapsed % 5;
+      // Publish both sides together: actor-map iteration order must not show
+      // two bubbles on the frame where the shared conversation changes speaker.
+      const peerState = talkPartners.get(this)?.idleActivity;
+      if (peerState?.groupId === state.groupId) {
+        peerState.speaker = peerState.beat === 'active' && speech.participant === peerState.participant;
+        peerState.line = peerState.speaker ? speech.text : null;
+        peerState.speechLife = state.speechLife;
+      }
+      if (['settling', 'active'].includes(state.beat)) {
+        const dx = state.facingTarget.x - this.x, dy = state.facingTarget.y - this.y;
+        this.facing = dx + dy >= 0 ? -1 : 1;
+      }
+    }
+    if (state.kind === 'buy_food' && state.beat !== 'pathing' && !state.purchase) {
+      globalThis.OfficeIdleBuyFood?.purchase?.(this.lane, state);
     }
     if (state.beat === 'exiting' && !state.returning) {
       state.returning = true;
@@ -1062,8 +1414,42 @@ function browserRequiresSpatial() {
 // the deterministic A* router that respects room walls and doors. Falls back
 // to the legacy corridor-only heuristic only in isolated Node shims that do
 // not load the browser's navigation module.
+// The flag-on court lies behind the building, outside the navigation grid.
+// A walk there is the real indoor route to the back door, one step out, then
+// the outdoor lane (clear of the hoop) to the spot; coming back reverses it.
+function courtWalk() {
+  const court = OFFICE.state?.world?.layout?.court;
+  const door = court?.door;
+  return basketballEnabled() && court?.yard
+    && [door?.inside, door?.outside, door?.lane].every(finitePoint) ? court : null;
+}
+const inCourtYard = (court, x, y) => y < 0 && x >= court.yard.x
+  && x <= court.yard.x + court.yard.w && y >= court.yard.y;
+function yardRoute(court, ax, ay, bx, by, options) {
+  const { inside, outside, lane } = court.door;
+  const fromYard = inCourtYard(court, ax, ay), toYard = inCourtYard(court, bx, by);
+  const yardLeg = (from, to) => [lane, to].filter((point) => !samePoint(point, from, 0.02));
+  if (fromYard && toYard) return [{ x: bx, y: by }];
+  if (toYard) {
+    const indoor = samePoint({ x: ax, y: ay }, inside, 0.02) ? []
+      : OFFICE.por.nav.route(ax, ay, inside.x, inside.y, options);
+    if (!indoor.length && !samePoint({ x: ax, y: ay }, inside, 0.02)) return [];
+    return [...indoor, { ...outside }, ...yardLeg(outside, { x: bx, y: by })];
+  }
+  const indoor = OFFICE.por.nav.route(inside.x, inside.y, bx, by, options);
+  if (!indoor.length && !samePoint({ x: bx, y: by }, inside, 0.02)) return [];
+  const back = samePoint({ x: ax, y: ay }, lane, 0.02) ? [] : [{ ...lane }];
+  return [...back, { ...outside }, { ...inside }, ...indoor];
+}
+
 function route(ax, ay, bx, by, options = { allowBlockedGoal: false }) {
-  if (OFFICE.por?.nav?.route) return OFFICE.por.nav.route(ax, ay, bx, by, options);
+  if (OFFICE.por?.nav?.route) {
+    const court = courtWalk();
+    if (court && (inCourtYard(court, ax, ay) || inCourtYard(court, bx, by))) {
+      return yardRoute(court, ax, ay, bx, by, options);
+    }
+    return OFFICE.por.nav.route(ax, ay, bx, by, options);
+  }
   if (globalThis.OfficeSpatial || browserRequiresSpatial()) return [];
 
   // Legacy corridor routing (safe fallback)
@@ -1127,8 +1513,13 @@ return {
   idleContentMode,
   prepareIdleActivityLayout,
   activityZones,
+  beerTaps,
+  idleCalendarContext,
   pingPongTables,
   pingPongGames,
+  basketballGames,
+  startBasketballTeam,
+  startTalkPair,
   idleActivityEligible,
   syncIdleActivities,
   inspectIdleActivities,

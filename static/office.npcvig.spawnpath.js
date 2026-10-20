@@ -205,15 +205,24 @@ function deskStandingTiles(layout) {
   return chairTiles(layout).filter((tile) => tile.y < buildingH);
 }
 
+/* An outdoor room (the paddock) can sit level with the building, so
+ * y < building_h alone no longer means indoors. */
+function inOutdoorRoom(layout, point) {
+  const rooms = Array.isArray(layout?.rooms) ? layout.rooms : [];
+  return rooms.some((room) => finiteRect(room) && room.outdoor === true && within(room, point));
+}
+
 /* First free tile at or south of `point`, probing at most SOUTH_PROBE_MAX
- * rows. Free = indoors (y < building_h) and on no published blocker rect. */
+ * rows. Free = indoors (y < building_h, in no outdoor room) and on no
+ * published blocker rect. An anchor that starts outdoors never resolves. */
 function standingTileNear(layout, point) {
-  if (!finitePoint(point)) return null;
+  if (!finitePoint(point) || inOutdoorRoom(layout, point)) return null;
   const blockers = blockerRects(layout);
   const height = buildingHeight(layout);
   for (let step = 0; step <= SOUTH_PROBE_MAX; step += 1) {
     const candidate = { x: point.x, y: point.y + step };
-    if (candidate.y < height && !blockers.some((rect) => within(rect, candidate))) {
+    if (candidate.y < height && !inOutdoorRoom(layout, candidate)
+        && !blockers.some((rect) => within(rect, candidate))) {
       return Object.freeze({ x: candidate.x, y: candidate.y });
     }
   }

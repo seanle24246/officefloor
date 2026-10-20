@@ -1,0 +1,19 @@
+/* office.pet.dog.css — PET-DOG-01 store card, detail and the dog's floor card. */
+.store-pet-art { display: block; width: 100%; height: 118px; margin: -2px -2px 12px; object-fit: contain; border: 1px solid #1e3245; border-radius: 5px; background: #091420; }
+.store-pet-art.large { height: 200px; margin: 0 0 12px; }
+.store-pet-food { color: #f0bd43; font-size: 11px; line-height: 1.5; }
+.store-pet-status { margin: 10px 0; color: #dce3eb; font-size: 12px; line-height: 1.5; }
+.store-pet-ledger { margin: 10px 0; border: 1px solid #26384a; border-radius: 5px; font-size: 10px; }
+.store-pet-ledger-title { padding: 6px 8px; color: #79bde8; letter-spacing: 1.2px; border-bottom: 1px solid #26384a; }
+.store-pet-ledger-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; padding: 5px 8px; color: #c4cbd3; }
+.store-pet-ledger-amount { color: #ff8f8f; }
+.store-pet-ledger-day { color: #708092; }
+.store-pet-adopt { width: 100%; margin-top: 10px; }
+.store-pet-adopt.confirm { color: #07101a; background: #f0bd43; }
+.office-pet-card { position: fixed; left: 16px; bottom: 16px; z-index: 40; min-width: 220px; max-width: 300px; padding: 12px 14px; color: #dce3eb; font: 12px/1.45 ui-monospace, monospace; border: 1px solid #d99c25; border-radius: 7px; background: #07101aee; }
+.office-pet-card h3 { margin: 0 0 8px; font-size: 14px; }
+.office-pet-card-row { display: flex; justify-content: space-between; gap: 12px; }
+.office-pet-card-row span { color: #8dc4eb; }
+.office-pet-card-why { margin: 8px 0 0; color: #9ce36d; }
+.office-pet-card-why.hungry { color: #ffb454; }
+.office-pet-card-close { position: absolute; top: 6px; right: 8px; color: #dce3eb; border: 0; background: transparent; font: inherit; cursor: pointer; }

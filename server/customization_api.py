@@ -19,9 +19,12 @@ from server import customization_assignments as assignments
 from server import customization_contract as contract
 from server import customization_purchase as purchase
 from server import customization_store as store_module
+from server import city_zones
 from server import effective_furnishings
+from server import feature_flags
 from server import floor_config
 from server import placed_props_ext
+from server import placement_connectivity
 from server import roots
 
 
@@ -37,7 +40,10 @@ DEMO_OFFICE_ITEMS = (
     ("POTTED_TREE", "sku-0204", "bullpen", 12, 4, 0),
     ("SNAKE_PLANT", "sku-0207", "bullpen", 20, 1, 0),
     ("COMPUTER_SETUP", "sku-0400", "bullpen", 4, 1, 0),
-    ("PRINTER", "sku-0412", "kitchen", 2, 2, 0),
+    # Moved off (2,2) -> (9,3), the gap between mini fridge and recycling bin:
+    # at (2,2) it covered the watercooler talk spot (2.7,21) and every talk on
+    # the demo floor aborted route-failed (VIDEO-FIX-01).
+    ("PRINTER", "sku-0412", "kitchen", 9, 3, 0),
     ("MOBILE_WHITEBOARD", "sku-0419", "bullpen", 15, 1, 0),
     ("WATER_COOLER", "sku-0501", "kitchen", 8, 1, 0),
     ("SODA_MACHINE", "sku-0527", "kitchen", 12, 1, 0),
@@ -230,6 +236,7 @@ class CustomizationService:
         writes_available: bool = False,
         catalog: dict | None = None,
         demo_seed: bool = False,
+        state_dir: Path | None = None,
     ) -> None:
         self.catalog = copy.deepcopy(catalog if catalog is not None else load_catalog())
         try:
@@ -268,7 +275,15 @@ class CustomizationService:
             raise CustomizationAPIError(
                 503, "catalog_unavailable", "customization catalog is unavailable",
             ) from exc
-        self.store = store_module.CustomizationStore.for_ctx(ctx, self.catalog_digest)
+        self.store = store_module.CustomizationStore.for_ctx(ctx, self.catalog_digest) \
+            if state_dir is None else store_module.CustomizationStore(
+                Path(state_dir) / store_module.FILENAME, self.catalog_digest,
+                authority_root=Path(state_dir),
+            )
+        # MULTI-FLOOR-01: the state directory that owns this authority. A demo
+        # World supplies its own isolated temp dir so each floor's book is its
+        # own; a live floor keeps the ctx-resolved (authority-marker aware) dir.
+        self.state_dir = Path(state_dir) if state_dir is not None else roots.state_dir(ctx)
         # A stale but well-formed authority always migrates forward
         # (FLOOR-FIX-01): the store drops only the placements the current
         # catalog can no longer map and keeps every other durable record.
@@ -523,7 +538,7 @@ class CustomizationService:
             raise _authority_unavailable(exc, "effective furnishings", reason) from exc
 
     def _authored_overrides(self) -> dict:
-        design = floor_config.load(roots.state_dir(self.ctx), self.layout_variant)
+        design = floor_config.load(self.state_dir, self.layout_variant)
         return design.get("authored_overrides", {}) if design is not None else {}
 
     def snapshot(self) -> dict:
@@ -534,6 +549,10 @@ class CustomizationService:
                 document = self._fresh_default_document(document)
                 operational = self._operational_snapshot(document)
                 effective = self._effective_model(document, operational)
+                try:
+                    balances = self.debit.snapshot() if hasattr(self.debit, "snapshot") else {"credits": None, "office": None}
+                except Exception as exc:
+                    raise self._domain_error("debit_unavailable") from exc
                 if self.store.path.exists():
                     assignment_rows = assignments.CustomizationAssignmentService(
                         self.store,
@@ -548,7 +567,8 @@ class CustomizationService:
         except (store_module.CustomizationStoreError, assignments.AssignmentServiceError) as exc:
             raise _authority_unavailable(exc, "authority snapshot", exc.code) from exc
 
-        designs = [copy.deepcopy(document["designs"][key]) for key in sorted(document["designs"])]
+        designs = [copy.deepcopy(document["designs"][key]) for key in sorted(document["designs"])
+                   if document["designs"][key]["architecture_id"] == contract.ARCHITECTURE_ID]
         entitlements = [
             copy.deepcopy(document["entitlements"][key])
             for key in sorted(document["entitlements"])
@@ -562,7 +582,7 @@ class CustomizationService:
             for key in sorted(document["upkeep"]["attempts"])
         ]
         active = document["designs"].get(document["active_design_id"])
-        return {
+        snapshot = {
             "schema": 1,
             "architecture_id": contract.ARCHITECTURE_ID,
             "capability": {
@@ -574,8 +594,9 @@ class CustomizationService:
             "catalog_digest": self.catalog_digest,
             "authority_catalog_digest": document["catalog_digest"],
             "catalog_match": document["catalog_digest"] == self.catalog_digest,
-            "economy_authority": ECONOMY_AUTHORITY,
-            "economy_disclosure": purchase.LOCAL_DEMO_DISCLOSURE,
+            "economy_authority": "server-ledger" if hasattr(self.debit, "snapshot") else ECONOMY_AUTHORITY,
+            "balances": balances,
+            "economy_disclosure": "Office money + credits · server ledger" if hasattr(self.debit, "snapshot") else purchase.LOCAL_DEMO_DISCLOSURE,
             "revisions": {
                 resource: document[field]
                 for resource, field in RESOURCE_REVISIONS.items()
@@ -592,6 +613,18 @@ class CustomizationService:
             },
             "operational_status": operational,
         }
+        if feature_flags.is_feature_enabled("city_customization"):
+            # CITY-EDIT-02: every city design (for the city editor) and each city's active one (for the renderer).
+            active_city = document.get(store_module.CITY_ACTIVE_FIELD, {})
+            snapshot["city_designs"] = {
+                arch: {
+                    "designs": [copy.deepcopy(document["designs"][key]) for key in sorted(document["designs"])
+                                if document["designs"][key]["architecture_id"] == arch],
+                    "active": copy.deepcopy(document["designs"].get(active_city.get(arch) or "")),
+                }
+                for arch in contract.CITY_ARCHITECTURE_IDS
+            }
+        return snapshot
 
     @staticmethod
     def _safe_revision(value: Any) -> int:
@@ -614,8 +647,10 @@ class CustomizationService:
             return CustomizationAPIError(503, code, "customization persistence is unavailable")
         if code in {"already_exists", "idempotency_conflict", "not_entitled", "occupied",
                     "out_of_bounds", "structural", "door", "corridor", "cross_room",
-                    "unsupported_rotation", "insufficient_credits", "clock_regression"}:
-            return CustomizationAPIError(409, code, "customization action conflicts with current state")
+                    "unsupported_rotation", "insufficient_credits", "insufficient_office", "clock_regression"}:
+            return CustomizationAPIError(
+                409, code, "customization action conflicts with current state", **detail,
+            )
         return CustomizationAPIError(400, code or "malformed", "customization request is invalid")
 
     def _validate_envelope(self, payload: Any) -> tuple[str, str, int]:
@@ -633,7 +668,10 @@ class CustomizationService:
             raise CustomizationAPIError(400, "malformed", "unknown customization resource or action")
         required = COMMON_FIELDS | action_fields
         actual = frozenset(payload)
-        if not required <= actual or actual - required - TARGET_FIELDS:
+        optional = {"book"} if (resource, action) == ("entitlements", "purchase") else set()
+        if (resource, action) in {("designs", "create"), ("designs", "activate")}:
+            optional = optional | {"architecture_id"}  # CITY-EDIT-02; absent = standard office
+        if not required <= actual or actual - required - TARGET_FIELDS - optional:
             raise CustomizationAPIError(
                 400, "malformed", "customization body has unknown or missing fields",
             )
@@ -676,6 +714,8 @@ class CustomizationService:
             normalized = contract.normalize_design(design)
         except contract.ContractError as exc:
             raise self._domain_error(exc.reason) from exc
+        if normalized["architecture_id"] != contract.ARCHITECTURE_ID:
+            return self._validate_city_design(normalized, document)
         for row in normalized["placements"]:
             item = self.placement_catalog.get(row["sku_id"])
             if item is None:
@@ -719,11 +759,14 @@ class CustomizationService:
                     or any(row["placement_id"] in encoded for row in normalized["placements"]):
                 raise self._domain_error(conflict.get("reason", "occupied"))
 
+        # A corridor tile is walkable floor, not a wall: it is refused only
+        # when the merged design would split the walk graph (checked below,
+        # server-side, the same rule as the client spatial contract).
         architecture_by_tile: dict[tuple[int, int], str] = {}
         for claim in model["claims"]:
             tile = claim.get("tile")
             reason = claim.get("reason")
-            if isinstance(tile, dict) and reason in {"structural", "door", "corridor"}:
+            if isinstance(tile, dict) and reason in {"structural", "door"}:
                 architecture_by_tile[(tile["x"], tile["y"])] = reason
         world = self.layout.get("world", {})
         width, depth = world.get("w", 0), world.get("h", 0)
@@ -736,6 +779,37 @@ class CustomizationService:
                 reason = architecture_by_tile.get((tile["x"], tile["y"]))
                 if reason is not None:
                     raise self._domain_error(reason)
+        cut = placement_connectivity.check(self.layout, model)
+        if cut is not None:
+            raise self._domain_error(
+                cut["reason"], blocker=cut["blocker"], tile=cut["tile"],
+                witnesses=cut["witnesses"], disconnect_message=cut["disconnect_message"],
+            )
+        return normalized
+
+    # CITY-EDIT-02: a city design shares the catalog and entitlements but is placed on the city's own grid
+    # (server/city_zones.py, the twin of static/office.city.zones.js). Refused unless city_customization is on.
+    CITY_REASONS = {"bounds": "out_of_bounds", "closed": "structural", "occupied": "occupied",
+                    "unreachable": "corridor", "invalid": "invalid_record"}
+
+    def _validate_city_design(self, normalized: dict, document: dict) -> dict:
+        if not feature_flags.is_feature_enabled("city_customization"):
+            raise self._domain_error("feature_disabled")
+        rows = []
+        for row in normalized["placements"]:
+            item = self.placement_catalog.get(row["sku_id"])
+            if item is None:
+                raise self._domain_error("unknown_sku")
+            if row["sku_id"] not in document["entitlements"]:
+                raise self._domain_error("not_entitled")
+            footprint = item["footprint"]
+            rows.append({"cell": [row["anchor"]["x"], row["anchor"]["y"]],
+                         "w": footprint["w"], "d": footprint["d"], "rotation": row["rotation"]})
+        failure = city_zones.validate_layout(normalized["architecture_id"], rows)
+        if failure is not None:
+            index, reason = failure
+            raise self._domain_error(self.CITY_REASONS.get(reason, "invalid_record"),
+                                     placement_id=normalized["placements"][index]["placement_id"])
         return normalized
 
     def _assignment_service(self, document: dict) -> assignments.CustomizationAssignmentService:
@@ -751,11 +825,12 @@ class CustomizationService:
         if action == "create":
             candidate = self._validate_design({
                 "design_id": payload["design_id"], "name": payload["name"],
-                "architecture_id": contract.ARCHITECTURE_ID,
+                "architecture_id": payload.get("architecture_id", contract.ARCHITECTURE_ID),
                 "revision": 0, "placements": payload["placements"],
             }, document)
             return self.store.create_design(
                 candidate["design_id"], candidate["name"], candidate["placements"], expected,
+                architecture_id=candidate["architecture_id"],
             )
         if action == "duplicate":
             source_id = contract._opaque_id(
@@ -781,11 +856,18 @@ class CustomizationService:
                 candidate["design_id"], candidate["placements"], expected,
             )
         design_id = payload["design_id"]
+        architecture = payload.get("architecture_id", contract.ARCHITECTURE_ID)
+        if architecture not in contract.DESIGN_ARCHITECTURE_IDS:
+            raise self._domain_error("invalid_value")
+        if architecture != contract.ARCHITECTURE_ID and not feature_flags.is_feature_enabled("city_customization"):
+            raise self._domain_error("feature_disabled")
         if design_id is not None:
             design_id = contract._opaque_id(design_id, "design_id", "dsn_")
             active = self.store.get_design(design_id)
+            if active["architecture_id"] != architecture:
+                raise self._domain_error("invalid_value")
             self._validate_design(active, document)
-        return self.store.activate_design(design_id, expected)
+        return self.store.activate_design(design_id, expected, architecture_id=architecture)
 
     def _purchase_action(
         self, payload: dict, expected: int, document: dict,
@@ -805,6 +887,10 @@ class CustomizationService:
             "sku_id": sku_id, "debit_id": debit_id,
             "catalog_digest": self.catalog_digest, "price_ref": payload["price_ref"],
         }
+        if "book" in payload:
+            if payload["book"] not in ("credits", "office"):
+                raise self._domain_error("invalid_book")
+            request["book"] = payload["book"]
         # CAS protects a new debit/write, but must not defeat the idempotency
         # contract after the original 200 response is lost. Exact debit replay
         # and an already-owned SKU are read-only, zero-charge outcomes.
@@ -881,6 +967,16 @@ class CustomizationService:
             invoice, outcome, expected, self._settlement_context(),
         )
 
+    def _dispatch(self, resource: str, action: str, payload: dict,
+                  expected: int, document: dict) -> dict:
+        if resource == "designs":
+            return self._design_action(action, payload, expected, document)
+        if resource == "entitlements":
+            return self._purchase_action(payload, expected, document)
+        if resource == "assignments":
+            return self._assignment_action(action, payload, expected, document)
+        return self._upkeep_action(action, payload, expected, document)
+
     def apply(self, payload: Any) -> dict:
         """Validate and execute one strict resource/action CAS envelope."""
         self._require_writable()
@@ -890,35 +986,38 @@ class CustomizationService:
             # store methods retain its RLock and cross-process file lock.
             with self.store.transaction():
                 resource, action, expected = self._validate_envelope(payload)
-                document = self._document()
-                fresh_default_replace = (
-                    not self.store.path.exists()
-                    and self.layout_variant == "default"
-                    and resource == "designs"
-                    and action == "replace"
-                    and payload.get("design_id") == DEFAULT_DESIGN_ID
+                # A fresh default floor serves the projected default office
+                # (snapshot) with no file behind it. The client's revisions
+                # and design IDs are those of the projection, so ANY first
+                # write validates against it, materialises it, then applies
+                # on top (DEFAULT-FIRSTWRITE-01). Without this a purchase,
+                # assignment or create initialised an empty authority and
+                # the default office was lost.
+                fresh_default = (
+                    not self.store.path.exists() and self.layout_variant == "default"
                 )
-                if fresh_default_replace:
-                    document = self._fresh_default_document(document)
+                document = self._fresh_default_document(self._document())
                 self._require_catalog(payload, document)
                 if resource != "entitlements":
                     self._require_revision(resource, expected, document)
-                if fresh_default_replace:
-                    current = document["designs"][DEFAULT_DESIGN_ID]
-                    self._validate_design(
-                        {**current, "placements": payload["placements"]}, document,
-                    )
-                    self.store._write_locked(document)
-                    self._ensure_default_entitlements()
-                    document = self._document()
-                if resource == "designs":
-                    result = self._design_action(action, payload, expected, document)
-                elif resource == "entitlements":
-                    result = self._purchase_action(payload, expected, document)
-                elif resource == "assignments":
-                    result = self._assignment_action(action, payload, expected, document)
+                if not fresh_default:
+                    result = self._dispatch(resource, action, payload, expected, document)
                 else:
-                    result = self._upkeep_action(action, payload, expected, document)
+                    projected_revision = document[RESOURCE_REVISIONS[resource]]
+                    self.store._write_locked(document)
+                    try:
+                        self._ensure_default_entitlements()
+                        document = self._document()
+                        # The default-entitlement seed is server-internal: a
+                        # client current against the projection stays current.
+                        if expected == projected_revision:
+                            expected = document[RESOURCE_REVISIONS[resource]]
+                        result = self._dispatch(resource, action, payload, expected, document)
+                    except BaseException:
+                        # A refused first write leaves the floor exactly as
+                        # it was: projected, with no authority file.
+                        self.store.path.unlink(missing_ok=True)
+                        raise
         except CustomizationAPIError:
             raise
         except store_module.StaleRevision as exc:

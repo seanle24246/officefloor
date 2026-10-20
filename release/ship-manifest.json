@@ -1,6 +1,6 @@
 {
   "schema": "officefloor/ship-manifest@2",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "target": "public",
   "signed_by": "founder-approved 2026-09-04",
   "signed_at": "2026-09-04T18:48:55-04:00",
@@ -102,6 +102,60 @@
           "on": false,
           "signed": true,
           "signed_at": "2026-09-04T18:48:55-04:00"
+        },
+        "office_calendar": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "activity_collapsed_default": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "store_hide_empty_categories": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "rave_schedule": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "store_aisles_v2": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "agent_lives": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "multi_floor_v2": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "living_demo": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "city_customization": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-10-18T02:53:13-04:00",
+          "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
         }
       },
       "inclusions": {

@@ -39,7 +39,8 @@ const TABS = Object.freeze([
   Object.freeze({ id: 'funny', label: 'FUNNY', kind: 'funny' }),
 ]);
 const TAB_BY_ID = new Map(TABS.map((tab) => [tab.id, tab]));
-const PLAYFUL_SOURCES = new Set(['choreo', 'bout', 'quip', 'death', 'social-tale', 'npc_vignettes']);
+// 'cards': BJ-WATCH-01 fiction card-table result rows.
+const PLAYFUL_SOURCES = new Set(['choreo', 'bout', 'quip', 'death', 'social-tale', 'npc_vignettes', 'cards']);
 
 let lastEventT = 0;
 let activeTab = 'all';
@@ -186,13 +187,20 @@ function socialTaleRows(world) {
     return [];
   }
   if (!Array.isArray(rows)) return [];
+  // The tale core speaks in lane ids; the feed shows people. Longest lane first so a lane that prefixes another
+  // never splits it.
+  const names = (world?.agents || [])
+    .filter((agent) => agent?.lane && agent.name && agent.name !== agent.lane)
+    .map((agent) => [String(agent.lane), String(agent.name)])
+    .sort((a, b) => b[0].length - a[0].length);
+  const named = (text) => names.reduce((out, [lane, name]) => out.split(lane).join(name), String(text ?? ''));
   return rows.map((row, index) => normalizePlayful({
     id: `social-tale:${row?.pair}:${row?.t}:${row?.kind}`,
     t: presentationTime,
     lane: '',
     source: 'social-tale',
     playful: true,
-    text: row?.text,
+    text: named(row?.text),
   }, index)).filter(Boolean);
 }
 
@@ -274,6 +282,8 @@ function emptyMessage(tabId) {
 // --- floor activity collapse (persisted, local-storage-backed toggle) ---
 
 function readCollapsedState() {
+  // UI-DEFAULTS-01: flag on, a first-time viewer starts collapsed; a stored choice still wins below.
+  if (root.OfficeFeatureFlags?.enabled?.('activity_collapsed_default') === true) collapsed = true;
   try {
     const stored = root.localStorage.getItem(COLLAPSE_STORAGE_KEY);
     if (stored !== null) collapsed = stored === 'true';
@@ -515,6 +525,12 @@ function replacePlayfulRows(rows) {
   return injectedPlayful.length;
 }
 
+// BJ-WATCH-01: fiction card-table results append labelled playful rows
+// (source 'cards'); feed stays the sole owner of rendering.
+function appendPlayfulRows(rows) {
+  return replacePlayfulRows([...injectedPlayful, ...(Array.isArray(rows) ? rows : [])]);
+}
+
 // TERRA-231 owns this narrow seam. The presenter may only emit already-labelled
 // playful rows; feed remains the sole owner of rendering and ticker decoration.
 function installComicDeathPresentation(presenter) {
@@ -697,6 +713,7 @@ const api = {
   registerActivitySurface,
   handleTabKeydown,
   replacePlayfulRows,
+  appendPlayfulRows,
   installComicDeathPresentation,
   presentComicDeath,
   rowsForTab,

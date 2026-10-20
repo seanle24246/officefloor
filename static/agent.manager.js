@@ -10,7 +10,7 @@
 
 const doc = root.document;
 const query = new URLSearchParams(root.location?.search || '');
-const TAB_IDS = Object.freeze(['overview', 'looks', 'placement', 'behavior', 'social', 'history']);
+const TAB_IDS = Object.freeze(['overview', 'looks', 'placement', 'behavior', 'social', 'history', 'life']);
 const CONTROL_LABELS = Object.freeze({
   social_life: 'Social life', resource_pressure: 'Resource pressure', gambling: 'Gambling',
   agent_life_messages: 'Agent Life messages', notifications: 'Notifications', work_influence: 'Work influence',
@@ -169,7 +169,11 @@ function renderWorkspaceHead(entry) {
   const tabsForManager = [
     coreTabs[0],
     { id: 'looks', label: 'Looks', class: 'appearance', available: true },
-    ...coreTabs.slice(1),
+    ...coreTabs.slice(1, 3),
+    // AGENT-LIVES-01: the Life tab is the agent_lives surface. Flag off adds no tab.
+    ...(root.OfficeFeatureFlags?.enabled?.('agent_lives') === true
+      ? [{ id: 'life', label: 'Life', class: 'fiction', available: true }] : []),
+    ...coreTabs.slice(3),
   ];
   for (const item of tabsForManager) {
     const tab = button(item.label, `am-tab${activeTab === item.id ? ' active' : ''}${item.available ? '' : ' unavailable'}`);
@@ -191,8 +195,166 @@ function overviewView(entry) {
     truthCard('work', 'Evidence-backed', classes.work, ['branch', 'commits_ahead', 'task', 'ctx_pct']),
     truthCard('fiction', 'Session-only', classes.fiction, ['relationship_count', 'recent_fiction']),
   );
-  stack.append(intro, grid); return stack;
+  if (root.OfficeFeatureFlags?.enabled?.('agent_wallet') === true) {
+    const wallet = node('section', 'am-panel am-truth-card');
+    wallet.append(truthChip('work', 'MEASURED'));
+    const amount = Number.isSafeInteger(entry.wallet_usd) && entry.wallet_usd >= 0
+      && Number.isSafeInteger(entry.lines_shipped) && entry.lines_shipped >= 0
+      ? `$${entry.wallet_usd.toLocaleString('en-US')} · ${entry.lines_shipped.toLocaleString('en-US')} lines shipped`
+      : (root.OFFICE?.state?.world?.mode === 'demo' ? 'demo · not measured' : 'unavailable');
+    const rows = [['Wallet', amount]];
+    // AGENT-SPEND-01: spendable balance + last purchase from the server ledger.
+    const book = root.OfficeVendors?.agentBook?.(entry.lane);
+    if (book) {
+      const usd = (value) => (Number.isSafeInteger(value) ? `$${value.toLocaleString('en-US')}` : '?');
+      rows.push(['Spendable', `${usd(book.balance_agent)} (${usd(book.earned_agent)} earned − ${usd(book.spent_agent)} spent)${book.hold ? ' · HELD' : ''}`]);
+      const last = book.last_purchase;
+      rows.push(['Last purchase', last ? `${last.label || last.item} @ ${last.vendor} · −$${last.price_agent}` : 'none yet']);
+    }
+    wallet.append(definition(rows));
+    grid.append(wallet);
+  }
+  stack.append(intro, grid);
+  const fiction = personalityView(entry);
+  if (fiction) stack.append(fiction);
+  return stack;
 }
+function fictionMeter(label, value, max) {
+  const row = node('label', 'am-fiction-meter');
+  const amount = Number.isFinite(value) ? Math.max(0, Math.min(max, value)) : null;
+  const meter = node('meter'); meter.min = 0; meter.max = max; meter.value = amount ?? 0;
+  meter.setAttribute('aria-label', `${label} (fiction)`);
+  row.append(node('span', '', label), meter,
+    node('span', '', amount === null ? 'Unknown' : max === 1 ? `${Math.round(amount * 100)}%` : `${amount}/${max}`));
+  return row;
+}
+function personalityView(entry) {
+  const profile = root.OfficeProfile;
+  if ((root.OfficeFeatureFlags?.enabled?.('agent_needs') !== true
+      && root.OfficeFeatureFlags?.enabled?.('agent_dating') !== true) || !profile) return null;
+  const view = profile.profileFor(entry, profile.liveVitalsFor(entry.lane));
+  const content = node('div', 'am-fiction-grid');
+  const traits = node('div', 'am-personality');
+  traits.append(node('h4', '', 'Personality'));
+  if (view.archetype) traits.append(node('p', '', view.archetype.label));
+  for (const key of profile.TRAIT_IDS) traits.append(fictionMeter(key.toUpperCase(), view.traits[key], 10));
+  const mouth = node('div', 'am-mouth');
+  mouth.append(fictionMeter('MOUTH', view.mouth, 10), node('p', 'am-context-note', 'Separate from the six-stat personality budget.'));
+  traits.append(mouth);
+  if (root.OfficeFeatureFlags?.enabled?.('agent_dating') === true) {
+    const horny = node('div', 'am-horny');
+    horny.append(fictionMeter('HORNY', root.OfficeStats.hornyFor(entry.lane), 10),
+      node('p', 'am-context-note', 'Fictional romance drive · separate from the six-stat budget.'));
+    traits.append(horny);
+  }
+  const vitals = node('div', 'am-live-vitals');
+  vitals.append(node('h4', '', 'Vitals'), node('p', 'am-vitals-source', view.vitalsLive ? 'Live · session only' : 'Initial snapshot · live vitals unavailable'));
+  for (const key of profile.NEED_IDS) vitals.append(fictionMeter(title(key), view.vitals[key], 1));
+  content.append(traits, vitals);
+  return panel('🎭 Fiction · personality & vitals', content, 'am-fiction-panel');
+}
+// AGENT-LIVES-01: the Life tab. Mood and moments are agent_lives; the needs
+// bars need agent_needs; friends and the crush need agent_dating. Each section
+// appears only when its source flag is on, and nothing here reads measured work.
+function lifeBar(label, value) {
+  const amount = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : null;
+  const row = node('label', 'am-life-meter');
+  const meter = node('meter'); meter.min = 0; meter.max = 1; meter.value = amount ?? 0;
+  meter.setAttribute('aria-label', `${label} (fiction)`);
+  row.append(node('span', '', label), meter,
+    node('span', '', amount === null ? 'Unknown' : `${Math.round(amount * 100)}%`));
+  return row;
+}
+function lifeMoodView(vitals, moments) {
+  const lives = root.OfficeLives;
+  const mood = lives?.moodFor ? lives.moodFor(vitals, moments) : 'content';
+  const card = node('section', 'am-panel am-card am-life-mood');
+  const head = node('div', 'am-card-head');
+  head.append(node('h3', '', 'Mood'), truthChip('fiction', 'derived'));
+  const body = node('div', 'am-life-mood-body');
+  body.append(node('span', 'am-life-mood-icon', lives?.MOOD_ICONS?.[mood] || '\u{1F642}'),
+    node('strong', 'am-life-mood-label', title(mood)));
+  card.append(head, body,
+    node('p', 'am-context-note', 'Derived from vitals and recent fiction moments. Never measured work.'));
+  return card;
+}
+const LIFE_FRIEND_RANK = Object.freeze({
+  romance: 5, dating: 4, crush: 3, close: 2.5, friend: 2, friends: 2,
+  acquaintances: 1, acquaintance: 1, strangers: 0.5, tense: 0.25, beef: 0.1,
+});
+function lifeSocialView(entry) {
+  const existing = world()?.social_graph || world()?.relationships || {};
+  const graph = root.OfficeDatingRuntime?.graphFor(existing, Date.now()) || existing;
+  const rows = social.relationships(entry.lane, graph) || [];
+  const ranked = [...rows].sort((left, right) => {
+    const rightRank = LIFE_FRIEND_RANK[right.tier] ?? 0;
+    const leftRank = LIFE_FRIEND_RANK[left.tier] ?? 0;
+    if (rightRank !== leftRank) return rightRank - leftRank;
+    return String(left.other).localeCompare(String(right.other));
+  });
+  const content = node('div');
+  const friends = ranked.filter((row) => !['crush', 'romance', 'dating'].includes(row.tier)).slice(0, 3);
+  const friendList = node('div', 'am-life-friends');
+  if (!friends.length) friendList.append(empty('No friendships reported in the session graph.'));
+  for (const friend of friends) {
+    const row = node('div', 'am-life-friend');
+    row.append(node('span', '', safe(friend.other)), node('span', 'am-life-tier', title(friend.tier)));
+    friendList.append(row);
+  }
+  content.append(friendList);
+  const crush = ranked.find((row) => ['crush', 'romance', 'dating'].includes(row.tier));
+  if (crush) {
+    const row = node('div', 'am-life-crush');
+    row.append(node('span', '', '\u{1F49C}'), node('span', '', `Crush · ${safe(crush.other)}`),
+      truthChip('fiction', crush.one_sided ? 'one-sided' : 'mutual'));
+    content.append(row);
+  }
+  return panel('Friends & crush', content, 'am-life-social');
+}
+function lifeMomentsView(moments) {
+  const list = node('div', 'am-life-moments');
+  if (!moments.length) list.append(empty('No fiction moments captured yet.'));
+  for (const moment of moments.slice(0, 5)) {
+    const row = node('div', 'am-life-moment');
+    row.append(node('span', '', safe(moment.label, 'took a moment')), truthChip('fiction'));
+    list.append(row);
+  }
+  return panel('Last 5 fiction moments', list, 'am-life-moments-panel');
+}
+function lifeView(entry) {
+  const flags = root.OfficeFeatureFlags;
+  const profile = root.OfficeProfile;
+  const stack = node('div', 'am-stack am-life-stack');
+  const banner = node('section', 'am-panel am-fiction-banner');
+  banner.append(truthChip('fiction', 'session-only life state'),
+    node('p', 'am-context-note', 'Moods, needs and moments are session fiction. They never read or change measured work.'));
+  stack.append(banner);
+  const live = profile?.liveVitalsFor?.(entry.lane) || null;
+  const vitals = live || root.OfficeVitals?.initNeeds?.(entry.lane) || {};
+  const moments = root.OfficeLivesRuntime?.momentsFor?.(entry.lane) || [];
+  stack.append(lifeMoodView(vitals, moments));
+  if (flags?.enabled?.('agent_needs') === true) {
+    const bars = node('div', 'am-life-bars');
+    bars.append(lifeBar('Hunger', vitals.hunger), lifeBar('Thirst', vitals.thirst),
+      lifeBar('Energy', Number.isFinite(vitals.tiredness) ? 1 - vitals.tiredness : null));
+    const needs = panel('Needs', bars, 'am-life-needs');
+    needs.append(node('p', 'am-context-note', live ? 'Live · session only' : 'Initial snapshot · live vitals unavailable'));
+    stack.append(needs);
+  }
+  if (flags?.enabled?.('agent_dating') === true) stack.append(lifeSocialView(entry));
+  stack.append(lifeMomentsView(moments));
+  return stack;
+}
+function refreshVitals() {
+  if (!shell || shell.hidden || root.OfficeModal?.active !== shell || activeTab !== 'overview') return;
+  const entry = agents().find(agent => agent.lane === selectedLane);
+  const current = shell.querySelector('.am-fiction-panel');
+  if (!entry) { current?.remove(); return; }
+  const next = personalityView(entry);
+  if (current) { if (next) current.replaceWith(next); else current.remove(); }
+  else if (next) shell.querySelector('.am-tab-body .am-stack')?.append(next);
+}
+
 function truthCard(kind, detail, data, keys) {
   const card = node('section', 'am-panel am-truth-card'); card.append(truthChip(kind, detail));
   const rows = keys.map((key) => [title(key), Array.isArray(data[key]) ? `${data[key].length} items` : data[key]]);
@@ -400,7 +562,8 @@ function looksTabView(entry) {
 
 function socialView(entry) {
   const classInfo = social.socialClass();
-  const graph = world()?.social_graph || world()?.relationships || {};
+  const existingGraph = world()?.social_graph || world()?.relationships || {};
+  const graph = root.OfficeDatingRuntime?.graphFor(existingGraph, Date.now()) || existingGraph;
   const relationships = social.relationships(entry.lane, graph);
   const participation = social.participation(entry.social || entry);
   const recent = social.recentFiction(entry.social || entry);
@@ -462,7 +625,9 @@ function renderWorkspace(entry) {
   disposeLooks();
   renderWorkspaceHead(entry);
   const body = shell.querySelector('.am-tab-body');
-  const view = activeTab === 'placement' ? placementView(entry)
+  const lifeOn = root.OfficeFeatureFlags?.enabled?.('agent_lives') === true;
+  const view = activeTab === 'life' && lifeOn ? lifeView(entry)
+    : activeTab === 'placement' ? placementView(entry)
     : activeTab === 'behavior' ? behaviorView(entry)
     : activeTab === 'looks' ? looksTabView(entry)
     : activeTab === 'social' ? socialView(entry)
@@ -476,7 +641,8 @@ function contextSection(titleText, content) {
 function renderContext(entry) {
   const rail = shell.querySelector('.am-context-rail'); if (!rail) return; rail.replaceChildren();
   const identity = core.agentIdentity(entry);
-  const head = node('header', 'am-context-head'); head.append(node('h2', '', activeTab === 'placement' ? 'Placement preview' : activeTab === 'behavior' ? 'Policy effect' : activeTab === 'looks' ? 'Appearance preview' : activeTab === 'social' ? 'Relationship detail' : activeTab === 'history' ? 'Essentials' : 'Agent context'));
+  const lifeTab = activeTab === 'life' && root.OfficeFeatureFlags?.enabled?.('agent_lives') === true;
+  const head = node('header', 'am-context-head'); head.append(node('h2', '', activeTab === 'placement' ? 'Placement preview' : activeTab === 'behavior' ? 'Policy effect' : activeTab === 'looks' ? 'Appearance preview' : lifeTab ? 'Life detail' : activeTab === 'social' ? 'Relationship detail' : activeTab === 'history' ? 'Essentials' : 'Agent context'));
   const content = node('div', 'am-context-content');
   if (activeTab === 'placement') {
     const effective = placement.effectivePlacement(entry);
@@ -492,6 +658,9 @@ function renderContext(entry) {
     content.append(contextSection('Effect', definition([
       ['Scope', effect.scope], ['Applies', title(effect.applies)], ['Inherits', title(effect.inherits)], ['Exceptions', effect.exceptions], ['High impact', effect.high_impact],
     ])), contextSection('Preview', node('p', 'am-context-note', 'This read-only view projects effective policy. It does not alter work, permissions, tests, security, or task instructions.')));
+  } else if (lifeTab) {
+    content.append(contextSection('Fiction boundary', truthChip('fiction', 'session only')),
+      contextSection('Sources', node('p', 'am-context-note', 'Mood and moments are session fiction. Needs bars come from agent_needs; friends and the crush come from agent_dating.')));
   } else if (activeTab === 'looks') {
     content.append(contextSection('Scope', definition([
       ['Agent', identity.name], ['Lane', identity.lane], ['Persistence', 'This browser'], ['Option source', 'Floor renderer'],
@@ -551,7 +720,9 @@ function build() {
     { id: 'settings', label: 'Settings', icon: '⚙' },
   ];
   for (const route of navRoutes) {
-    const item = button(`${route.icon} ${route.label}`, 'am-nav-button');
+    // Icon and label are separate spans so the label never breaks mid-word (UI-POLISH-01).
+    const item = button('', 'am-nav-button');
+    item.append(node('span', 'am-nav-icon', route.icon), node('span', 'am-nav-label', route.label));
     item.setAttribute('aria-label', route.label);
     item.addEventListener('click', () => {
       root.OfficeModal?.hide(shell);
@@ -569,9 +740,7 @@ function build() {
     node('span', 'am-app-brand-icon', '🏢'),
     node('span', 'am-app-brand-text', 'Officefloor')
   );
-  const modeText = root.OFFICE?.mode?.label
-    || (typeof root.__OFFICE_SNAPSHOT__ !== 'undefined' ? 'SNAPSHOT' : 'LIVE FLEET');
-  const modePill = node('span', 'am-app-mode pill', modeText);
+  const modePill = node('span', 'am-app-mode pill');
   const breadcrumb = node('nav', 'am-app-breadcrumb');
   breadcrumb.setAttribute('aria-label', 'Breadcrumb');
   breadcrumb.append(
@@ -587,8 +756,15 @@ function build() {
   shell.append(integratedShell);
   doc.body.append(shell); return shell;
 }
+// Mirror the header pill's own label (office.hud.js), read on every render so
+// the manager never claims a mode the header does not.
+function fleetModeLabel() {
+  const label = root.OFFICE?.hud?.fleetModeLabel;
+  return typeof label === 'function' ? label(world()) : 'UNKNOWN FLEET';
+}
 function render() {
-  build(); const entry = selectedAgent();
+  build(); shell.querySelector('.am-app-mode').textContent = fleetModeLabel();
+  const entry = selectedAgent();
   if (!entry) {
     disposeLooks();
     shell.querySelector('.am-workspace').replaceChildren(empty('No agent snapshot is available.'));
@@ -625,6 +801,7 @@ function openWhenReady(attempt = 0) {
   if (attempt < 240) root.setTimeout(() => openWhenReady(attempt + 1), 25);
 }
 
+root.setInterval?.(refreshVitals, 1000);
 mountButton();
 if (query.has('agent-manager') || query.has('agentmanager')) openWhenReady();
 return Object.freeze({ open, close, render, inspect });

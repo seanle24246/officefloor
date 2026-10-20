@@ -134,6 +134,56 @@
     });
   }
 
+  function createServerWallet() {
+    let credits = null;
+    let office = null;
+    // Server-named reason office money is shown but not spendable (e.g.
+    // 'earnings_regressed'); null when spendable or unavailable.
+    let officeHold = null;
+    const SERVER_RECEIPT = Object.freeze({ ok: false, reason: 'server_authoritative' });
+    const safeOr = (value, label) => {
+      if (value === null) return null;
+      if (!Number.isSafeInteger(value) || value < 0) {
+        throw new TypeError(`snapshot ${label} must be null or a non-negative safe integer`);
+      }
+      return value;
+    };
+    return Object.freeze({
+      hydrate(snapshot) {
+        if (!snapshot || typeof snapshot !== 'object' || Array.isArray(snapshot)) {
+          throw new TypeError('snapshot must be an object');
+        }
+        const nextCredits = safeOr(snapshot.credits, 'credits');
+        const nextOffice = safeOr(snapshot.office, 'office');
+        credits = nextCredits;
+        office = nextOffice;
+        officeHold = nextOffice !== null && typeof snapshot.office_hold === 'string'
+          && snapshot.office_hold ? snapshot.office_hold : null;
+      },
+      hold(book = 'credits') {
+        return book === 'office' ? officeHold : null;
+      },
+      balance(book = 'credits') {
+        if (book === 'credits') return credits;
+        if (book === 'office') return office;
+        return null;
+      },
+      canAfford(amount, book = 'credits') {
+        walletAmount(amount);
+        const value = this.balance(book);
+        return value !== null && this.hold(book) === null && value >= amount;
+      },
+      async spend(amount) {
+        walletAmount(amount);
+        return SERVER_RECEIPT;
+      },
+      async earn(amount) {
+        walletAmount(amount);
+        return SERVER_RECEIPT;
+      },
+    });
+  }
+
   function createAbsentScripWallet() {
     // Keep the historical wallet-shaped seam so consumers can remain
     // currency-isolated, but no browser call can create or persist scrip.
@@ -552,6 +602,7 @@
   const api = {
     RULES,
     createEconomy,
+    createServerWallet,
     wallet: economy.wallet,
     scripWallet: economy.scripWallet,
     visibleBalance: economy.visibleBalance,

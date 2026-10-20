@@ -10,6 +10,82 @@ import { buildMesh } from './office.webgl.registry.js';
 export const THUMBNAIL_WIDTH = 160;
 export const THUMBNAIL_HEIGHT = 120;
 
+
+// STORE-ART-01: exact public preview IDs; rotated views retain procedural rendering.
+const STORE_ART = Object.freeze({
+  "sku-0830": "cars",
+  "sku-0829": "cars",
+  "sku-0806": "cars",
+  "sku-0825": "cars",
+  "sku-0832": "cars",
+  "sku-0831": "cars",
+  "sku-0815": "cars",
+  "sku-0820": "cars",
+  "sku-0810": "cars",
+  "sku-0823": "cars",
+  "sku-0812": "cars",
+  "sku-0826": "cars",
+  "sku-0400": "equipment",
+  "sku-0419": "equipment",
+  "sku-0412": "equipment",
+  "sku-0403": "equipment",
+  "sku-0790": "equipment",
+  "sku-8570": "furniture",
+  "sku-8520": "furniture",
+  "sku-0100": "furniture",
+  "sku-8540": "furniture",
+  "sku-0700": "furniture",
+  "sku-0710": "furniture",
+  "sku-0106": "furniture",
+  "sku-0114": "furniture",
+  "sku-0101": "furniture",
+  "sku-0108": "furniture",
+  "sku-0600": "office-amenities",
+  "sku-1301": "office-amenities",
+  "sku-1300": "office-amenities",
+  "sku-1304": "office-amenities",
+  "sku-0605": "office-amenities",
+  "sku-1302": "office-amenities",
+  "sku-0770": "office-amenities",
+  "sku-0624": "office-amenities",
+  "sku-0602": "office-amenities",
+  "sku-1303": "office-amenities",
+  "sku-0500": "office-amenities",
+  "sku-0622": "office-amenities",
+  "sku-0603": "office-amenities",
+  "sku-0613": "office-amenities",
+  "sku-0503": "office-amenities",
+  "sku-0609": "office-amenities",
+  "sku-0604": "office-amenities",
+  "sku-0601": "office-amenities",
+  "sku-0204": "office-amenities",
+  "sku-0529": "office-amenities",
+  "sku-0625": "office-amenities",
+  "sku-0502": "office-amenities",
+  "sku-0207": "office-amenities",
+  "sku-0527": "office-amenities",
+  "sku-1305": "office-amenities",
+  "sku-0623": "office-amenities",
+  "sku-0501": "office-amenities",
+  // STORE-AISLES-01: the two bathroom amenities, the Transit and Outdoor
+  // inventory, and the four venue Theme swatches complete aisle coverage.
+  "sku-1306": "office-amenities",
+  "sku-1307": "office-amenities",
+  "sku-1600": "transit",
+  "sku-1601": "transit",
+  "sku-1602": "transit",
+  "sku-1650": "outdoor",
+  "sku-1130": "themes",
+  "sku-1131": "themes",
+  "sku-1132": "themes",
+  "sku-1133": "themes"
+});
+// UI-DEFAULTS-01: the store rail asks which SKUs have art (flag-gated; nothing installed when off).
+if (globalThis.OfficeFeatureFlags?.enabled?.('store_hide_empty_categories') === true) {
+  globalThis.OfficeStoreArt = Object.freeze({ has: (sku) => Object.hasOwn(STORE_ART, sku) });
+}
+
+
 const VIEW_DIRECTION = new THREE.Vector3(1, 0.5, 1).normalize();
 const CORNERS = Object.freeze([
   [0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1],
@@ -234,6 +310,15 @@ export function createItemThumbnailRenderer(options = {}) {
     const key = thumbnailKeyFor(value, rotation);
     if (!key) return Promise.resolve(null);
     if (cache.has(key)) return cache.get(key);
+    const sku = skuFor(value);
+    const family = Object.hasOwn(STORE_ART, sku) ? STORE_ART[sku] : null;
+    const angle = Number(rotation) || 0;
+    if (globalThis.OfficeFeatureFlags?.enabled?.('store_item_art') === true
+      && typeof options.buildMesh !== 'function' && family && angle % 360 === 0) {
+      const result = Promise.resolve(`/assets/store/${family}/${sku}-0.png`);
+      cache.set(key, result);
+      return result;
+    }
     const result = renderQueue
       .then(() => schedule())
       .then(() => render(value, rotation))

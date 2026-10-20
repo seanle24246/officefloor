@@ -251,8 +251,11 @@ class CustomizationServiceTests(unittest.TestCase):
         ))
 
     def test_design_assignment_mutations_and_restart_reload(self) -> None:
+        # The first write materialises the projected default office and its
+        # default grants (one entitlement bump) before the purchase lands
+        # (DEFAULT-FIRSTWRITE-01).
         self.purchase("sku-0101", 0)
-        self.purchase("sku-0207", 1)
+        self.purchase("sku-0207", 2)
 
         created = self.service.apply(self.request(
             "designs", "create", 0,
@@ -305,7 +308,10 @@ class CustomizationServiceTests(unittest.TestCase):
         )
         snapshot = restarted.snapshot()
         self.assertEqual(snapshot["active_design_id"], "dsn_B")
-        self.assertEqual([row["design_id"] for row in snapshot["designs"]], ["dsn_A", "dsn_B"])
+        self.assertEqual(
+            [row["design_id"] for row in snapshot["designs"]],
+            ["dsn_A", "dsn_B", customization_api.DEFAULT_DESIGN_ID],
+        )
         self.assertEqual(snapshot["revisions"], {
             "designs": 5, "entitlements": 3, "assignments": 4, "upkeep": 0,
         })
@@ -341,7 +347,7 @@ print(json.dumps({
         ))
         self.assertEqual(child, {
             "active": "dsn_B",
-            "designs": ["dsn_A", "dsn_B"],
+            "designs": ["dsn_A", "dsn_B", customization_api.DEFAULT_DESIGN_ID],
             "digest": self.service.catalog_digest,
         })
 
@@ -542,8 +548,14 @@ print(json.dumps({
         expected_price = customization_api.purchase.credit_price(item["source"]["priceRef"])
         self.assertCountEqual([row["charged"] for row in outcomes], [0, expected_price])
         snapshot = services[0].snapshot()
-        self.assertEqual(snapshot["revisions"]["entitlements"], 1)
-        self.assertEqual([row["sku_id"] for row in snapshot["entitlements"]], ["sku-0501"])
+        # The winner materialised the default office (seed bump) and then
+        # bought; the loser saw an owned SKU (DEFAULT-FIRSTWRITE-01).
+        self.assertEqual(snapshot["revisions"]["entitlements"], 2)
+        self.assertEqual(
+            {row["sku_id"] for row in snapshot["entitlements"]},
+            {"sku-0501", *customization_api.DEFAULT_REC_ITEMS,
+             *customization_api.DEFAULT_BAR_ITEMS},
+        )
 
     def test_upkeep_confirm_with_unprepared_debit_id_is_rejected(self) -> None:
         """A debit_id the server never issued must be rejected, not silently accepted."""
@@ -787,7 +799,8 @@ print(json.dumps({
             worker.join(timeout=10)
         self.assertTrue(all(not worker.is_alive() for worker in workers))
         self.assertCountEqual(outcomes, ["ok", "stale_revision"])
-        self.assertEqual(len(self.service.snapshot()["designs"]), 1)
+        # Winner's design beside the materialised default (DEFAULT-FIRSTWRITE-01).
+        self.assertEqual(len(self.service.snapshot()["designs"]), 2)
 
     def test_process_design_cas_has_one_winner_and_one_stale_refusal(self) -> None:
         """Two independent services must serialize one revision-0 design CAS."""
@@ -840,7 +853,8 @@ except customization_api.CustomizationAPIError as exc:
         self.assertCountEqual(outcomes, ["ok", "stale_revision"])
         snapshot = self.service.snapshot()
         self.assertEqual(snapshot["revisions"]["designs"], 1)
-        self.assertEqual(len(snapshot["designs"]), 1)
+        # Winner's design beside the materialised default (DEFAULT-FIRSTWRITE-01).
+        self.assertEqual(len(snapshot["designs"]), 2)
 
     def test_process_purchase_admits_one_debit_before_persisting(self) -> None:
         """A losing process cannot acknowledge an unpersisted debit."""
@@ -906,8 +920,13 @@ except customization_api.CustomizationAPIError as exc:
         self.assertGreater(charges[1], 0)
         self.assertEqual(len(list(spy.iterdir())), 1)
         snapshot = self.service.snapshot()
-        self.assertEqual(snapshot["revisions"]["entitlements"], 1)
-        self.assertEqual(len(snapshot["entitlements"]), 1)
+        # Default seed bump, then the one admitted purchase (DEFAULT-FIRSTWRITE-01).
+        self.assertEqual(snapshot["revisions"]["entitlements"], 2)
+        self.assertEqual(
+            {row["sku_id"] for row in snapshot["entitlements"]},
+            {"sku-0501", *customization_api.DEFAULT_REC_ITEMS,
+             *customization_api.DEFAULT_BAR_ITEMS},
+        )
 
     def test_service_migrates_stale_catalog_digest_on_startup(self) -> None:
         """A service started against an old-digest authority migrates forward."""
@@ -932,7 +951,9 @@ except customization_api.CustomizationAPIError as exc:
         stale = self.service.store.load()
         self.assertEqual(stale["catalog_digest"], old_digest)
         self.assertEqual(stale["entitlements"]["sku-0207"]["sku_id"], "sku-0207")
-        self.assertEqual(len(stale["designs"]), 1)
+        self.assertEqual(
+            set(stale["designs"]), {"dsn_OLD", customization_api.DEFAULT_DESIGN_ID},
+        )
         self.assertEqual(stale["designs"]["dsn_OLD"]["name"], "Pre-migration")
 
         # A new service must migrate the digest on startup.
@@ -962,10 +983,11 @@ except customization_api.CustomizationAPIError as exc:
             },
         )
         self.assertEqual(
-            [row["design_id"] for row in after["designs"]], ["dsn_OLD"],
+            [row["design_id"] for row in after["designs"]],
+            [customization_api.DEFAULT_DESIGN_ID, "dsn_OLD"],
         )
-        self.assertEqual(after["designs"][0]["name"], "Pre-migration")
-        self.assertEqual(after["designs"][0]["placements"], [self.plant()])
+        self.assertEqual(after["designs"][1]["name"], "Pre-migration")
+        self.assertEqual(after["designs"][1]["placements"], [self.plant()])
         self.assertEqual(after["revisions"]["entitlements"], 2)
         self.assertEqual(after["revisions"]["designs"], 1)
 
@@ -1053,8 +1075,11 @@ except customization_api.CustomizationAPIError as exc:
         self.assertTrue(any("plc_GONE" in row for row in logs.output))
         after = migrated.snapshot()
         self.assertTrue(after["catalog_match"])
+        old_design = next(
+            row for row in after["designs"] if row["design_id"] == "dsn_OLD"
+        )
         self.assertEqual(
-            [row["placement_id"] for row in after["designs"][0]["placements"]],
+            [row["placement_id"] for row in old_design["placements"]],
             ["plc_PLANT"],
         )
         self.assertEqual(
@@ -1088,7 +1113,10 @@ except customization_api.CustomizationAPIError as exc:
                 ))
             self.assertEqual(caught.exception.status, 400)
             self.assertEqual(caught.exception.code, "malformed")
-        self.assertEqual(len(self.service.snapshot()["designs"]), 0)
+        self.assertEqual(
+            [row["design_id"] for row in self.service.snapshot()["designs"]],
+            [customization_api.DEFAULT_DESIGN_ID],
+        )
 
     def test_design_placement_with_unknown_room_is_rejected(self) -> None:
         """A placement referencing a room not in the layout must be rejected."""
@@ -1139,6 +1167,17 @@ except customization_api.CustomizationAPIError as exc:
     def test_default_entitlement_migration_write_failure_is_typed(self) -> None:
         """A failed default grant must refuse without leaking its store path."""
         self.purchase("sku-0101", 0)
+        # A first write now seeds the default grants (DEFAULT-FIRSTWRITE-01);
+        # strip them to model an authority written before they existed.
+        with self.service.store.transaction():
+            document = self.service.store._read_locked()
+            for sku_id in (*customization_api.DEFAULT_REC_ITEMS,
+                           *customization_api.DEFAULT_BAR_ITEMS):
+                grant = document["entitlements"].pop(sku_id)
+                document["purchase_receipts"].pop(grant["debit_id"])
+            for design in document["designs"].values():
+                design["placements"] = []
+            self.service.store._write_locked(document)
         before = authority_bytes(self.service)
         with mock.patch.object(
             customization_api.store_module.CustomizationStore,

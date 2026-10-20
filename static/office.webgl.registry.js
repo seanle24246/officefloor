@@ -1,4 +1,6 @@
+import { beerPourAge, POUR_SECONDS, syncBeerTap, clearBeerTap } from './office.webgl.beertap.js';
 import { applyPingPongPose, clearPingPongPaddle, pingPongPlayer } from './office.webgl.pingpong.js';
+import { applyBasketballPose, basketballPlayer, insideCourtYard } from './office.webgl.basketball.js';
 import {
   disposeBeerProp,
   disposeDrinkProp,
@@ -52,6 +54,7 @@ import { init as initDoors } from './office.webgl.mesh.doors.js';
 import { init as initDungeon } from './office.webgl.mesh.dungeon.js';
 import { init as initEquipment } from './office.webgl.mesh.equipment.js';
 import { init as initFitness } from './office.webgl.mesh.fitness.js';
+import { init as initRestroom, syncRestroom } from './office.webgl.mesh.restroom.js';
 import { init as initFixtures } from './office.webgl.mesh.fixtures.js';
 import { buildFloor, buildRoom } from './office.webgl.mesh.floorwalls.js';
 import { init as initGames } from './office.webgl.mesh.games.js';
@@ -94,6 +97,7 @@ export const MESH_MODULE_MANIFEST = Object.freeze([
   Object.freeze({ family: 'lounge', path: './office.webgl.mesh.lounge.js', exportName: 'init' }),
   Object.freeze({ family: 'outdoor', path: './office.webgl.mesh.outdoor.js', exportName: 'init' }),
   Object.freeze({ family: 'plants', path: './office.webgl.mesh.plants.js', exportName: 'init' }),
+  Object.freeze({ family: 'restroom', path: './office.webgl.mesh.restroom.js', exportName: 'init' }),
   Object.freeze({ family: 'seating', path: './office.webgl.mesh.seating.js', exportName: 'init' }),
   Object.freeze({ family: 'shelving', path: './office.webgl.mesh.shelving.js', exportName: 'init' }),
   Object.freeze({ family: 'smoking', path: './office.webgl.smoking.js', exportName: 'init' }),
@@ -116,6 +120,7 @@ const meshInitializers = new Map([
   ['./office.webgl.mesh.lounge.js', initLounge],
   ['./office.webgl.mesh.outdoor.js', initOutdoor],
   ['./office.webgl.mesh.plants.js', initPlants],
+  ['./office.webgl.mesh.restroom.js', initRestroom],
   ['./office.webgl.mesh.seating.js', initSeating],
   ['./office.webgl.mesh.shelving.js', initShelving],
   ['./office.webgl.smoking.js', initSmoking],
@@ -482,6 +487,7 @@ function agentLayerFor(content) {
     layer,
     objects: new Map(),
     needs: record?.needs instanceof Map ? record.needs : new Map(),
+    nowMs: record?.nowMs ?? 0,
     batches: [],
     active: new Set(),
     batchingActive: false,
@@ -806,6 +812,15 @@ function derivedActivity(agent, actor) {
 }
 
 const NEEDS_ACTION_BEATS = new Set(['active', 'playing', 'reacting']);
+// A deep restroom visit only reaches exiting/done after its stall's active
+// beat runs out (pathing holds until the stall is reached); interruption
+// clears the activity and a downgrade resets it to shallow pathing.
+const RESTROOM_DONE_BEATS = new Set(['exiting', 'done']);
+
+function restroomVisitComplete(activity) {
+  return activity?.kind === 'restroom' && activity.depth === 'deep'
+    && RESTROOM_DONE_BEATS.has(activity.beat);
+}
 
 function needsActivityKey(activity) {
   if (!activity || typeof activity !== 'object') return null;
@@ -841,22 +856,33 @@ function syncNeedsBehavior(record, current, lane, actor, frame) {
   // Table visitors already have an object activity; do not layer a random
   // drink/eat action over their ping-pong presence. Vitals still tick normally.
   const activityKey = idle?.kind === 'ping-pong' ? null : needsActivityKey(idle);
+  // AGENT-SPEND-01: a paid buy_food visit always eats its purchased item.
+  const buyFood = idle?.kind === 'buy_food' ? globalThis.OfficeIdleBuyFood : null;
   let action = previous?.action || null;
   let applied = previous?.applied === true;
   if (activityKey !== previous?.activityKey) {
     const seed = behavior.actionSeed(lane, idle?.window);
-    action = activityKey ? behavior.chooseAction(lane, vitals, seed, 0, flags)?.id || null : null;
+    action = activityKey && !buyFood ? behavior.chooseAction(lane, vitals, seed, 0, flags)?.id || null : null;
     applied = false;
   }
+  if (buyFood) action = buyFood.eatAction(idle);
 
   const active = Boolean(action && NEEDS_ACTION_BEATS.has(idle?.beat));
   if (active && !applied) {
-    const next = behavior.applyChosenAction(vitals, action, flags);
+    const next = buyFood ? buyFood.applyEffect(vitals, idle) : behavior.applyChosenAction(vitals, action, flags);
     if (next) vitals = next;
     applied = true;
   }
 
-  const state = Object.freeze({ vitals, action, activityKey, applied, active });
+  // One bladder reset per completed visit, keyed to the activity window.
+  let relievedKey = previous?.relievedKey ?? null;
+  if (activityKey && relievedKey !== activityKey && restroomVisitComplete(idle)
+      && typeof globalThis.OfficeVitals?.applyAction === 'function') {
+    vitals = Object.freeze(globalThis.OfficeVitals.applyAction(vitals, 'restroom'));
+    relievedKey = activityKey;
+  }
+
+  const state = Object.freeze({ vitals, action, activityKey, applied, active, relievedKey });
   record.needs.set(lane, state);
   current.object.userData.vitals = vitals;
   current.object.userData.needsAction = action;
@@ -1024,7 +1050,9 @@ function applyHandToMouthGesture(current, gesture) {
   return true;
 }
 
-function applyBeerGesture(current, lane, seconds) {
+function applyBeerGesture(current, lane, seconds, actor) {
+  const age = beerPourAge(actor);
+  if (age !== null && age < POUR_SECONDS) return true;
   const gesture = smokeLeaf.smokeGesture(
     'c-arc', handToMouthCyclePhase(seconds, activitySeed(lane)));
   if (!applyHandToMouthGesture(current, gesture)) return false;
@@ -1124,7 +1152,7 @@ function applyActivity(current, animApi, activity, lane, frame, articulatedActiv
   if (activity === 'smoke' && articulatedActivity
       && applyEnhancedSmoke(current, animApi, lane, frame, seconds)) return;
   if (activity === 'beer' && articulatedActivity
-      && applyBeerGesture(current, lane, seconds)) return;
+      && applyBeerGesture(current, lane, seconds, frame.actorMap?.get?.(lane))) return;
   if (activity === 'coffee' && articulatedActivity
       && applyCoffeeGesture(current, lane, seconds)) return;
   if (activity === 'snack' && articulatedActivity
@@ -1181,6 +1209,7 @@ export function riggedSignature(entry) {
 function removeAgent(record, lane, current, disposeObject) {
   setRenderedActivityIcon(current.labelActor, null);
   clearSmokingHandProp(current, disposeObject);
+  clearBeerTap(current);
   current.beerProp = disposeBeerProp(current.beerProp);
   current.coffeeProp = disposeDrinkProp(current.coffeeProp);
   current.snackProp = disposeSnackProp(current.snackProp);
@@ -1204,6 +1233,10 @@ export function updateAgents(agents, frame = {}) {
   if (!rows.length && existing?.layer?.parent !== content) return null;
 
   const record = agentLayerFor(content);
+  // Rebuilds and suppression updates may have no animation timestamp.
+  const now = Number.isFinite(frame.now) ? frame.now : record.nowMs ?? 0;
+  record.nowMs = now;
+  frame = { ...frame, now };
   const activitiesAnimated = activityAnimationEnabled(frame);
   const animApi = globalThis.OfficeAnim;
   const deskOccupants = deskOccupantEntries(frame.sceneSpec?.desks);
@@ -1226,7 +1259,8 @@ export function updateAgents(agents, frame = {}) {
     }
     const legacyActivity = activitiesAnimated ? derivedActivity(agent, actor) : null;
     const outdoors = outsideBuildingFootprint(entry, frame.sceneSpec);
-    if (!frame.world3dPlacement && !insideRenderedFloor(entry, frame.sceneSpec)) continue;
+    if (!frame.world3dPlacement && !insideRenderedFloor(entry, frame.sceneSpec)
+        && !insideCourtYard(entry)) continue;
     const signature = riggedSignature(entry);
     active.add(lane);
     let current = record.objects.get(lane);
@@ -1252,13 +1286,14 @@ export function updateAgents(agents, frame = {}) {
     const kitchenActivity = activitiesAnimated && isKitchenActivityAtZone(actor, agent, kitchen)
       ? activityName(actor.idleActivity.kind) : null;
     const proposedActivity = smoking ? 'smoke' : kitchenActivity
-      || (legacyActivity === 'smoke' ? legacyActivity : needsActivity || legacyActivity);
+      || (['smoke', 'beer'].includes(legacyActivity) ? legacyActivity : needsActivity || legacyActivity);
     const activity = (proposedActivity === 'smoke' && !smoking)
       || (['coffee', 'snack'].includes(proposedActivity) && proposedActivity !== kitchenActivity)
       ? null : proposedActivity;
     const pingPong = frame.frozen ? null : pingPongPlayer(actor);
+    const hooper = frame.frozen ? null : basketballPlayer(actor);
     const articulatedBefore = Boolean(current.rig?.rightForearm);
-    const articulatedActivity = (pingPong || (activitiesAnimated
+    const articulatedActivity = (pingPong || hooper || (activitiesAnimated
       && (['beer', 'coffee', 'snack'].includes(activity) || (activity === 'smoke' && smoking))))
       && prepareHandToMouthRig(current);
     if (!articulatedActivity || activity !== 'smoke') clearSmokingHandProp(current, frame.disposeObject);
@@ -1293,7 +1328,9 @@ export function updateAgents(agents, frame = {}) {
       const occupant = occupantMatch(entry.x, entry.y, deskOccupants);
       current.anim.dir = occupant ? occupant.facing : idleFacingVariant(lane);
       const idle = actor?.idleActivity;
-      if (idle?.kind === 'ping-pong' && ['settling', 'active'].includes(idle.beat)
+      if ((idle?.kind === 'ping-pong' || idle?.kind === 'basketball' || (idle?.kind === 'talk'
+          && (frame.featureFlags || globalThis.OfficeFeatureFlags)?.enabled?.('agent_talk') === true))
+          && ['settling', 'active'].includes(idle.beat)
           && idle.facingTarget && animApi?.isoDir8) {
         current.anim.dir = animApi.isoDir8(
           idle.facingTarget.x - entry.x, idle.facingTarget.y - entry.y) || current.anim.dir;
@@ -1310,6 +1347,8 @@ export function updateAgents(agents, frame = {}) {
         globalThis.OFFICE?.actors?.pingPongGames?.(frame.actorMap)?.includes(pingPong.tableId),
         frame.now, context);
     }
+    const hop = hooper && articulatedActivity
+      ? applyBasketballPose(current, hooper, frame.actorMap, frame.now) : 0;
     if (current.labelActor !== actor) setRenderedActivityIcon(current.labelActor, null);
     current.labelActor = actor;
     setRenderedActivityIcon(actor,
@@ -1323,7 +1362,10 @@ export function updateAgents(agents, frame = {}) {
       current.rig.figure.rotation.y = frame.world3dPlacement
         ? worldPlacement.facing : FACING_YAW[current.anim.dir];
     }
-    current.object.position.set(entry.x, frame.world3dPlacement ? worldPlacement.position[1] : 0, entry.y);
+    current.object.position.set(entry.x,
+      (frame.world3dPlacement ? worldPlacement.position[1] : 0) + hop, entry.y);
+    if (activity === 'beer' && articulatedActivity && !frame.frozen) syncBeerTap(current, actor, frame, context);
+    else clearBeerTap(current);
   }
 
   for (const [lane, current] of [...record.objects]) {
@@ -1332,6 +1374,7 @@ export function updateAgents(agents, frame = {}) {
   for (const lane of [...record.needs.keys()]) {
     if (!active.has(lane)) record.needs.delete(lane);
   }
+  syncRestroom(record, frame);
   if (activitiesAnimated) syncAgentBatches(record);
   else disableAgentBatches(record);
   return record.layer;
@@ -1439,6 +1482,7 @@ export function buildScene(
   updateAgents(sceneSpec.agents || [], {
     content: target,
     actorMap: null,
+    now: agentLayers.get(target)?.nowMs ?? 0,
     sceneSpec,
   });
   return target;

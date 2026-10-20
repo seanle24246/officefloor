@@ -2,6 +2,8 @@
 import * as THREE from './vendor/three.module.js';
 import { createBlenderAgents } from './office.webgl.blender-agents.js';
 import { createAnimationPlayer } from './office.webgl.blender-animation.js';
+import { cityGridFor, setActiveCity } from './office.city.render.js';
+import { blockNav } from './office.city.zones.js';
 
 const OFFICE_KEYS = new Set(['tokyo3d', 'manhattan3d']);
 const SAFE_ASSET = /^[a-z0-9][a-z0-9.-]*\.(?:bin|json)$/i;
@@ -169,6 +171,7 @@ function disposeWorld(root) {
 export async function createBlenderWorld({ manifest: choice }) {
   const key = choice?.sceneKey;
   if (!OFFICE_KEYS.has(key)) throw new Error(`Unknown Blender office: ${String(key)}`);
+  setActiveCity(key);
   const directory = new URL(`./assets/blender-offices/${key}/`, import.meta.url);
   const loading = document.createElement('div');
   loading.id = 'office-blender-loading';
@@ -202,7 +205,7 @@ export async function createBlenderWorld({ manifest: choice }) {
     notice = document.createElement('div');
     notice.id = 'office-blender-notice';
     notice.setAttribute('role', 'status');
-    notice.style.cssText = 'position:fixed;right:14px;bottom:88px;z-index:20;max-width:300px;padding:9px 12px;border-radius:8px;background:#101b28df;color:#e5e9ec;font:11px/1.4 system-ui;pointer-events:none';
+    notice.style.cssText = 'position:fixed;left:62px;top:58px;z-index:20;max-width:300px;padding:9px 12px;border-radius:8px;background:#101b28df;color:#e5e9ec;font:11px/1.4 system-ui;pointer-events:none';
     document.body.appendChild(notice);
   } catch (error) {
     notice?.remove();
@@ -214,9 +217,23 @@ export async function createBlenderWorld({ manifest: choice }) {
   let baseCam = null;
   let elapsed = 0;
   let disposed = false;
+  // CITY-EDIT-03: the Furnish editor, loaded only when the city customization flag is on.
+  let cityEditor = null;
+  if (globalThis.OfficeFeatureFlags?.enabled?.('city_customization') === true) {
+    import('./office.city.editor.js')
+      .then((module) => { if (!disposed) cityEditor = module.mountCityEditor({ grid: cityGridFor(manifest) }); })
+      .catch(() => { /* the floor works without the editor */ });
+  }
   return {
     key, capabilities: WORLD_CAPABILITIES, isWorld3d: true,
     buildScene() { return geometry.root; },
+    // CITY-RENDER-01: the 1 m placement grid over this city's nav (desk approaches kept clear).
+    cityGrid() { return cityGridFor(manifest); },
+    // Agents walk around placed items: block their cells in the nav (empty list restores the authored grid).
+    setCityBlocked(cells) {
+      const grid = cityGridFor(manifest);
+      agents.setWalkable(grid && cells?.length ? blockNav(manifest.nav, grid, cells) : manifest.nav.walkable);
+    },
     prepareFrame({ agents: rows, dt, frozen }) {
       agents.update(rows, frozen ? 0 : dt);
       const report = agents.snapshot();
@@ -277,6 +294,7 @@ export async function createBlenderWorld({ manifest: choice }) {
       for (const light of Object.values(lights || {})) if (light?.isLight) light.visible = false;
     },
     dispose() {
+      cityEditor?.dispose?.(); cityEditor = null;
       if (disposed) return;
       disposed = true;
       disposeWorld(geometry.root);

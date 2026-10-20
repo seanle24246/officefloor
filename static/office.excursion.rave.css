@@ -1,0 +1,19 @@
+/* Example scene "rave": venue chrome only. Prompt + FICTION frame are generic (office.excursion.css). */
+.excursion-rave { position:fixed; z-index:110; color:#f5f1e8; font-family:inherit; }
+.excursion-rave button { font:inherit; cursor:pointer; color:inherit; border:1px solid #536478; border-radius:7px; padding:11px 20px; background:#242d40; }
+.excursion-rave button:hover,.excursion-rave button:focus-visible { outline:2px solid #88e5df; outline-offset:3px; }
+.rave-eyebrow { color:#8ddfd8; font-size:11px; letter-spacing:.18em; text-transform:uppercase; }
+#excursion-rave-loading { inset:70px 0 0; display:grid; place-items:center; text-align:center; background:#070a12; pointer-events:auto; }
+.rave-loading-disc { width:100px; height:100px; margin:0 auto 28px; border-radius:50%; border:1px solid #8ddfd8; box-shadow:0 0 0 15px #8ddfd808,0 0 0 30px #8ddfd805; display:grid; place-items:center; color:#c7efa6; font-size:28px; }
+#excursion-rave-venue { inset:70px 0 0 58px; padding:20px 24px 24px; pointer-events:auto; display:flex; flex-direction:column; justify-content:space-between; }
+.rave-venue-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.rave-venue-head h2 { font-size:36px; letter-spacing:.04em; margin:9px 0; font-weight:500; }
+.rave-venue-head p { margin:0; color:#aebccc; font-size:12px; }
+#excursion-rave-venue button { pointer-events:auto; }
+.rave-guests { display:flex; gap:8px; flex-wrap:wrap; max-width:80vw; max-height:110px; overflow:auto; align-self:center; justify-content:center; }
+.rave-guests button { font-size:11px; padding:7px 11px; background:#111923dd; }
+.rave-guest-caption { color:#c7efa6; font-size:12px; margin-bottom:10px; text-align:center; }
+@media(prefers-reduced-motion:no-preference) { #excursion-rave-venue { animation:rave-dissolve .4s ease-out; } }
+@keyframes rave-dissolve { from { opacity:0; } to { opacity:1; } }
+#excursion-rave-venue::before,.rave-return-veil { content:''; position:fixed; inset:70px 0 0; background:#070a12; pointer-events:none; animation:rave-veil .35s forwards; }
+@keyframes rave-veil { from { opacity:1; } to { opacity:0; } }

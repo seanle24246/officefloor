@@ -31,7 +31,8 @@ ROOMS = [
     ("review",      "REVIEW + SECURITY",   23,  0,  9,  9, "#5b2f2f", 2),
     ("bullpen",     "THE BULLPEN",          0, 10, 22,  8, "#23405e", 5),  # open plan
     ("bench",       "THE LOUNGE",          23, 10,  9, 14, "#2c3f2c", 2),  # east edge leaves four tiles for the paddock
-    ("paddock",     "THE PADDOCK",         32,  0,  4, 24, "#548b38", 0),
+    ("paddock",     "THE PADDOCK",         32,  0,  4, 19, "#548b38", 0),
+    ("restroom",    "RESTROOM",            32, 19,  4,  5, "#486365", 0),
     ("kitchen",     "KITCHEN",              0, 19, 14,  5, "#4a3f2c", 0),  # counter + tables
     ("rec",         "REC ROOM",            15, 19,  7,  5, "#3d2c4a", 0),  # ping pong
 ]
@@ -57,6 +58,7 @@ DOOR_QUEUE = [{"x": 2 + (i % 3), "y": 5 + (i // 3) * 2} for i in range(6)]
 # on a south or east edge it is a free-standing frame, since Habbo-style rooms
 # only draw their two back walls (a south wall would hide the room).
 DOORS = [
+    {"x": 32, "y": 21, "edge": "w", "label": "RESTROOM"},
     {"x": 6,  "y": 8,  "edge": "s", "label": "TO THE FLOOR"},   # CEO -> main area
     {"x": 23, "y": 13, "edge": "w", "label": "LOUNGE"},
     {"x": 6,  "y": 19, "edge": "n", "label": "KITCHEN"},
@@ -105,7 +107,7 @@ GREENERY = [
     {"type": "tree",    "x": 33.4, "y": 2.5},
     {"type": "tree",    "x": 34.6, "y": 8.0},
     {"type": "tree",    "x": 33.6, "y": 14.5},
-    {"type": "tree",    "x": 34.4, "y": 21.0},
+    {"type": "tree",    "x": 34.4, "y": 17.0},
     {"type": "tree",    "x": 29.0, "y": 27.0},
     {"type": "tree",    "x": 30.2, "y": 29.4},
     {"type": "shrub",   "x": 22.5, "y": 30.2},
@@ -113,6 +115,63 @@ GREENERY = [
     {"type": "planter", "x": 25.0, "y": 27.0},
     {"type": "planter", "x": 27.0, "y": 27.0},
 ]
+# Each stall has an exact visit anchor. The solid divider makes the router
+# enter either stall from the south aisle, never through its neighbour.
+RESTROOM_PROPS = [
+    {"id": f"restroom-stall-{i}", "type": "restroom-stall", "family": "restroom",
+     "x": x, "y": 19.2, "w": 1.72, "d": 1.72, "passable": True,
+     "stall_id": f"restroom-stall-{i}", "activity_target": {"x": x + 0.86, "y": 20.4}}
+    for i, x in enumerate((32.2, 34.2))
+] + [
+    {"id": "restroom-divider", "type": "restroom-divider", "family": "restroom",
+     "x": 34.0, "y": 19.0, "w": 0.12, "d": 1.9},
+]
+# MULTI-FLOOR-01: the building elevator. It sits in the bullpen's northwest
+# corner, against the back wall, on tiles that are otherwise open floor. It is
+# a solid ground prop, so the existing prop-claims ledger already makes agents
+# route around it; clicking it rides the client floor switcher. It is emitted
+# only for a multi-floor floor (World floors > 1 and multi_floor_v2 on), so a
+# single-floor serve stays byte-identical.
+ELEVATOR = {
+    "id": "elevator", "type": "elevator", "family": "elevator",
+    "x": 0.3, "y": 10.3, "w": 1.4, "d": 1.4,
+}
+# --- the basketball court (flag office_basketball_court, default off) -------
+# Flag on, an outdoor half court sits BEHIND the building: north of REVIEW +
+# SECURITY, outside the world's tile grid (negative y), clear of the billboard
+# that stands behind the CEO office and boardroom. Agents leave through a back
+# door in REVIEW's north wall. Nothing else moves: rooms, props, world size and
+# the east side are exactly the flag-off floor; the court travels as its own
+# `court` layout key (spatial/nav only know the in-world floor), plus one door.
+# Flag off, none of this is read and the floor is byte-identical.
+COURT_X, COURT_Y, COURT_W, COURT_H = 24, -11, 8, 10
+COURT_BACK_DOOR = {"x": 29, "y": 0, "edge": "n", "label": "BACK DOOR"}
+# One hoop on the south baseline (the building side), facing north, so the
+# players face the camera. Spots are the old key layout, picked so no two
+# share an iso screen column (x - y) and none stands behind the backboard.
+COURT_HOOP = {"id": "court-hoop", "type": "basketball-hoop",
+              "x": 27.5, "y": -1.8, "w": 1.0, "d": 0.6, "facing": "n",
+              "rim": {"x": 28.0, "y": -2.35}}
+COURT_SPOTS = [(25.2, -2.4), (29.6, -5.6), (27.4, -4.8), (30.4, -2.8)]
+
+
+def court_layout() -> dict:
+    """The flag-on court: rect, hoop, spots and the yard walk to the door."""
+    door_x = COURT_BACK_DOOR["x"] + 0.5
+    return {
+        "id": "court", "label": "THE COURT", "x": COURT_X, "y": COURT_Y,
+        "w": COURT_W, "h": COURT_H, "tint": "#2f5d8a", "outdoor": True,
+        "hoop": dict(COURT_HOOP, rim=dict(COURT_HOOP["rim"])),
+        "spots": [{"x": x, "y": y} for x, y in COURT_SPOTS],
+        # Outdoor walk: the tile inside the back door, the step outside it,
+        # and a lane east of the hoop from which every spot is a clear line.
+        "door": {"inside": {"x": door_x, "y": 0.5}, "outside": {"x": door_x, "y": -0.5},
+                 "lane": {"x": door_x, "y": -3.6}},
+        # Ground under the yard (the tile floor ends two rows north of y=0).
+        "yard": {"x": COURT_X - 2, "y": COURT_Y - 2, "w": COURT_W + 4, "h": -COURT_Y + 2},
+    }
+
+
 # Cars are 3.8 tiles deep; y=28.0 keeps their north edge ≈26.1, clear of
 # the south building wall at y=25 with a visible apron gap.
 PARKING_SPOTS = [(8.9 + i * 3.0, 28.0) for i in range(4)]
@@ -307,7 +366,8 @@ def validate_queues(layout: dict) -> None:
             claimed.add(tile)
 
 
-def build_layout(seats: list[dict], prop_rows: list[dict], layout: str = "default") -> dict:
+def build_layout(seats: list[dict], prop_rows: list[dict], layout: str = "default",
+                 *, basketball_court: bool = False, elevator: bool = False) -> dict:
     """Furniture per seat, plus the tile its avatar actually stands on.
 
     Three kinds of station: `exec` (the CEO and CTO's L-desks), `table` (a
@@ -316,12 +376,24 @@ def build_layout(seats: list[dict], prop_rows: list[dict], layout: str = "defaul
     floor plan is hard-coded client-side.
 
     `layout` remains in the signature for stale-client compatibility. Every
-    value fails open to the one supported default layout."""
+    value fails open to the one supported default layout.
+
+    `basketball_court` adds the flag-on court; it defaults off. Only the
+    served floor (server/world.py) resolves the office_basketball_court flag
+    and passes it in, so this free-core builder never reads feature flags.
+
+    `elevator` adds the MULTI-FLOOR-01 shaft prop; it defaults off. Only the
+    served floor resolves it (multi_floor_v2 AND more than one floor), so a
+    single-floor floorplan is unchanged and this builder stays flag-free."""
+    court = basketball_court is True
+    elevator_prop = elevator is True
     rooms = ROOMS
     bullpen_desks = BULLPEN_DESKS
     rec_spots = REC_SPOTS
     kitchen_spots = KITCHEN_SPOTS
     doors = DOORS
+    if court:
+        doors = [*DOORS, COURT_BACK_DOOR]
     corridor_rows = [9, 18]
     world_h = WORLD_H
     outside_spots = OUTSIDE_SPOTS
@@ -445,7 +517,8 @@ def build_layout(seats: list[dict], prop_rows: list[dict], layout: str = "defaul
         "smoking": smoking,
         "pedestrian_paths": pedestrian_paths(building_h),
         "board_table": BOARD_TABLE,
-        "props": [*prop_rows, ashcan, *car_rows, *greenery],
+        "props": [*prop_rows, ashcan, *car_rows, *greenery, *RESTROOM_PROPS]
+                 + ([ELEVATOR] if elevator_prop else []),
         "doors": doors,
         "founder_door": FOUNDER_DOOR,
         # Wire compatibility: `ceo_queue` historically meant the delivery
@@ -454,6 +527,7 @@ def build_layout(seats: list[dict], prop_rows: list[dict], layout: str = "defaul
         "door_queue": DOOR_QUEUE,
         "corridor_rows": corridor_rows,
         "corridor_cols": [22],
+        **({"court": court_layout()} if court else {}),
     }
     # Queue geometry is startup truth: reject a bad authored layout here, not
     # later in the per-poll collector or while serving an API request.

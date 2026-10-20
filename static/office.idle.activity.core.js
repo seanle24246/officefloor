@@ -28,20 +28,42 @@
   const IDLE_ACTIVITY_VERSION = 1;
   const DEFAULT_K = 5; /* floor-wide concurrent DEEP-activity budget (tunable) */
   /* Each activity: zone (path target), slotCap, minAgents, depth, weight. */
+  /* Conditional activities live on the prototype so the enumerated table
+   * (and its pinned weights) stays unchanged. The selector admits them only
+   * inside their own window: tacos while the truck is open (OFFICE-EVENTS-01
+   * reuses this seam for the weekly calendar). */
+  const conditionalActivityPrototype = Object.freeze({
+    tacos: Object.freeze({
+      zone: 'tacos', slotCap: 3, minAgents: 1, depth: 'deep', weight: 26,
+      modeGate: 'standard', availabilityGate: 'taco-truck-open',
+    }),
+    // OFFICE-EVENTS-01: only admitted while OFFICE.calendar reports the
+    // Birthday cake window; the kitchen gather reuses the deep-activity budget.
+    cake: Object.freeze({
+      zone: 'kitchen', slotCap: 6, minAgents: 1, depth: 'deep', weight: 30,
+      modeGate: 'standard', availabilityGate: 'calendar-cake',
+    }),
+  });
   const ACTIVITIES = Object.freeze({
+    __proto__: conditionalActivityPrototype,
+    beer: Object.freeze({zone:'bar', slotCap:1, minAgents:1, depth:'deep', weight:3, modeGate:'funny'}),
     coffee: Object.freeze({ zone: 'kitchen', slotCap: 1, minAgents: 1, depth: 'deep', weight: 8 }),
     snack: Object.freeze({ zone: 'kitchen', slotCap: 2, minAgents: 1, depth: 'deep', weight: 4 }),
     chat: Object.freeze({ zone: 'floor', slotCap: 99, minAgents: 1, depth: 'shallow', weight: 6 }),
     smoke: Object.freeze({ zone: 'smoking', slotCap: 2, minAgents: 1, depth: 'deep', weight: 8, modeGate: 'standard' }),
     pee: Object.freeze({ zone: 'relief', slotCap: 1, minAgents: 1, depth: 'deep', weight: 1, modeGate: 'naughty' }),
+    restroom: Object.freeze({ zone: 'restroom', slotCap: 2, minAgents: 1, depth: 'deep', weight: 2 }),
+    talk: Object.freeze({ zone: 'watercooler', slotCap: 2, minAgents: 2, depth: 'deep', weight: 6 }),
+    // Flag office_basketball_court: invisible to selection while the flag is off.
+    basketball: Object.freeze({ zone: 'court', slotCap: 4, minAgents: 2, depth: 'deep', weight: 3 }),
   });
   // Presentation-only map shared by the canvas and WebGL idle renderers.
   // Unknown activity names deliberately stay unadorned rather than guessing.
   const ACTIVITY_ICONS = Object.freeze({
-    coffee: '☕', snack: '🍪', chat: '💬', smoke: '🚬', pee: '🚽',
-    water: '💧', 'ping-pong': '🏓',
+    beer: '🍺', coffee: '☕', snack: '🍪', chat: '💬', smoke: '🚬', pee: '🚽', talk: '💬', tacos: '🌮', cake: '🍰',
+    restroom: '🚻', water: '💧', 'ping-pong': '🏓',
     'slot-machine': '🎰', 'dice-corner': '🎲', gamble: '🎲',
-    'drive-home': '🚗', carSit: '🚗',
+    'drive-home': '🚗', carSit: '🚗', basketball: '🏀',
   });
   function iconForActivity(kindOrVariant) {
     return typeof kindOrVariant === 'string' ? ACTIVITY_ICONS[kindOrVariant] || '' : '';
@@ -55,6 +77,12 @@
     if (gateRank === undefined) return false; /* unknown gate: fail closed */
     const modeRank = MODE_RANK[mode];
     return (modeRank === undefined ? 0 : modeRank) >= gateRank;
+  }
+
+  const CALENDAR_BEER_WEIGHT_BOOST = 3;
+  function activityAvailable(kind) {
+    if (kind !== 'tacos') return true;
+    return globalThis.OFFICE?.tacoTruck?.isOpen?.() === true;
   }
   const PHASE_TICKS = Object.freeze({ pathing: 8, settling: 3, active: 20, exiting: 4 });
   const BEATS = Object.freeze(['pathing', 'settling', 'active', 'exiting', 'done']);
@@ -98,14 +126,63 @@
     return Object.freeze({ kind, zone: entry.zone, slotCap: entry.slotCap, minAgents: entry.minAgents, depth: entry.depth, modeGate: entry.modeGate === undefined ? 'standard' : entry.modeGate });
   }
 
+  // Fiction only: traits are 1..10, vitals are 0..1. Unknown activities keep
+  // their authored weight so future registrations remain compatible.
+  function activityDrive(kind, traits, vitals) {
+    const unit = value => Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0;
+    const trait = value => Number.isFinite(value) ? unit(value / 10) : 0;
+    const bladder = unit(vitals?.bladder);
+    let drive;
+    switch (kind) {
+      case 'coffee': drive = 0.5 + 2 * unit(vitals?.thirst)
+        + unit(vitals?.tiredness) - unit(vitals?.wired); break;
+      case 'snack': drive = 0.5 + 2.5 * unit(vitals?.hunger); break;
+      case 'chat': drive = 0.5 + 2.5 * trait(traits?.social); break;
+      case 'smoke': drive = 0.5 + 2.5 * trait(traits?.chaos); break;
+      // Urgency outranks the 3x cap: a full bladder (6 x weight 2) clearly
+      // beats the field while an empty one stays near the 0.25 floor.
+      case 'restroom': return 0.25 + 5.75 * bladder;
+      default: return 1;
+    }
+    // Relief pressure applies once the parallel bathroom activity is registered.
+    const reliefPressure = ACTIVITIES.restroom ? bladder : 0;
+    return Math.max(0.25, Math.min(3, drive) * (1 - 0.85 * reliefPressure));
+  }
+
   /* Weighted-pick an activity kind from ACTIVITIES where minAgents <= presentCount,
    * using hash01(`ida-${agent}-${seed}`) for deterministic selection. */
-  function activitySelect(agent, presentCount, seed, mode) {
+  function activitySelect(agent, presentCount, seed, mode, context) {
     const eligible = [];
     for (const [kind, spec] of Object.entries(ACTIVITIES)) {
+      if (kind === 'beer' && !globalThis.OFFICE?.actors?.beerTaps?.(globalThis.OFFICE?.state?.world?.layout)?.length) continue;
+      if (kind === 'talk' && globalThis.OfficeFeatureFlags?.enabled?.('agent_talk') !== true) continue;
+      // The court exists only on the live floor: never under a photographed
+      // plate theme, which has no court to walk to.
+      if (kind === 'basketball'
+        && (globalThis.OfficeFeatureFlags?.enabled?.('office_basketball_court') !== true
+          || globalThis.OFFICE?.theme?.THEME?.plateScene)) continue;
       if (spec.minAgents > presentCount) continue;
       if (mode === undefined ? spec.modeGate !== undefined : !modeAllows(mode, spec.modeGate)) continue;
-      eligible.push({ kind, weight: spec.weight });
+      const drive = context?.needsOn === true
+        ? activityDrive(kind, context.traits, context.vitals) : 1;
+      eligible.push({ kind, weight: spec.weight * drive });
+    }
+    const tacos = ACTIVITIES.tacos;
+    if (activityAvailable('tacos') && tacos.minAgents <= presentCount
+        && (mode === undefined ? tacos.modeGate === undefined : modeAllows(mode, tacos.modeGate))) {
+      eligible.push({ kind: 'tacos', weight: tacos.weight });
+    }
+    // OFFICE-EVENTS-01: the cake gather is invisible outside its calendar
+    // window; the beer boost is a modest multiplier only while Beer o'clock is
+    // live AND the placed-tap guard above already admitted beer.
+    const cake = ACTIVITIES.cake;
+    if (cake && context?.calendar?.cake === true && cake.minAgents <= presentCount
+        && (mode === undefined ? cake.modeGate === undefined : modeAllows(mode, cake.modeGate))) {
+      eligible.push({ kind: 'cake', weight: cake.weight });
+    }
+    if (context?.calendar?.beer === true) {
+      const beer = eligible.find((entry) => entry.kind === 'beer');
+      if (beer) beer.weight *= CALENDAR_BEER_WEIGHT_BOOST;
     }
     const totalWeight = eligible.reduce((sum, a) => sum + a.weight, 0);
     if (totalWeight === 0) return Object.freeze({ kind: 'chat' });
@@ -180,7 +257,8 @@
      * missing or lacks numeric x/y, return null (never invent a phantom tile). */
     function pathTo(zone, zones) {
       if (zone === 'floor') return null;
-      const tile = zones[zone];
+      const tile = zones[zone]
+        || (zone === 'tacos' ? globalThis.OFFICE?.tacoTruck?.queueApproachTarget?.() : null);
       if (!tile || typeof tile.x !== 'number' || typeof tile.y !== 'number') return null;
       return Object.freeze({ x: tile.x, y: tile.y });
     }
@@ -190,9 +268,15 @@
    * using hash01 and a 10-minute epoch window (epochS / 600). Returns null for an
    * unknown kind. */
   function activityLine(kind, epochS) {
+    if (kind === 'talk') {
+      const text = globalThis.OfficeTalkScene?.conversationFor(epochS, 0, 'idle', ['a', 'b'])[0]?.text;
+      return text ? Object.freeze({ kind, mode: 'standard', text }) : null;
+    }
     const pool = {
       coffee: ['Refilling the mug — it\'s an art form around here.', 'Contemplating the existential void… one sip at a time.', 'The kettle whistles and the cubicle walls listen.', 'Decaf is a myth we tell ourselves on Mondays.', 'Coffee: the only meeting that never runs long.'],
       snack: ['Crunch time — literally.', 'Fueling the next two minutes of productivity.', 'The snack drawer: where dreams and crumbs collide.', 'One handful closer to lunch.', 'Snack breaks: the office Olympic sport.'],
+      tacos: ['Tuesday just earned its keep.', 'One taco, zero agenda items.', 'The queue has excellent sprint velocity.', 'Lunch is now a handheld deliverable.', 'I came for salsa, not status.'],
+      cake: ['One slice, zero agenda items.', 'The candles are a fire drill we all agreed to.', 'Singing is optional; seconds are not.', 'Somebody brought the good frosting.', 'A small ceremony with real sugar.'],
     };
     const lines = pool[kind];
     if (!lines) return null;
@@ -256,8 +340,22 @@
         return top[top.length - 1].who;
       }
 
+  // Two symmetric standing positions, each facing the other participant.
+  function pairSpots(origin) {
+    if (!origin || typeof origin !== 'object' || Array.isArray(origin)) return null;
+    const x = origin.x, y = origin.y;
+    if (typeof x !== 'number' || typeof y !== 'number' || !Number.isFinite(x) || !Number.isFinite(y)) return null;
+    const left = Object.freeze({ x: x - 0.7, y });
+    const right = Object.freeze({ x: x + 0.7, y });
+    return Object.freeze([
+      Object.freeze({ target: left, facingTarget: right }),
+      Object.freeze({ target: right, facingTarget: left }),
+    ]);
+  }
+
       /* ==== export surface (leaves insert above this line) ==== */
   return Object.freeze({
+    pairSpots,
     IDLE_ACTIVITY_VERSION,
     DEFAULT_K,
     ACTIVITIES,
@@ -268,7 +366,9 @@
     iconForActivity,
     isSmokingAtPad,
     modeAllows,
+    activityAvailable,
     activitySpec,
+    activityDrive,
     activitySelect,
     budgetAdmit,
     slotReserve,

@@ -27,6 +27,19 @@ const NO_LANE_AT = () => null;
 const NO_MOVEABLE_AT = () => null;
 const NO_PICKABLE_AT = () => null;
 
+// DIRECTOR-01: a film run needs a preserved drawing buffer for captureStream,
+// and the flag/URL decision is the same gate office.director.js installs on.
+// Only a requested director boot pays for either; an ordinary floor is
+// byte-identical.
+function directorBootRequested() {
+  try {
+    if (globalThis.OfficeFeatureFlags?.enabled?.('director_mode') === true) return true;
+    return new URLSearchParams(String(globalThis.location?.search || '')).get('film') === '1';
+  } catch {
+    return false;
+  }
+}
+
 let active = false;
 let activation = 0;
 let runtime = null;
@@ -186,8 +199,10 @@ async function buildRuntime(sceneApi, THREE, canvas, capabilities) {
   const gltf = await import(GLTF_MODULE);
   await gltf.registerManifestMeshes(sceneApi, { THREE });
   const worldTheme = await loadWorldTheme(gltf, THREE);
+  const directorBoot = directorBootRequested();
   const sceneOptions = Object.freeze({ THREE, canvas, worldTheme,
-    plateCapabilities: worldTheme?.capabilities || capabilities });
+    plateCapabilities: worldTheme?.capabilities || capabilities,
+    preserveDrawingBuffer: directorBoot, alwaysRender: directorBoot });
 
   // A failed controller start must release the just-loaded authored world.
   return initializeSceneController(sceneApi, sceneOptions);

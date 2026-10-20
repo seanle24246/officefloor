@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import serve
 from tests.fixtures import FIXED_EPOCH, FIXTURE_BOOTSTRAP, office_environment, scenario_baseline, tree_fingerprint
+from tests.fixtures import isolated_office_state
 from server import building, ledger, roots
 from server.collector_source import SessionSource
 
@@ -28,6 +29,9 @@ LANE = "claude-security-cso-jack"
 
 class DecisionHTTPTests(unittest.TestCase):
     def setUp(self) -> None:
+        state_environment = isolated_office_state()
+        state_environment.__enter__()
+        self.addCleanup(state_environment.__exit__, None, None, None)
         self.scenario = scenario_baseline()
         self.environment = office_environment(self.scenario, liveness_known=False)
         self.environment.__enter__()
@@ -366,6 +370,49 @@ class DecisionHTTPTests(unittest.TestCase):
         )
         self.assertEqual((lickit_status, lickit["outcome"]), (200, "applied"))
         self.assertEqual(self.own_inbox.read_bytes(), own_after)
+        self.assertIn("FOUNDER RULING DN-LICKIT", self.lickit_inbox.read_text(encoding="utf-8"))
+
+    def test_armed_secondary_floor_takes_decisions_but_refuses_customization(self) -> None:
+        """AUD-ACT-02 (0dcd56f9): --operate-floor arms decision writes on the
+        secondary floor; it never opens customization writes there. b9e60692
+        had let an armed secondary accept them."""
+        from server import customization_api
+
+        specs = building.parse_floor_specs([
+            f"Secondary={self.lickit}",
+            f"Own={self.scenario.root}",
+        ])
+        registry = building.Building.create(
+            specs,
+            lambda spec: serve.World(demo=False, poll=60, ctx=spec.ctx),
+        )
+        self.handler.building = registry
+        self.handler.world = registry.first.world
+        self.handler.allow_comms = True
+        self.handler.allow_actions = True
+        self.handler.secondary_root = self.lickit
+        lickit_authority = (
+            roots.state_dir(roots.OrgCtx.from_root(self.lickit))
+            / "standard-office-customization.json"
+        )
+        before = tree_fingerprint(self.lickit)
+
+        status, body = self.post({
+            "resource": "designs", "action": "create", "expected_revision": 0,
+            "catalog_digest": customization_api.catalog_digest(
+                customization_api.load_catalog(),
+            ),
+            "floor": "secondary",
+            "design_id": "dsn_LICKIT", "name": "LickIt", "placements": [],
+        }, route="/api/customization")
+        self.assertEqual((status, body["error"]), (403, "capability_off"), body)
+        self.assertFalse(lickit_authority.exists())
+        self.assertEqual(tree_fingerprint(self.lickit), before)
+
+        decided_status, decided = self.post(
+            self.payload("e" * 32, "live", floor="secondary", decision_id="DN-LICKIT")
+        )
+        self.assertEqual((decided_status, decided["outcome"]), (200, "applied"))
         self.assertIn("FOUNDER RULING DN-LICKIT", self.lickit_inbox.read_text(encoding="utf-8"))
 
     def test_hardlinked_inbox_outside_seat_is_refused(self) -> None:

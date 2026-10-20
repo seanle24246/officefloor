@@ -1,4 +1,4 @@
-/* office.vitals.js — agent TEMP stats (vitals): tiredness/drunkenness/wired/hunger/thirst.
+/* office.vitals.js — agent TEMP stats (vitals): tiredness/drunkenness/wired/hunger/thirst/bladder.
  * Pure, deterministic, ephemeral/client-only. Distinct from office.needs.js (CEO attention inbox). */
 (function installVitals(root, factory){
   const api = factory();
@@ -6,7 +6,7 @@
   root.OfficeVitals = api;
 }(typeof globalThis !== 'undefined' ? globalThis : this, () => {
   'use strict';
-  const NEED_IDS = ['tiredness','drunkenness','wired','hunger','thirst'];
+  const NEED_IDS = ['tiredness','drunkenness','wired','hunger','thirst','bladder'];
   const clamp = v => Math.min(1, Math.max(0, v));
   function hashUnit(str) {
     let h = 2166136261;
@@ -22,7 +22,8 @@
       drunkenness: clamp(hashUnit(lane + ':drunk') * 0.05),
       wired: clamp(hashUnit(lane + ':wired') * 0.1),
       hunger: clamp(hashUnit(lane + ':hunger') * 0.6),
-      thirst: clamp(hashUnit(lane + ':thirst') * 0.6)
+      thirst: clamp(hashUnit(lane + ':thirst') * 0.6),
+      bladder: clamp(hashUnit(lane + ':bladder') * 0.3)
     };
   }
   function applyNeeds(temp, dt) {
@@ -36,16 +37,17 @@
       drunkenness: clamp(d),
       wired: clamp(w),
       hunger: clamp(hu),
-      thirst: clamp(th)
+      thirst: clamp(th),
+      bladder: clamp((temp.bladder || 0) - 0.002 * dt)
     };
   }
   const ITEM_EFFECTS = Object.freeze({
-    beer: Object.freeze({ drunkenness: 0.20, thirst: -0.30, wired: -0.05, tiredness: 0.06 }),
-    water: Object.freeze({ thirst: -0.45 }),
-    coffee: Object.freeze({ wired: 0.30, tiredness: -0.22, thirst: -0.12 }),
+    beer: Object.freeze({ drunkenness: 0.20, thirst: -0.30, wired: -0.05, tiredness: 0.06, bladder: 0.25 }),
+    water: Object.freeze({ thirst: -0.45, bladder: 0.20 }),
+    coffee: Object.freeze({ wired: 0.30, tiredness: -0.22, thirst: -0.12, bladder: 0.20 }),
+    restroom: Object.freeze({ bladder: -1 }),
     eat: Object.freeze({ hunger: -0.45, thirst: 0.10 }),
-    cigarette: Object.freeze({ wired: 0.12, tiredness: -0.06 }),
-    nap: Object.freeze({ tiredness: -0.55, wired: -0.15, drunkenness: -0.20 })
+    cigarette: Object.freeze({ wired: 0.12, tiredness: -0.06 })
   });
   function applyAction(temp, action) {
     const delta = ITEM_EFFECTS[action];
@@ -55,7 +57,8 @@
         drunkenness: temp.drunkenness || 0,
         wired: temp.wired || 0,
         hunger: temp.hunger || 0,
-        thirst: temp.thirst || 0
+        thirst: temp.thirst || 0,
+        ...(Object.hasOwn(temp, 'bladder') ? { bladder: temp.bladder || 0 } : {})
       };
     }
     const t = (temp.tiredness || 0) + (delta.tiredness || 0);
@@ -68,7 +71,8 @@
       drunkenness: clamp(d),
       wired: clamp(w),
       hunger: clamp(h),
-      thirst: clamp(th)
+      thirst: clamp(th),
+      bladder: clamp((temp.bladder || 0) + (delta.bladder || 0))
     };
   }
   function driveWeights(traits, temp) {
@@ -77,9 +81,8 @@
     return {
       drink: Math.max(0, (s.thirst || 0) * 2),
       eat: Math.max(0, (s.hunger || 0) * 2),
-      nap: Math.max(0, (s.tiredness || 0) * 2 * (1 - (t.nerve || 0) * 0.5)),
-      smoke: Math.max(0, (t.chaos || 0) * 0.8),
-      social: Math.max(0, (t.social || 0) * 1.2)
+      smoke: Math.max(0, clamp((t.chaos || 0) / 10) * 0.8),
+      social: Math.max(0, clamp((t.social || 0) / 10) * 1.2)
     };
   }
   return { initNeeds, applyNeeds, applyAction, driveWeights, ITEM_EFFECTS, NEED_IDS };

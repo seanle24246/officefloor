@@ -1,6 +1,8 @@
 /* store.panel.js — DES-05's live, buy-only store over the opaque SKU map. */
 (function installStore(root, factory) {
-  const api = factory(root);
+  const installed = root.__officeStoreInstalled;
+  const api = installed ? installed.api : factory(root);
+  if (!installed) root.__officeStoreInstalled = { api };
   if (typeof module === 'object' && module.exports) module.exports = api;
   root.OfficeStore = api;
 }(typeof globalThis !== 'undefined' ? globalThis : this, (root) => {
@@ -24,6 +26,13 @@
   const LOCAL_DEMO_DISCLOSURE = 'LOCAL DEMO · credits (¢r/sc) only · no real money';
   const CUSTOMIZATION_AUTHORITY = '/api/customization';
   const WALLET_UNWIRED = 'credits wallet not wired — BURN-CREDITS';
+
+  // A price is labelled by the book that pays it: office money reads `$N`,
+  // credits read `N ¢r`. Same integer either way; only the unit differs.
+  function priceLabel(amount, book = 'credits') {
+    const value = Number(amount).toLocaleString('en-US');
+    return book === 'office' ? `$${value}` : `${value} ¢r`;
+  }
 
   function customizationCopy(item, owned = false, activeCopies = 0) {
     const daily = Number.isSafeInteger(item?.daily_upkeep_credits)
@@ -372,8 +381,10 @@
       const controller = activePreviewController;
       if (!controller || controller.panel.hidden || event.repeat || event.metaKey
           || event.ctrlKey || event.altKey || event.shiftKey) return;
-      const tag = event.target?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const target = event.target;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
+          || target?.isContentEditable || target?.closest?.('[contenteditable]')) return;
       if (event.key === 'Escape' || event.key.toLowerCase() === 'n'
           || event.key.toLowerCase() === 'b') {
         event.preventDefault?.();
@@ -478,6 +489,12 @@
     }
   }
 
+  // STORE-AISLES-01: one read of the venue-aisle flag. Absent/malformed readers
+  // are always OFF, so the store falls back to the landed catalogue exactly.
+  function storeAislesV2() {
+    try { return root.OfficeFeatureFlags?.enabled?.('store_aisles_v2') === true; } catch (_) { return false; }
+  }
+
   function mountComingSoon(doc) {
     const controller = createStandalonePreview(doc);
     activeMount = { configure() {}, preview: () => controller };
@@ -532,18 +549,28 @@
     creditCard.append(make('span', 'store-currency-glyph', '¢r'));
     const balance = make('span', 'store-currency-value'); balance.id = 'storeBalance';
     creditCard.append(balance, make('span', 'store-currency-label', 'CREDITS'));
+    const officeCard = make('div', 'store-currency');
+    const officeBalance = make('span', 'store-currency-value'); officeBalance.id = 'storeOfficeBalance';
+    const officeLabel = make('span', 'store-currency-label', 'OFFICE MONEY');
+    officeCard.append(make('span', 'store-currency-glyph', '$'), officeBalance, officeLabel);
+    const paymentBook = make('select', 'store-sort');
+    paymentBook.setAttribute('aria-label', 'Pay with');
+    for (const [value, label] of [['auto', 'PAY WITH: AUTO'], ['office', 'OFFICE MONEY ($)'], ['credits', 'CREDITS']]) {
+      const option = make('option', '', label); option.value = value; paymentBook.append(option);
+    }
+    paymentBook.value = 'auto';
     const scripCard = make('div', 'store-currency scrip');
     const scripBalance = make('span', 'store-currency-value');
-    scripCard.append(make('span', 'store-currency-glyph', 'sc'), scripBalance, make('span', 'store-currency-label', 'SCRIP'));
+    scripCard.append(make('span', 'store-currency-glyph', 'sc'), scripBalance, make('span', 'store-currency-label', 'AGENT MONEY'));
     const search = make('input', 'store-search'); search.type = 'search'; search.placeholder = '🔍  SEARCH CATALOG'; search.setAttribute('aria-label', 'Search catalog'); search.disabled = true;
     const nav = make('nav', 'store-rail-nav');
     const aisle = button('store-rail-row locked', '🔒   AGENT AISLE'); aisle.disabled = true;
-    rail.append(creditCard, scripCard, search, nav, aisle, make('div', 'store-rail-note', 'ⓘ  AGENT AISLE USES SCRIP (sc). NOT AVAILABLE FOR CREDIT PURCHASES.'));
+    rail.append(officeCard, creditCard, scripCard, paymentBook, search, nav, aisle, make('div', 'store-rail-note', 'Office money is earned. Credits are purchased; buying credits is not available yet. Agent money cannot be spent here.'));
     const main = make('section', 'store-market-main');
     const marketHead = make('div', 'store-market-head'); const marketCopy = make('div');
     const marketTitle = make('h1', 'store-market-title', 'MAKE THE FLOOR YOURS');
     const marketSubtitle = make('p', 'store-market-subtitle', 'Decor changes the office. Never the truth.');
-    const economyDisclosure = make('p', 'store-economy-disclosure', LOCAL_DEMO_DISCLOSURE);
+    const economyDisclosure = make('p', 'store-economy-disclosure', 'Office money + credits · purchases and ownership saved by the server');
     economyDisclosure.setAttribute('role', 'note');
     marketCopy.append(marketTitle, marketSubtitle, economyDisclosure);
     const sort = make('select', 'store-sort'); sort.setAttribute('aria-label', 'Sort catalog'); sort.disabled = true;
@@ -593,6 +620,7 @@
     let detailView = { scene: 'inoffice', rotation: 0, tint: null };
 
     const cr = (amount) => amount.toLocaleString('en-US');
+    const priceFor = (item) => priceLabel(item.price_cr, walletState(item).book);
     const durableOwned = (item) => Boolean(customizationInventory?.isEntitled?.(item.sku_id));
     const ownedItem = (item) => durableOwned(item) || purchases.has(item.sku_id);
     const placeOwned = (item) => {
@@ -660,7 +688,16 @@
       try { credits = wallet?.balance(); } catch { /* unknown is honest */ }
       const knownCredits = Number.isSafeInteger(credits) && credits >= 0;
       creditCard.hidden = !knownCredits;
-      balance.textContent = knownCredits ? `${cr(credits)} ¢r · session only · resets on reload` : '';
+      balance.textContent = knownCredits ? `${cr(credits)} credits` : '';
+      let office = null; let officeHold = null;
+      try { office = wallet?.balance('office'); officeHold = wallet?.hold?.('office') || null; } catch { /* unavailable */ }
+      const knownOffice = Number.isSafeInteger(office) && office >= 0;
+      officeBalance.textContent = knownOffice ? `$${cr(office)}` : 'UNAVAILABLE';
+      officeCard.classList[knownOffice ? 'remove' : 'add']('is-unknown');
+      officeLabel.textContent = knownOffice && officeHold ? 'OFFICE · HELD' : 'OFFICE MONEY';
+      officeCard.title = knownOffice && officeHold
+        ? 'Office earnings went backwards (history rewrite or a removed lane). Shown at what current earnings support; spending is paused until they recover.'
+        : '';
       const scrip = authoritySnapshot?.scrip;
       const knownScrip = Number.isSafeInteger(scrip) && scrip >= 0;
       scripCard.hidden = !knownScrip;
@@ -677,72 +714,59 @@
     }
 
     function walletState(item) {
-      let credits = null;
-      try { credits = creditWallet()?.balance(); } catch { /* unknown is honest */ }
-      const known = Number.isSafeInteger(credits) && credits >= 0;
-      return Object.freeze({
-        known,
-        credits: known ? credits : null,
-        affordable: known && credits >= item.price_cr,
-        shortfall: known ? Math.max(0, item.price_cr - credits) : null,
-      });
+      const wallet = creditWallet();
+      let credits = null; let office = null; let officeHeld = false;
+      try {
+        credits = wallet?.balance('credits'); office = wallet?.balance('office');
+        officeHeld = Boolean(wallet?.hold?.('office'));
+      } catch { /* unavailable */ }
+      const valid = (value) => Number.isSafeInteger(value) && value >= 0;
+      const spendableOffice = valid(office) && !officeHeld;
+      const book = paymentBook.value === 'auto'
+        ? (spendableOffice && office >= item.price_cr ? 'office'
+          : valid(credits) && credits >= item.price_cr ? 'credits'
+            : spendableOffice && (!valid(credits) || office >= credits) ? 'office' : 'credits')
+        : paymentBook.value;
+      const amount = book === 'office' ? office : credits;
+      const known = valid(amount);
+      const held = book === 'office' && officeHeld;
+      return Object.freeze({ book, label: book === 'office' ? 'office $' : 'credits', known, held,
+        credits: known ? amount : null, affordable: known && !held && amount >= item.price_cr,
+        shortfall: known ? Math.max(0, item.price_cr - amount) : null });
     }
 
     function purchaseDisabledReason(item) {
       const wallet = walletState(item);
+      if (item.customization_admitted !== true) return 'NOT YET AVAILABLE';
       if (!wallet.known) return WALLET_UNWIRED;
-      if (item.customization_admitted !== true) return 'not admitted to the customization authority';
+      if (wallet.held) return 'OFFICE $ HELD · earnings went backwards';
       if (typeof customizationInventory?.buy !== 'function') return 'customization purchase authority not wired';
-      if (!wallet.affordable) return `need ${cr(wallet.shortfall)} ¢r`;
+      if (!wallet.affordable) return `NEED ${cr(wallet.shortfall)} ${wallet.label}`;
       return null;
     }
 
     async function purchaseItem(item, key, { placeNow = false } = {}) {
       let result;
+      const book = walletState(item).book;
       if (item.customization_admitted === true) {
         if (typeof customizationInventory?.buy !== 'function') {
           return Object.freeze({ ok: false, reason: 'standard-office-only' });
         }
-        result = await customizationInventory.buy(item.sku_id, { idempotencyKey: key });
+        result = await customizationInventory.buy(item.sku_id, { idempotencyKey: key, book });
         if (result?.ok && placeNow) placeOwned(item);
       } else {
-        const sessionEconomy = economy || root.OfficeEconomy || null;
-        if (typeof sessionEconomy?.purchase !== 'function') {
-          return Object.freeze({ ok: false, reason: 'purchase-authority-unavailable' });
-        }
-        const purchaseOptions = { idempotencyKey: key };
-        if (placeNow && placementStore) purchaseOptions.placementStore = placementStore;
-        result = await sessionEconomy.purchase(item.sku_id, purchaseOptions);
+        return Object.freeze({ ok: false, reason: 'not_yet_available' });
       }
       if (!result?.ok) return result;
       let nextBalance = null; let nextUpkeep = null;
-      try { nextBalance = economy?.wallet?.balance?.(); } catch { /* leave unknown */ }
+      try { nextBalance = economy?.wallet?.balance?.(book); } catch { /* leave unknown */ }
       try { nextUpkeep = economy?.status?.()?.upkeep; } catch { /* leave unknown */ }
-      return Object.freeze({ ...result, balance: nextBalance, upkeep: nextUpkeep });
+      return Object.freeze({ ...result, book, balance: nextBalance, upkeep: nextUpkeep });
     }
 
     function purchaseMath(item) {
       const wallet = walletState(item);
-      let upkeep = null;
-      let baseRent = null;
-      try {
-        const sessionEconomy = economy || root.OfficeEconomy || null;
-        const status = sessionEconomy?.status?.();
-        if (Number.isSafeInteger(status?.upkeep) && status.upkeep >= 0) upkeep = status.upkeep;
-        const rule = economy?.RULES?.baseRent ?? root.OfficeEconomy?.RULES?.baseRent;
-        if (Number.isSafeInteger(rule) && rule >= 0) baseRent = rule;
-      } catch { /* unavailable math is shown as unavailable, never guessed */ }
-      const newUpkeep = upkeep === null ? null : upkeep + item.upkeep_cr_month;
-      const currentRent = upkeep === null || baseRent === null ? null : baseRent + upkeep;
-      const newRent = newUpkeep === null || baseRent === null ? null : baseRent + newUpkeep;
-      return Object.freeze({
-        wallet,
-        after: wallet.known ? wallet.credits - item.price_cr : null,
-        newUpkeep,
-        currentRent,
-        newRent,
-        rentDelta: currentRent === null || newRent === null ? null : newRent - currentRent,
-      });
+      return Object.freeze({ wallet, after: wallet.known ? wallet.credits - item.price_cr : null });
     }
 
     function resetBuy(buttonNode, item) {
@@ -792,13 +816,9 @@
       const surface = make('div', 'store-confirm');
       surface.append(make('div', 'store-confirm-title', 'CONFIRM PURCHASE'));
       const values = [
-        ['CURRENT BALANCE', math.wallet.known ? `${cr(math.wallet.credits)} ¢r` : 'UNAVAILABLE'],
-        ['ITEM COST', `${cr(item.price_cr)} ¢r`],
-        ['AFTER PURCHASE', math.after === null ? 'UNAVAILABLE' : `${cr(math.after)} ¢r`],
-        ['NEW UPKEEP', math.newUpkeep === null ? 'UNAVAILABLE' : `${cr(math.newUpkeep)} ¢r / month`],
-        ['RENT DELTA', math.rentDelta === null
-          ? 'UNAVAILABLE'
-          : `+${cr(math.rentDelta)} ¢r / month · ${cr(math.currentRent)} → ${cr(math.newRent)}`],
+        ['CURRENT BALANCE', math.wallet.known ? `${cr(math.wallet.credits)} ${math.wallet.label}` : 'UNAVAILABLE'],
+        ['ITEM COST', `${cr(item.price_cr)} ${math.wallet.label}`],
+        ['AFTER PURCHASE', math.after === null ? 'UNAVAILABLE' : `${cr(math.after)} ${math.wallet.label}`],
       ];
       for (const [label, value] of values) {
         const row = make('div', 'store-confirm-row');
@@ -826,15 +846,13 @@
       const closeModal = button('store-confirm-modal-close', '✕'); closeModal.setAttribute('aria-label', 'Close confirmation'); closeModal.addEventListener('click', closeConfirm); header.append(closeModal);
       const product = make('div', 'store-confirm-product');
       const placement = (item.placement_class || 'floor').toUpperCase();
-      product.append(renderSku(item, { size: 'small', scene: 'plinth' }), make('div', '', ''), make('div', 'store-confirm-product-price', `${cr(item.price_cr)} ¢r`));
+      product.append(renderSku(item, { size: 'small', scene: 'plinth' }), make('div', '', ''), make('div', 'store-confirm-product-price', priceFor(item)));
       product.children[1].append(make('div', 'store-confirm-product-name', item.name), make('div', 'store-confirm-product-meta', `${item.category.toUpperCase()} · ${placement} 1 × 1`));
       const ledger = make('table', 'store-ledger');
       const rows = [
-        ['CURRENT BALANCE', math.wallet.known ? `${cr(math.wallet.credits)} ¢r` : 'UNAVAILABLE', ''],
-        ['ITEM COST', `−${cr(item.price_cr)} ¢r`, 'store-ledger-cost'],
-        ['AFTER PURCHASE', math.after === null ? 'UNAVAILABLE' : `${cr(math.after)} ¢r`, ''],
-        ['NEW UPKEEP', math.newUpkeep === null ? 'UNAVAILABLE' : `+${cr(math.newUpkeep)} ¢r / month`, ''],
-        ['RENT DELTA', math.rentDelta === null ? 'UNAVAILABLE' : `${cr(math.rentDelta)} ¢r`, ''],
+        ['CURRENT BALANCE', math.wallet.known ? `${cr(math.wallet.credits)} ${math.wallet.label}` : 'UNAVAILABLE', ''],
+        ['ITEM COST', `−${cr(item.price_cr)} ${math.wallet.label}`, 'store-ledger-cost'],
+        ['AFTER PURCHASE', math.after === null ? 'UNAVAILABLE' : `${cr(math.after)} ${math.wallet.label}`, ''],
       ];
       rows.forEach(([label, value, className], index) => {
         if (index === 2) ledger.append(make('tr', 'store-ledger-divider'));
@@ -842,7 +860,7 @@
       });
       const doctrine = make('p', 'store-confirm-doctrine-box', 'ⓘ  Decor only. This purchase cannot change agent state, performance, priority, or work.');
       const place = make('label', 'store-confirm-place'); const placeInput = make('input'); placeInput.type = 'checkbox'; placeInput.checked = true; place.append(placeInput, make('span', '', 'PLACE IT NOW AFTER PURCHASE'));
-      const actions = make('div', 'store-confirm-actions'); const cancel = button('store-confirm-cancel', 'CANCEL'); const submit = button('store-confirm-submit', `CONFIRM · ${cr(item.price_cr)} ¢r`); submit.disabled = !math.wallet.affordable || (item.customization_admitted === true && !customizationInventory);
+      const actions = make('div', 'store-confirm-actions'); const cancel = button('store-confirm-cancel', 'CANCEL'); const submit = button('store-confirm-submit', `CONFIRM · ${cr(item.price_cr)} ${math.wallet.label}`); submit.disabled = !math.wallet.affordable || (item.customization_admitted === true && !customizationInventory);
       cancel.addEventListener('click', closeConfirm);
       submit.addEventListener('click', async () => {
         if (submit.disabled || purchaseController.pending()) return;
@@ -857,16 +875,16 @@
         } catch { outcome = { receipt: Object.freeze({ ok: false, reason: 'purchase-error' }), duplicate: false }; }
         const receipt = outcome.receipt;
         if (!outcome.duplicate && receipt?.ok) {
-          purchases.set(item.sku_id, receipt); renderBalance(); announce(`PURCHASE COMPLETE · ${item.name} · cost ${cr(item.price_cr)} ¢r`); toast(`PURCHASE COMPLETE · ${item.name}`); closeConfirm(); renderHome(); renderDetail(item);
+          purchases.set(item.sku_id, receipt); renderBalance(); announce(`PURCHASE COMPLETE · ${item.name} · cost ${priceFor(item)}`); toast(`PURCHASE COMPLETE · ${item.name}`); closeConfirm(); renderHome(); renderDetail(item);
         } else if (!outcome.duplicate) {
-          const message = receipt?.reason === 'insufficient-credits' ? 'NOT ENOUGH CREDITS' : 'PURCHASE PAUSED · No charge was kept.';
-          announce(message); toast(message); submit.disabled = false; submit.textContent = `CONFIRM · ${cr(item.price_cr)} ¢r`;
+          const message = receipt?.reason === 'insufficient-credits' ? 'NOT ENOUGH CREDITS' : `PURCHASE PAUSED · ${receipt?.reason || 'server unavailable'}`;
+          announce(message); toast(message); submit.disabled = false; submit.textContent = `CONFIRM · ${priceFor(item)}`;
         }
       });
       actions.append(cancel, submit);
       const persistence = item.customization_admitted === true
         ? 'Durable entitlement · reload-safe · no real money'
-        : 'Session purchase · resets on reload · no real money';
+        : 'Server purchase · saved across reloads';
       dialog.append(header, product, ledger, doctrine, place, actions,
         make('p', 'store-confirm-footer', persistence));
       modal.append(dialog); panel.append(modal);
@@ -934,13 +952,20 @@
         if (generated.ok) {
           // Generated SKU rows have their own contract. The pure adapter makes
           // that explicit before the unchanged store doctrine gate admits them.
-          const generatedPayload = await generated.json();
+          const fetched = await generated.json();
+          // STORE-AISLES-01: with store_aisles_v2 the four venue Theme SKUs ride
+          // this same adapter path; off, the payload is byte-identical.
+          const aislesV2 = storeAislesV2();
+          if (aislesV2 && !root.OfficeStoreAislesV2) await import('./store.aisles.v2.js');
+          const venue = aislesV2 ? root.OfficeStoreAislesV2 : null;
+          const generatedPayload = venue ? venue.extendGeneratedCatalog(fetched) : fetched;
           rows = catalogueFromMap(adapter.adaptGeneratedCatalog(generatedPayload));
           const provenance = new Map((generatedPayload.skus || [])
             .map((row) => [row?.id, explicitCredit(row?.provenance)]));
           rows = Object.freeze(rows.map((row) => {
-            const credit = provenance.get(row.sku_id);
-            return credit ? Object.freeze({ ...row, provenance: credit }) : row;
+            const themed = venue ? venue.decorateRow(row) : row;
+            const credit = provenance.get(themed.sku_id);
+            return credit ? Object.freeze({ ...themed, provenance: credit }) : themed;
           }));
         } else {
           const fallback = await root.fetch('/data/sku-map.json', { cache: 'no-store' });
@@ -979,15 +1004,32 @@
     }
 
     function filteredItems() {
-      const needle = searchText.trim().toLowerCase();
+      const v2 = storeAislesV2();
+      const needle = v2
+        ? searchText.trim().toLowerCase().replace(/\s+/g, ' ')
+        : searchText.trim().toLowerCase();
       const categories = RAIL_CATEGORIES.find(([key]) => key === activeFilter)?.[3];
       const featured = new Set([
         'Furniture', 'Equipment', 'Office amenities', 'Cars', 'Themes', 'Transit', 'Outdoor',
       ]);
-      const rows = (catalogue || []).filter((item) => (
-        (activeFilter === 'featured' ? featured.has(item.category) : item.category === categories)
-        && (!needle || `${item.name} ${item.note || ''}`.toLowerCase().includes(needle))
-      ));
+      const rows = (catalogue || []).filter((item) => {
+        if (needle && !`${item.name} ${item.note || ''}`.toLowerCase().includes(needle)) return false;
+        if (activeFilter === 'featured') {
+          // STORE-AISLES-01: a real query browses the whole catalogue from
+          // Featured; an empty query keeps the curated Featured shelf.
+          if (v2 && needle) return true;
+          return featured.has(item.category)
+            && railVisible(RAIL_CATEGORIES.find((entry) => entry[3] === item.category) || [null, null, null, null]);
+        }
+        return item.category === categories;
+      });
+      // STORE-AISLES-01: v2 name sort is numeric-aware ("Room 2" before "Room 10");
+      // the landed comparator is untouched when the flag is off.
+      if (v2 && sortMode === 'name') {
+        return rows.sort((left, right) => left.name.localeCompare(
+          right.name, undefined, { numeric: true, sensitivity: 'base' },
+        ));
+      }
       return sortRows(rows, sortMode);
     }
 
@@ -1067,21 +1109,42 @@
         : (item.upkeep_cr_month ? `+${cr(item.upkeep_cr_month)} ¢r/mo` : 'NO UPKEEP');
       const specs = [['PLACEMENT', (item.placement_class || 'floor').toUpperCase()], ['FOOTPRINT', '1 × 1'], ['ROTATIONS', String(capabilities.rotations)], ['TRUTH EFFECT', 'NONE']];
       const table = make('table', 'store-specs'); specs.forEach(([label, value]) => { const row = make('tr'); row.append(make('td', '', label), make('td', '', value)); table.append(row); });
-      const disabledReason = durableOwned(item) ? null : purchaseDisabledReason(item);
-      const buy = button('store-detail-buy', durableOwned(item)
-        ? 'OWNED · PLACE'
-        : (disabledReason || `BUY FOR ${cr(item.price_cr)} ¢r`));
-      buy.disabled = !durableOwned(item) && Boolean(disabledReason);
-      if (disabledReason) buy.title = disabledReason;
-      buy.addEventListener('click', () => {
-        if (buy.disabled) return;
-        if (durableOwned(item)) { placeOwned(item); return; }
-        detailSlot.dataset.confirmSku = item.sku_id; openConfirm(item);
-      });
+      const venue = item.theme_id && storeAislesV2() ? root.OfficeStoreAislesV2 : null;
       const preview = button('store-detail-preview', 'PREVIEW ON FLOOR');
       if (typeof root.OfficePlacementUI?.open === 'function' && purchases.get(item.sku_id)?.instance?.id) preview.addEventListener('click', () => root.OfficePlacementUI.open(purchases.get(item.sku_id).instance.id));
       else { preview.disabled = true; preview.title = 'Available after purchase when floor placement is ready.'; }
-      const actions = make('div', 'store-detail-actions'); actions.append(buy, preview);
+      const actions = make('div', 'store-detail-actions');
+      if (venue) {
+        // STORE-AISLES-01: a venue theme activates through the one existing
+        // theme switch — never a second activation path and never a purchase.
+        const canApply = typeof root.OFFICE?.picker?.switchTheme === 'function';
+        const apply = button('store-detail-buy store-theme-apply', `APPLY THEME · ${priceFor(item)}`);
+        apply.disabled = !canApply;
+        apply.title = canApply ? `Apply the ${item.name} venue re-skin` : 'theme switch unavailable';
+        apply.addEventListener('click', () => {
+          if (apply.disabled) return;
+          const applied = venue.applyTheme(item.theme_id, root);
+          const message = applied ? `THEME APPLIED · ${item.name}` : `THEME UNAVAILABLE · ${item.name}`;
+          announce(message);
+          toast(message);
+        });
+        preview.disabled = true;
+        preview.title = 'Themes re-skin the whole venue; there is no floor placement.';
+        actions.append(apply, preview);
+      } else {
+        const disabledReason = durableOwned(item) ? null : purchaseDisabledReason(item);
+        const buy = button('store-detail-buy', durableOwned(item)
+          ? 'OWNED · PLACE'
+          : (disabledReason || `BUY FOR ${priceFor(item)}`));
+        buy.disabled = !durableOwned(item) && Boolean(disabledReason);
+        if (disabledReason) buy.title = disabledReason;
+        buy.addEventListener('click', () => {
+          if (buy.disabled) return;
+          if (durableOwned(item)) { placeOwned(item); return; }
+          detailSlot.dataset.confirmSku = item.sku_id; openConfirm(item);
+        });
+        actions.append(buy, preview);
+      }
       const meta = make('div', 'store-detail-meta', `${item.category.toUpperCase()}  ·  ${upkeep}`);
       const credit = explicitCredit(item.provenance || item);
       const creditLine = credit
@@ -1089,13 +1152,30 @@
         : null;
       panelDetail.append(header, scene, thumbs, swatches, meta);
       if (creditLine) panelDetail.append(creditLine);
-      panelDetail.append(make('div', 'store-detail-price', `${cr(item.price_cr)} ¢r`), make('p', 'store-detail-copy', item.note || 'Decor for your session floor.'), table, make('p', 'store-detail-note', 'ⓘ  Decor only. Does not change agent state or performance.'), actions);
+      panelDetail.append(make('div', 'store-detail-price', priceFor(item)), make('p', 'store-detail-copy', item.note || 'Decor for your office floor.'), table, make('p', 'store-detail-note', 'ⓘ  Decor only. Does not change agent state or performance.'), actions);
       detailSlot.append(panelDetail);
+    }
+
+    // UI-DEFAULTS-01 (flag store_hide_empty_categories): a rail category with no items, or, with
+    // store_item_art on and the art map loaded, none whose item has art yet, is hidden; Featured follows.
+    function railVisible(entry) {
+      const name = entry[3];
+      if (name === null || root.OfficeFeatureFlags?.enabled?.('store_hide_empty_categories') !== true) return true;
+      const rows = (catalogue || []).filter((item) => item.category === name);
+      if (!rows.length) return false;
+      const art = root.OfficeStoreArt;
+      if (root.OfficeFeatureFlags?.enabled?.('store_item_art') === true && typeof art?.has === 'function') {
+        return rows.some((item) => art.has(item.sku_id));
+      }
+      return true;
     }
 
     function renderRail() {
       nav.replaceChildren();
-      RAIL_CATEGORIES.forEach(([key, icon, label]) => {
+      if (!railVisible(RAIL_CATEGORIES.find(([key]) => key === activeFilter) || RAIL_CATEGORIES[0])) {
+        activeFilter = 'featured';
+      }
+      RAIL_CATEGORIES.filter(railVisible).forEach(([key, icon, label]) => {
         const row = button(`store-rail-row${key === activeFilter ? ' active' : ''}`, `${icon}   ${label}`);
         row.dataset.category = key;
         row.setAttribute('aria-pressed', String(key === activeFilter));
@@ -1119,9 +1199,9 @@
         cardNode.append(renderSku(item, { size: 'card', scene: 'plinth' }),
           make('div', 'store-product-category', item.category.toUpperCase()),
           make('div', 'store-product-name', item.name),
-          make('p', 'store-product-copy', item.note || item.source || 'Decor for your session floor.'));
+          make('p', 'store-product-copy', item.note || item.source || 'Decor for your office floor.'));
         const foot = make('div', 'store-product-foot'); const pricing = make('span');
-        pricing.append(make('span', 'store-product-price', `${cr(item.price_cr)} ¢r`));
+        pricing.append(make('span', 'store-product-price', priceFor(item)));
         if (Object.hasOwn(item, 'daily_upkeep_credits')) {
           pricing.append(make('span', 'store-product-upkeep', ` · ${customizationCopy(item).upkeep}`));
         } else if (item.upkeep_cr_month) pricing.append(make('span', 'store-product-upkeep', ` + ${cr(item.upkeep_cr_month)}/mo`));
@@ -1134,6 +1214,11 @@
         });
         foot.append(pricing, view); cardNode.append(foot);
         grid.append(cardNode);
+      });
+      // PET-DOG-01: absent unless office_pet_dog installed the adoptable dog.
+      root.OfficePetStore?.decorateGrid?.({
+        grid, detailSlot, filter: activeFilter, search: searchText,
+        make, button, wallet: creditWallet(), announce, toast, renderBalance,
       });
       body.append(grid);
     }
@@ -1164,10 +1249,10 @@
       node.append(
         make('div', 'store-card-icon', category.icon),
         make('div', 'store-card-name', item.name),
-        make('div', 'store-card-copy', item.note || item.source || item.catalog_ref || 'For your session view.'),
+        make('div', 'store-card-copy', item.note || item.source || item.catalog_ref || 'For your office.'),
       );
       const row = make('div', 'store-price-row');
-      row.append(make('span', 'store-price', `${cr(item.price_cr)} ¢r`));
+      row.append(make('span', 'store-price', priceFor(item)));
       if (item.upkeep_cr_month) {
         row.append(make('span', 'store-upkeep', `+ ${cr(item.upkeep_cr_month)} / month`));
       }
@@ -1182,7 +1267,7 @@
           const wallet = walletState(item);
           const message = reason === 'insufficient-credits' && wallet.known
             ? `NOT ENOUGH CREDITS · NEED ${cr(Math.max(1, wallet.shortfall))}`
-            : `PURCHASE ${reason.toUpperCase()} · No charge was kept.`;
+            : `PURCHASE ${reason.toUpperCase()}`;
           announce(message);
           toast(message);
           render(currentPath);
@@ -1191,10 +1276,10 @@
         purchases.set(item.sku_id, result);
         renderBalance();
         const nextBalance = Number.isSafeInteger(result.balance) && result.balance >= 0
-          ? `${cr(result.balance)} ¢r` : 'unavailable';
+          ? priceLabel(result.balance, result.book) : 'unavailable';
         const nextUpkeep = Number.isSafeInteger(result.upkeep) && result.upkeep >= 0
           ? `${cr(result.upkeep)} ¢r / month` : 'unavailable';
-        const message = `PURCHASE COMPLETE · ${item.name} · cost ${cr(item.price_cr)} ¢r`
+        const message = `PURCHASE COMPLETE · ${item.name} · cost ${priceLabel(item.price_cr, result.book)}`
           + ` · new balance ${nextBalance} · new upkeep ${nextUpkeep}`;
         announce(message);
         toast(message);
@@ -1234,7 +1319,7 @@
           const wallet = walletState(item);
           buy.textContent = !wallet.known
             ? 'BALANCE UNAVAILABLE'
-            : (wallet.affordable ? `CONFIRM · ${cr(item.price_cr)} ¢r` : `NEED ${cr(wallet.shortfall)}`);
+            : (wallet.affordable ? `CONFIRM · ${priceFor(item)}` : `NEED ${cr(wallet.shortfall)}`);
           const surface = confirmSurface(item);
           node.append(surface);
           armedView = { node, buy, item, confirmSurface: surface };
@@ -1362,6 +1447,7 @@
     });
     close.addEventListener('click', () => shut());
     search.addEventListener('input', () => { searchText = search.value || ''; render(currentPath); });
+    paymentBook.addEventListener('change', () => { closeConfirm(); disarm(); void render(currentPath); });
     sort.addEventListener('change', () => { sortMode = sort.value; render(currentPath); });
     doc.getElementById('needsBtn')?.addEventListener('click', () => {
       if (!panel.hidden) shut();
@@ -1424,7 +1510,7 @@
   }
 
   if (resolveStoreMode() !== 'off') mount();
-  return Object.freeze({ CATEGORY_SPECS, LOCAL_DEMO_DISCLOSURE, customizationCopy,
+  return Object.freeze({ CATEGORY_SPECS, LOCAL_DEMO_DISCLOSURE, customizationCopy, priceLabel,
     catalogueFromMap, publicPreviewCatalogue, sortRows, createPurchaseController,
     mount, mountPreview, openPreview, closePreview, resolveStoreMode, storeLiveEnabled });
 }));

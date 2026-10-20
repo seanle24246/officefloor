@@ -128,6 +128,14 @@
   outline: none;
 }
 
+/* UI-POLISH-01: icon above a one-line label; never split a word ("OFFIC E"). */
+.am-office-rail .am-nav-button { font-size: 8px; overflow-wrap: normal; word-break: normal; }
+.am-office-rail .am-nav-icon { font-size: 15px; line-height: 1; }
+.am-office-rail .am-nav-label {
+  display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  font-size: 8px; font-weight: 700; letter-spacing: .02em;
+}
+
 /* Top header bar */
 .am-app-header {
   grid-column: 2 / -1;
@@ -512,6 +520,13 @@
   right: auto !important; bottom: auto !important; left: auto !important; z-index: 1 !important;
   max-width: min(1120px, calc(100vw - 32px)); max-height: calc(100dvh - 32px);
 }
+/* store.css pins #storePanel with position:fixed + a 90px/16px inset at higher
+   specificity than the reset above, so fullscreen took 100% size from the
+   layer but kept the store's offset and overflowed. In the layer, the layer
+   owns placement. */
+#officeModalSurface > #storePanel.store-market {
+  position: relative !important; inset: auto !important;
+}
 #officeModalSurface.office-modal-fullscreen { padding: 0; }
 #officeModalSurface.office-modal-fullscreen > * {
   width: 100vw !important; height: 100dvh !important; max-width: none !important;
@@ -571,3 +586,40 @@ body.office-modal-open > [data-office-modal-blocked="true"] { visibility: hidden
 /* The Looks panel owns one live floor-model WebGL context. */
 .am-looks-preview-canvas { width: 100%; min-width: 144px; height: 240px; }
 .am-looks-preview-canvas canvas { display: block; width: 100%; height: 100%; }
+
+/* VITALS-STATS-01: client-side fiction, visually separate from measured work. */
+.am-fiction-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.am-fiction-grid h4 { margin:0 0 12px; }
+.am-fiction-meter { display:grid; grid-template-columns:100px minmax(50px,1fr) 46px; gap:10px; align-items:center; margin:10px 0; font-size:12px; }
+.am-fiction-meter meter { width:100%; height:14px; accent-color:#9b8cff; }
+.am-fiction-meter > span:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+.am-mouth { border-top:1px solid #ffffff24; margin-top:16px; padding-top:6px; }
+.am-vitals-source { font-size:12px; opacity:.75; }
+.ins-vitals { display:grid; gap:5px; font-size:11px; }
+.ins-vitals > span { color:#c3b6ff; }
+.ins-vitals label { display:grid; grid-template-columns:76px minmax(45px,1fr) 32px; gap:6px; align-items:center; }
+.ins-vitals meter { width:100%; height:12px; accent-color:#9b8cff; }
+@media(max-width:900px) { .am-fiction-grid { grid-template-columns:1fr; } }
+.am-fiction-meter meter::-webkit-meter-bar, .ins-vitals meter::-webkit-meter-bar { background:#273449; border:0; border-radius:4px; }
+.am-fiction-meter meter::-webkit-meter-optimum-value, .ins-vitals meter::-webkit-meter-optimum-value { background:#b69aff; }
+.am-fiction-meter meter::-moz-meter-bar, .ins-vitals meter::-moz-meter-bar { background:#b69aff; }
+
+/* AGENT-LIVES-01: the Life tab. Fiction styling matches the vitals panel. */
+.am-life-stack { display:grid; gap:14px; }
+.am-life-mood-body { display:flex; align-items:center; gap:12px; margin-top:6px; }
+.am-life-mood-icon { font-size:30px; line-height:1; }
+.am-life-mood-label { font-size:20px; letter-spacing:.02em; }
+.am-life-bars { display:grid; gap:8px; }
+.am-life-meter { display:grid; grid-template-columns:90px minmax(50px,1fr) 46px; gap:10px; align-items:center; font-size:12px; }
+.am-life-meter meter { width:100%; height:14px; accent-color:#9b8cff; }
+.am-life-meter > span:last-child { text-align:right; font-variant-numeric:tabular-nums; }
+.am-life-meter meter::-webkit-meter-bar { background:#273449; border:0; border-radius:4px; }
+.am-life-meter meter::-webkit-meter-optimum-value { background:#b69aff; }
+.am-life-meter meter::-moz-meter-bar { background:#b69aff; }
+.am-life-friends { display:grid; gap:6px; }
+.am-life-friend { display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid var(--am-edge-soft); }
+.am-life-tier { color:var(--am-muted); text-transform:uppercase; font-size:11px; }
+.am-life-crush { display:flex; align-items:center; gap:8px; margin-top:10px; padding:8px 10px; border:1px solid #8c4bc1; border-radius:4px; background:rgba(77,35,105,.25); color:#dfb6ff; }
+.am-life-moments { display:grid; gap:6px; }
+.am-life-moment { display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid var(--am-edge-soft); }
+@media(max-width:900px) { .am-life-meter { grid-template-columns:76px minmax(45px,1fr) 40px; } }

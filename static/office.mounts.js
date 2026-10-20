@@ -23,7 +23,25 @@ const servedModules = [
   'dispatch.board.js',
   'office.dispatchboard.panel.js',
   'costview.js',
+  // ECON-VIEW-01: reads GET /api/economy, so served-only; mounts nothing unless economy_view is on.
+  'office.economy.model.js',
+  'office.economy.html.js',
+  'office.economy.js',
+  // BJ-WATCH-01: watchable fiction blackjack. Loaded only when `blackjack` is on
+  // (flaggedServedModules below), so flag off fetches and registers nothing.
+  'office.cards.js',
+  'office.bjwatch.engine.js',
+  'office.bjwatch.model.js',
+  'office.bjwatch.html.js',
+  'office.bjwatch.js',
 ];
+const flaggedServedModules = new Map([
+  ['office.cards.js', 'blackjack'],
+  ['office.bjwatch.engine.js', 'blackjack'],
+  ['office.bjwatch.model.js', 'blackjack'],
+  ['office.bjwatch.html.js', 'blackjack'],
+  ['office.bjwatch.js', 'blackjack'],
+]);
 // These client-only modules are delivered after sign-in.  A public wheel does
 // not contain the legacy SKU schema; the canonical-catalog placement path is
 // intentionally independent of it and remains available for Edit Office.
@@ -33,6 +51,13 @@ const premiumServedModules = new Set(['office.sku.schema.js']);
 // and must not create a noisy failing request for it.
 const premiumModulesMayBeServed = true;
 const sideEffectModules = new Set([
+  'office.bjwatch.engine.js',
+  'office.bjwatch.model.js',
+  'office.bjwatch.html.js',
+  'office.bjwatch.js',
+  'office.economy.model.js',
+  'office.economy.html.js',
+  'office.economy.js',
   'office.furnishings.js',
   'store.panel.js',
   'office.vehicle.core.js',
@@ -50,6 +75,8 @@ function loadServedModules() {
   if (sharedFloor || root.__OFFICE_SNAPSHOT__ || !root.document?.head?.appendChild) return Promise.resolve();
   let premiumAvailable = premiumModulesMayBeServed;
   return servedModules.reduce((ready, src) => ready.then(async () => {
+    const flag = flaggedServedModules.get(src);
+    if (flag && root.OfficeFeatureFlags?.enabled?.(flag) !== true) return;
     if (premiumServedModules.has(src)) {
       if (!premiumAvailable) return;
       premiumAvailable = await servedModuleAvailable(src);

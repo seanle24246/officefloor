@@ -2,8 +2,10 @@
 
 import * as THREE from './vendor/three.module.js';
 import { updatePingPongBalls } from './office.webgl.pingpong.js';
+import { updateBasketballBalls } from './office.webgl.basketball.js';
 import { makeCamera, syncCamera } from './office.webgl.camera.js';
 import { toSceneSpec } from './office.webgl.adapter.js';
+import { GROUP_NAME as CITY_GROUP_NAME, syncCityPlacements } from './office.city.render.js';
 import { editorFreezesFloor, editorHidesAgents } from './office.webgl.edit.lifecycle.js';
 import {
   contactShadow,
@@ -56,6 +58,8 @@ export {
 };
 
 let runtime = null;
+// Edit-projection refresh requested before createScene(); replayed on create.
+let pendingEditProjection = null;
 
 function staticAgentPlate(capabilities) {
   return capabilities?.world3d !== true && capabilities?.editMode === false
@@ -162,6 +166,18 @@ function preserveAgentPosesIfFrozen(state) {
   return true;
 }
 
+// CITY-RENDER-01: placed items inside a city world. Only a city world (cityGrid) with projected cityItems (flag on +
+// a city design) draws anything; an empty list removes what was drawn.
+function syncCityItems(target, sceneSpec, worldTheme) {
+  if (typeof worldTheme.cityGrid !== 'function') return;
+  const items = sceneSpec.cityItems || [];
+  if (!items.length && !target.getObjectByName(CITY_GROUP_NAME)) return;
+  syncCityPlacements(target, items, {
+    grid: worldTheme.cityGrid(), themeKey: worldTheme.key, buildMesh, THREE,
+    onBlocked: typeof worldTheme.setCityBlocked === 'function' ? (cells) => worldTheme.setCityBlocked(cells) : null,
+  });
+}
+
 export function buildScene(
   sceneSpec,
   target = new THREE.Group(),
@@ -184,13 +200,17 @@ export function buildScene(
   if (typeof worldTheme.buildScene !== 'function') {
     throw new TypeError('themed world runtime must provide buildScene(sceneSpec)');
   }
-  if (worldTheme.isWorld3d && target.getObjectByName('office-blender-world')) return target;
+  if (worldTheme.isWorld3d && target.getObjectByName('office-blender-world')) {
+    syncCityItems(target, sceneSpec, worldTheme);
+    return target;
+  }
   clearGroup(target);
   const themed = worldTheme.buildScene(sceneSpec);
   if (themed?.isObject3D !== true) {
     throw new TypeError('themed world builder must return a THREE.Object3D');
   }
   target.add(themed);
+  if (worldTheme.isWorld3d) syncCityItems(target, sceneSpec, worldTheme);
   if (!worldTheme.isWorld3d) updateRegisteredAgents(sceneSpec.agents || [], {
     content: target,
     actorMap: null,
@@ -210,6 +230,8 @@ export function sceneStaticSignature(sceneSpec) {
     desks: sceneSpec?.desks ?? [],
     smoking: sceneSpec?.smoking ?? null,
     animal_overrides: sceneSpec?.animal_overrides ?? {},
+    // CITY-RENDER-01: a changed city design rebuilds; absent (flag off) the signature is unchanged.
+    ...(sceneSpec?.cityItems ? { cityItems: sceneSpec.cityItems } : {}),
   });
 }
 
@@ -296,6 +318,8 @@ function applyAgentSuppression(state, frame = {}) {
     content: state.content,
     sceneSpec: state.sceneSpec,
     ...frame,
+    now: Number.isFinite(frame.now) ? frame.now
+      : Number.isFinite(state.simulationTimeMs) ? state.simulationTimeMs : 0,
   });
   return true;
 }
@@ -348,6 +372,9 @@ export function createScene(input = {}) {
     canvas,
     antialias: false,
     alpha: false,
+    // DIRECTOR-01: only a requested film boot preserves the buffer so
+    // canvas.captureStream() sees every rendered frame.
+    preserveDrawingBuffer: options.preserveDrawingBuffer === true,
   });
   if (typeof renderer.render !== 'function'
       || typeof renderer.setPixelRatio !== 'function'
@@ -421,6 +448,11 @@ export function createScene(input = {}) {
   resizeRuntime(runtime);
   if (options.sceneSpec) setSceneSpec(options.sceneSpec);
   else if (options.world) setWorld(options.world, options.sources);
+  if (pendingEditProjection) {
+    const queued = pendingEditProjection;
+    pendingEditProjection = null;
+    refreshEditProjection(queued.sources);
+  }
   return runtime;
 }
 
@@ -469,7 +501,12 @@ export function setWorld(world, sources) {
 // Local edit mutations must rebuild customization/entity projections without
 // consuming a newer server poll that is intentionally deferred until thaw.
 export function refreshEditProjection(sources) {
-  if (!runtime) throw new Error('createScene() must be called before refreshEditProjection()');
+  // Customization boot can publish its projection before the WebGL mount has
+  // created the scene. Keep the newest request; createScene() replays it.
+  if (!runtime) {
+    pendingEditProjection = { sources };
+    return null;
+  }
   const frozen = runtime.floorFrozen || floorFrozenFor(runtime);
   const polledWorld = liveWorld(runtime);
   const world = frozen
@@ -663,6 +700,8 @@ export function renderFrame(now = 0) {
   }
   updatePingPongBalls(runtime.content, actorMap, simulationNow,
     runtime.agentsSuppressed || runtime.floorFrozen);
+  updateBasketballBalls(runtime.content, actorMap, simulationNow,
+    runtime.agentsSuppressed || runtime.floorFrozen);
   if ((runtime.floorFrozen || justThawed) && runtime.frozenAgentPoses) {
     restoreAgentPoses(runtime.content, runtime.frozenAgentPoses);
   }
@@ -679,6 +718,11 @@ export function renderFrame(now = 0) {
     content: runtime.content,
   });
   if (!staticAgentPlate(runtime.plateCapabilities)) tickAnimals(runtime.content, delta);
+  // PET-DOG-01: absent unless office_pet_dog installed the adopted-dog layer.
+  if (!staticAgentPlate(runtime.plateCapabilities)) root.OFFICE?.pets?.syncFrame?.({
+    THREE, context, content: runtime.content, sceneSpec: runtime.sceneSpec,
+    camera: runtime.camera, renderer: runtime.renderer, dt: delta, frozen: runtime.floorFrozen,
+  });
   const carsEnabled = runtime.plateCapabilities?.cars !== false;
   if (carsEnabled && !runtime.floorFrozen) tickCarsRoad(runtime.content, delta);
   const vehicleUpdater = runtime.options.updateVehicle || runtime.options.updateVehicles;
@@ -711,7 +755,10 @@ export function renderFrame(now = 0) {
     });
   }
   runtime.perf.markUpdateEnd();
-  runtime.renderer.render(runtime.scene, runtime.camera);
+  // One disposable cutaway hook; truth updates above continue every frame.
+  if (!root.OFFICE?.excursions?.drawFrame({ THREE, renderer: runtime.renderer, palette, world })) {
+    runtime.renderer.render(runtime.scene, runtime.camera);
+  }
   if (justThawed) runtime.frozenAgentPoses = null;
   runtime.perf.markRenderEnd();
   return runtime;
@@ -807,9 +854,14 @@ function scheduleFrame(now) {
   if (!state?.running) return;
   const changed = cameraChanged(state) || polledWorldChanged(state);
   if (changed) wakeRuntime(state);
-  const fullSpeed = (!floorFrozenFor(state) && activeAgentAnimation(state))
+  // DIRECTOR-01: a film boot renders every rAF; the idle stride would drop
+  // frames out of the take. `alwaysRender` is absent (undefined) off-path.
+  const forced = optionValue(state.options.alwaysRender) === true;
+  // DIRECTOR-02: a frozen film take renders every stepped frame too.
+  const filmFrozen = rootObject().officeFilm?.clock?.frozen?.() === true;
+  const fullSpeed = filmFrozen || (!floorFrozenFor(state) && activeAgentAnimation(state))
     || state.fullSpeedFrames > 0;
-  let shouldRender = fullSpeed;
+  let shouldRender = fullSpeed || forced;
   if (!shouldRender) {
     state.idleFrame = (state.idleFrame + 1) % IDLE_FRAME_STRIDE;
     shouldRender = state.idleFrame === 0;

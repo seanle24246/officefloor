@@ -21,6 +21,7 @@ const AGENT_LABEL_HEIGHT = 2.30;
 const AGENT_LABEL_BASE_SCALE = 0.75;
 const AGENT_LABEL_MIN_SCALE = 0.65;
 const AGENT_LABEL_MAX_SCALE = 1.80;
+const LABEL_LIFT_EPSILON_PX = 0.5;
 const ROOM_LABEL_HEIGHT = 0.04;
 const CONTEXT_WARN = 60;
 const CONTEXT_BAD = 85;
@@ -99,6 +100,30 @@ export function agentLabelScale(value) {
   return Math.max(AGENT_LABEL_MIN_SCALE, Math.min(AGENT_LABEL_MAX_SCALE, value));
 }
 
+// Screen-space rectangles in CSS pixels; returns upward offsets by lane.
+export function planLabelLifts(rows) {
+  const ordered = rows.filter(row => row && typeof row.lane === 'string'
+    && [row.x, row.y, row.width, row.height, row.x + row.width, row.y + row.height]
+      .every(Number.isFinite)
+    && row.width > 0 && row.height > 0)
+    .slice().sort((a, b) => a.y - b.y || a.x - b.x
+      || (a.lane < b.lane ? -1 : a.lane > b.lane ? 1 : 0));
+  const placed = [];
+  const lifts = new Map();
+  for (const row of ordered) {
+    let top = row.y;
+    let collision;
+    while ((collision = placed.find(other => row.x < other.x + other.width
+      && other.x < row.x + row.width && top < other.y + other.height
+      && other.y < top + row.height))) {
+      top = collision.y - row.height - 2;
+    }
+    lifts.set(row.lane, row.y - top);
+    placed.push({ ...row, y: top });
+  }
+  return lifts;
+}
+
 function setAgentTransform(node, point, scale) {
   setTransform(node, point);
   const view = node._officeOverlay;
@@ -163,10 +188,11 @@ export function activeSpeech(agent, actor, bubbles, nowSeconds) {
   const activity = actor?.idleActivity;
   const speaks = activity?.line && activity.speaker !== false && (
     (activity.system === 'gamble' && activity.beat === 'reacting')
-    || (activity.system === 'idle' && activity.beat === 'active' && activity.beatAge < 3.5)
+    || (activity.system === 'idle' && activity.beat === 'active' && (activity.kind === 'talk' || activity.beatAge < 3.5))
   );
   if (!speaks) return null;
-  const life = activity.system === 'gamble'
+  const life = activity.kind === 'talk' ? Math.max(0.2, activity.speechLife || 0.2)
+    : activity.system === 'gamble'
     ? Math.max(0.2, 6 - activity.beatAge)
     : Math.max(0.2, 3.5 - activity.beatAge);
   return Object.freeze({ text: String(activity.line), life });
@@ -406,6 +432,35 @@ export function createOverlay(options = {}) {
       setHidden(node, false);
     }
     pruneNodes(agentNodes, seenAgents);
+    // Measure every stack's unlifted box (current box + applied lift), then
+    // write only lifts that changed: steady state is zero style mutations.
+    // Individual CSS translate is outside the stack's label scale; bubbles
+    // stay on their original projected parent and never inherit this offset.
+    const rows = [];
+    for (const [lane, node] of agentNodes) {
+      const view = node._officeOverlay;
+      const stack = view.stack;
+      if (stack.hidden) {
+        if (view.liftHidden !== true) {
+          setStyle(stack, 'translate', '0 0');
+          view.lift = 0;
+          view.liftHidden = true;
+        }
+        continue;
+      }
+      if (!stack.getBoundingClientRect) continue;
+      const box = stack.getBoundingClientRect();
+      rows.push({ lane, x: box.x, y: box.y + (view.lift || 0),
+        width: box.width, height: box.height });
+    }
+    for (const [lane, lift] of planLabelLifts(rows)) {
+      const view = agentNodes.get(lane)._officeOverlay;
+      // Layout boxes round to sub-pixel units; ignore sub-half-pixel jitter.
+      if (view.liftHidden === false && Math.abs(lift - view.lift) <= LABEL_LIFT_EPSILON_PX) continue;
+      setStyle(view.stack, 'translate', `0 ${-lift}px`);
+      view.lift = lift;
+      view.liftHidden = false;
+    }
   }
 
   function renderFrame(nowMilliseconds = now()) {
@@ -416,7 +471,10 @@ export function createOverlay(options = {}) {
     if (!visible) return layer;
 
     const snapshot = world();
-    const rooms = Array.isArray(snapshot?.layout?.rooms) ? snapshot.layout.rooms : [];
+    const layoutRooms = Array.isArray(snapshot?.layout?.rooms) ? snapshot.layout.rooms : [];
+    // Flag-on only: the court behind the building is labelled like a room.
+    const rooms = snapshot?.layout?.court?.label
+      ? [...layoutRooms, snapshot.layout.court] : layoutRooms;
     const agents = Array.isArray(snapshot?.agents) ? snapshot.agents : [];
     const plateMode = plateWebGLEnabled(root);
     const world3d = root.OfficeWebGLMount?.worldTheme?.isWorld3d

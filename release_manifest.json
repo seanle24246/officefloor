@@ -1,5 +1,5 @@
 {
-  "_comment": "Release IDs map to the feature flags enabled for that release. _example_next is documentation only. Releases are written from a signed ship manifest.",
+  "_comment": "Release IDs map to the feature flags enabled for that release. _example_next is documentation only. Releases are written from a signed ship manifest. 0.3.0 = the founder-signed ship manifest (2026-10-18).",
   "0.1.0": [
     "store_live",
     "webgl_floor",
@@ -75,6 +75,37 @@
     "officefloor_service",
     "hosted_sync",
     "public_room_creation",
-    "store_live"
+    "store_live",
+    "agent_activity_events",
+    "agent_drive_home",
+    "agent_spending",
+    "agent_talk",
+    "agent_wallet",
+    "blackjack",
+    "demo_economy",
+    "director_mode",
+    "economy_view",
+    "office_basketball_court",
+    "office_excursions",
+    "office_pet_dog",
+    "store_item_art"
+  ],
+  "0.3.0": [
+    "activity_collapsed_default",
+    "agent_animation",
+    "agent_appearance",
+    "agent_lives",
+    "agent_needs",
+    "city_customization",
+    "living_demo",
+    "multi_floor_v2",
+    "npc_vignettes",
+    "office_calendar",
+    "rave_schedule",
+    "store_aisles_v2",
+    "store_coming_soon",
+    "store_hide_empty_categories",
+    "webgl_floor",
+    "webgl_plate_themes"
   ]
 }

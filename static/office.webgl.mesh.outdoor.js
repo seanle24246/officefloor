@@ -1,5 +1,6 @@
 /* office.webgl.mesh.outdoor.js — blocky outdoor apron fixtures. */
 
+import { mergeStaticParts } from './office.webgl.merge.static.js';
 import { buildOutdoorKit } from './office.webgl.outdoor.kit.js';
 
 const OUTDOOR_KINDS = new Set(['tree', 'shrub', 'planter', 'ashcan', 'grass']);
@@ -50,7 +51,9 @@ function cluster(ctx, options) {
     block.scale.set(spread, heights[index % heights.length], spread);
     block.position.y = lifts[index % lifts.length];
   });
-  return place(result, x, y, z);
+  // A foliage cluster is static and single-material: bake its blocks into one
+  // draw — the same blocks, one call instead of `count`.
+  return mergeStaticParts(ctx, place(result, x, y, z));
 }
 
 function grassLayer(ctx, options) {

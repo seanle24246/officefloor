@@ -29,16 +29,57 @@ function attachTarget(lane) {
 // INSPECTOR_GROUPS_START
 const INSPECTOR_GROUPS = Object.freeze([
   {"anchor":"inspector-identity","label":"identity","rows":["lane","engine"]},
-  {"anchor":"inspector-work","label":"work","rows":["status","errand","next","branch","ready","blockers","decision","wait age","commits"]},
-  {"anchor":"inspector-health","label":"health","rows":["inbox","ctx used","pid","terminal"]}
+  {"anchor":"inspector-work","label":"work","rows":["status","errand","next","branch","ready","blockers","decision","wait age","commits","wallet","spend"]},
+  {"anchor":"inspector-health","label":"health","rows":["inbox","ctx used","pid","activity","terminal","vitals"]}
 ]);
 // INSPECTOR_GROUPS_END
+
+const ACTIVITY_TOOL_TEXT = Object.freeze({
+  read: 'reading files', search: 'searching', edit: 'editing', run: 'running a command',
+  net: 'on the web', spawn: 'running a subagent', other: 'using a tool',
+});
+
+// Present only when the server's agent_activity_events flag put it on the record.
+function activityText(a) {
+  if (!a.activity) return null;
+  const age = typeof a.activity_age_min === 'number' ? ` · ${a.activity_age_min}m ago` : '';
+  if (a.activity === 'working') {
+    return `working${a.activity_tool ? ` · ${ACTIVITY_TOOL_TEXT[a.activity_tool] || 'using a tool'}` : ''}${age}`;
+  }
+  if (a.activity === 'idle') return `idle (turn ended)${age}`;
+  return 'unknown — no hook events';
+}
+
+// AGENT-SPEND-01: spendable = earned − spent, from the server ledger. Null (row
+// hidden) unless agent_spending is on and the ledger answered for this lane.
+function spendText(lane) {
+  const book = globalThis.OfficeVendors?.agentBook?.(lane);
+  if (!book) return null;
+  const usd = (value) => (Number.isSafeInteger(value) ? `$${value.toLocaleString('en-US')}` : '?');
+  const last = book.last_purchase;
+  return esc(`${usd(book.balance_agent)} spendable (${usd(book.earned_agent)} earned − ${usd(book.spent_agent)} spent)`
+    + (book.hold ? ' · HELD' : '')
+    + (last ? ` · last: ${last.label || last.item} @ ${last.vendor} −$${last.price_agent}` : ' · no purchases yet'))
+    + ' · LEDGER';
+}
 
 function sectionHtml(section, rows) {
   return `<div id="${section.anchor}" class="inspector-section" data-inspector-section="${section.label}">`
     + `<dt class="inspector-section-heading">${section.label}</dt><dd class="inspector-section-spacer"></dd>`
     + section.rows.filter((k) => rows[k] !== null).map((k) => `<dt data-k="${k}">${k}</dt><dd data-k="${k}">${rows[k]}</dd>`).join('')
     + '</div>';
+}
+
+function vitalsHtml(agent) {
+  const profile = globalThis.OfficeProfile;
+  if (globalThis.OfficeFeatureFlags?.enabled?.('agent_needs') !== true || !profile) return null;
+  const view = profile.profileFor(agent, profile.liveVitalsFor(agent.lane));
+  return `<div class="ins-vitals"><span>🎭 Fiction · ${view.vitalsLive ? 'live' : 'initial snapshot'}</span>`
+    + ['hunger', 'thirst', 'tiredness', 'drunkenness', 'wired', 'bladder'].map((key) => {
+      const value = view.vitals[key];
+      const amount = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : null;
+      return `<label>${key}<meter min="0" max="1" value="${amount ?? 0}" aria-label="${key} (fiction)"></meter><span>${amount === null ? 'unknown' : Math.round(amount * 100) + '%'}</span></label>`;
+    }).join('') + '</div>';
 }
 
 function renderInspector() {
@@ -104,6 +145,7 @@ function renderInspector() {
       : a.dirty_files ? ` · ${a.dirty_files} dirty` : ''}`
     : unknown;
   const rows = {
+    vitals: vitalsHtml(a),
     lane: a.lane ? esc(a.lane) : unknown,
     status,
     errand: a.errand ? esc(a.errand) : unknown,
@@ -117,9 +159,17 @@ function renderInspector() {
     decision: a.decision_needed ? tag(a.decision_needed, 'warn') : 'none',
     'wait age': typeof a.status_mins === 'number' ? `${a.status_mins}m (OUTBOX proxy)` : unknown,
     commits,
+    wallet: globalThis.OfficeFeatureFlags?.enabled?.('agent_wallet') === true
+      ? (Number.isSafeInteger(a.wallet_usd) && a.wallet_usd >= 0
+          && Number.isSafeInteger(a.lines_shipped) && a.lines_shipped >= 0
+        ? `$${a.wallet_usd.toLocaleString('en-US')} · ${a.lines_shipped.toLocaleString('en-US')} lines shipped · MEASURED`
+        : (OFFICE.state?.world?.mode === 'demo' ? 'demo · not measured' : 'unavailable · MEASURED'))
+      : null,
+    spend: spendText(a.lane),
     inbox,
     'ctx used': ctx,
     pid: a.pid || (a.liveness_known === false || a.alive ? unknown : '—'),
+    activity: activityText(a),
     terminal: a.tmux_session === a.lane
       ? `<code>tmux attach -t =${esc(a.lane)}</code> <button class="btn" id="attachTerminal">ATTACH</button>`
       : null,

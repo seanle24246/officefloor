@@ -22,44 +22,61 @@ function activate(options = {}) {
     }
     if (ui && typeof ui.sync === 'function') ui.sync();
   };
-  const live = wire.createDirector({
+  let surface = surfaceApi;
+  const createRuntime = () => wire.createDirector({
     ...options,
     surface: surfaceApi,
     readContinueEnabled,
     onStateChange,
   });
-  if (ui) ui.bind(live);
+  let runtime = createRuntime();
+  let suspended = false;
 
   // SEAM 1 (Encounters slice 1 + R4): cast admissions route through the UNIFIED fiction
-  // director under the npc_vignettes kill-switch (default OFF — founder R4 ruling: cast
-  // hidden unless asked). The cast director is STILL constructed and exported either way,
+  // director under the npc_vignettes kill-switch. The cast director is constructed
+  // and exported either way,
   // because the WebGL vig surface requires boot.live for its paint/setSurface contract —
   // the flag gates observation/admissions, not the plumbing. Headless fallback (no unified
-  // director): legacy unconditional wrap, keeping node gates and probes green.
+  // director): the same guarded observation wraps applyState directly.
   const gl = typeof globalThis !== 'undefined' ? globalThis : {};
   const unified = options.director !== undefined
     ? options.director
     : (gl.NpcVigDirector && gl.NpcVigDirector.liveDirector && gl.NpcVigDirector.liveDirector());
   const flags = options.flags || gl.OfficeFeatureFlags;
-  // VIGTHEME FIX-1: the themed-office rule now lives in ONE predicate on the
-  // unified fiction director, so the cast, the UFO and the story arcs cannot
-  // drift apart. What stood here was a WebGL-shaped guard (webgl_floor +
-  // webgl_plate_themes + scene.webglEnabled) that let Tokyo admit vignettes
-  // because its plate is not WebGL-enabled — even though the Tokyo scene itself
-  // declares capabilities.vignettes:false. Absent predicate => allowed: a
-  // headless probe never loads director.js and has no OFFICE.theme at all, so
-  // the predicate would answer true there anyway, and the existing npcvig gates
-  // stay byte-identical.
-  const plateVignettesAllowed = options.fictionAllowed !== undefined
-    ? options.fictionAllowed !== false
+  const fictionAllowed = () => options.fictionAllowed !== undefined
+    ? (typeof options.fictionAllowed === 'function' ? options.fictionAllowed() : options.fictionAllowed) === true
     : (typeof gl.NpcVigDirector?.fictionAllowed === 'function'
-      ? gl.NpcVigDirector.fictionAllowed() === true
-      : true);
+      ? gl.NpcVigDirector.fictionAllowed() === true : true);
+  function suspend() {
+    suspended = true;
+    runtime.release?.();
+  }
+  function ready() {
+    if (!fictionAllowed()) { suspend(); return false; }
+    if (suspended) {
+      // Fresh admissions on return, including the same forced replay URL.
+      runtime = createRuntime();
+      runtime.setSurface?.(surface);
+      suspended = false;
+    }
+    return true;
+  }
+  const live = Object.freeze({
+    observe(next) { if (ready()) return runtime.observe(next); },
+    paint(now) { return ready() ? runtime.paint(now) : 0; },
+    release() {
+      if (!fictionAllowed()) return suspend();
+      return runtime.release();
+    },
+    setSurface(value) { surface = value; return runtime.setSurface(value); },
+    inspect: () => runtime.inspect(),
+    continueNext: () => runtime.continueNext(),
+  });
+  if (ui) ui.bind(live);
   const castEnabled = flags && typeof flags.enabled === 'function'
-    && flags.enabled('npc_vignettes') === true
-    && plateVignettesAllowed;
+    && flags.enabled('npc_vignettes') === true;
   if (castEnabled && unified && typeof unified.register === 'function') {
-    unified.register({ name: 'cast', flag: 'npc_vignettes', observe: (next) => live.observe(next) });
+    unified.register({ name: 'cast', flag: 'npc_vignettes', observe: (next) => live.observe(next), release: () => live.release?.() });
   } else if (castEnabled) {
     const applyState = state.applyState;
     state.applyState = function applyStateWithNpcFloor(next) {

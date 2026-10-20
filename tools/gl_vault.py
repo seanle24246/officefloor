@@ -208,15 +208,21 @@ def _blob_bootstrap(asset_map: dict[str, str]) -> str:
     return runtime + injection
 
 
-def vault(static: Path, encoding: str = "blob") -> dict[str, object]:
-    """Return deterministic vault JSON, import-map data, and bootstrap JS."""
+def vault(static: Path, encoding: str = "blob", transform=None) -> dict[str, object]:
+    """Return deterministic vault JSON, import-map data, and bootstrap JS.
+
+    `transform(name, source) -> source` lets a bake specialize live-only modules (CITY-EDIT-02: no network in bakes).
+    """
     root = _static_root(static)
     if encoding not in {"blob", "data"}:
         raise ValueError(f"unsupported GL vault encoding: {encoding!r}")
     modules: dict[str, str] = {}
     resolved: set[str] = set()
     for name in _module_names(root):
-        rewritten, specifiers = rewrite(_source(root, name), name)
+        source = _source(root, name)
+        if transform is not None:
+            source = transform(name, source)
+        rewritten, specifiers = rewrite(source, name)
         _assert_rewritten(rewritten, name)
         modules[VAULT_PREFIX + name] = rewritten
         resolved.update(specifiers)

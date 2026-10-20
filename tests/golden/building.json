@@ -286,6 +286,12 @@
     ],
     "doors": [
       {
+        "edge": "w",
+        "label": "RESTROOM",
+        "x": 32,
+        "y": 21
+      },
+      {
         "edge": "s",
         "label": "TO THE FLOOR",
         "x": 6,
@@ -621,7 +627,7 @@
         "id": 24,
         "type": "tree",
         "x": 34.4,
-        "y": 21.0
+        "y": 17.0
       },
       {
         "id": 25,
@@ -658,6 +664,45 @@
         "type": "planter",
         "x": 27.0,
         "y": 27.0
+      },
+      {
+        "activity_target": {
+          "x": 33.06,
+          "y": 20.4
+        },
+        "d": 1.72,
+        "family": "restroom",
+        "id": "restroom-stall-0",
+        "passable": true,
+        "stall_id": "restroom-stall-0",
+        "type": "restroom-stall",
+        "w": 1.72,
+        "x": 32.2,
+        "y": 19.2
+      },
+      {
+        "activity_target": {
+          "x": 35.06,
+          "y": 20.4
+        },
+        "d": 1.72,
+        "family": "restroom",
+        "id": "restroom-stall-1",
+        "passable": true,
+        "stall_id": "restroom-stall-1",
+        "type": "restroom-stall",
+        "w": 1.72,
+        "x": 34.2,
+        "y": 19.2
+      },
+      {
+        "d": 1.9,
+        "family": "restroom",
+        "id": "restroom-divider",
+        "type": "restroom-divider",
+        "w": 0.12,
+        "x": 34.0,
+        "y": 19.0
       }
     ],
     "rooms": [
@@ -710,7 +755,7 @@
       {
         "animal_zone": true,
         "desk_cols": 0,
-        "h": 24,
+        "h": 19,
         "id": "paddock",
         "label": "THE PADDOCK",
         "outdoor": true,
@@ -718,6 +763,15 @@
         "w": 4,
         "x": 32,
         "y": 0
+      },
+      {
+        "h": 5,
+        "id": "restroom",
+        "label": "RESTROOM",
+        "tint": "#486365",
+        "w": 4,
+        "x": 32,
+        "y": 19
       },
       {
         "h": 5,

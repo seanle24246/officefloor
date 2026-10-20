@@ -619,10 +619,15 @@
     const doors = Array.isArray(sceneSpec?.doors) ? sceneSpec.doors : [];
     const existing = perimeterRoomWalls(rooms, doors, envelope);
     const entrance = smokingEntrance(sceneSpec?.smoking, envelope);
-    const perimeterOpenings = { e: [], s: [] };
+    const perimeterOpenings = { n: [], e: [], s: [] };
     for (const door of doors) {
       const edge = doorEdge(door);
-      if (edge === 'e' && touches(doorCoordinate(door, 'x'), envelope.width)) {
+      // A back door in a room's north wall on the building's north edge
+      // (flag-on court) must stay open; today's floor has none.
+      if (edge === 'n' && touches(doorCoordinate(door, 'y'), 0)) {
+        const start = doorCoordinate(door, 'x');
+        if (start !== null) perimeterOpenings.n.push({ start, end: start + doorSpan(door) });
+      } else if (edge === 'e' && touches(doorCoordinate(door, 'x'), envelope.width)) {
         const start = doorCoordinate(door, 'y');
         if (start !== null) perimeterOpenings.e.push({ start, end: start + doorSpan(door) });
       } else if (edge === 's' && touches(doorCoordinate(door, 'y'), envelope.height)) {
@@ -632,6 +637,8 @@
     }
     const covered = {
       ...existing,
+      ...(perimeterOpenings.n.length
+        ? { n: Object.freeze([...(existing.n || []), ...perimeterOpenings.n]) } : {}),
       e: Object.freeze([...(existing.e || []), ...perimeterOpenings.e]),
       s: Object.freeze([
         ...(existing.s || []),
