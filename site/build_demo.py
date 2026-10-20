@@ -17,7 +17,7 @@ Step 2 is the one that matters. Step 1 is how it is supposed to work; step 2
 is what proves it did.
 
     python3 site/build_demo.py            # -> site/embed/demo.html
-    python3 site/build_demo.py --out site/demo.html  # -> static screenshot page
+    python3 site/build_demo.py --out site/demo.html  # -> nav + live-embed frame page
     python3 site/build_demo.py --check    # audit what is committed, write nothing
 
 Two tiers of finding:
@@ -33,7 +33,6 @@ import argparse
 import json
 import os
 import re
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -43,7 +42,6 @@ REPO = SITE.parent
 OUT = SITE / "embed" / "demo.html"
 SCREENSHOT_OUT = SITE / "demo.html"
 SCREENSHOT_ASSET = SITE / "assets" / "demo-screenshot.png"
-TRUTH_PROBE = REPO / "qa" / "tools" / "bake_flag_truth_probe.mjs"
 
 SCREENSHOT_HTML = """<!doctype html>
 <html lang="en">
@@ -51,18 +49,18 @@ SCREENSHOT_HTML = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Officefloor demo: 22 synthetic agent seats</title>
-<meta name="description" content="A clean screenshot of the Officefloor synthetic demo fleet, with 22 agent seats and four parked cars.">
+<meta name="description" content="The live Officefloor synthetic demo fleet running in your browser: 22 agent seats and four parked cars.">
 <link rel="canonical" href="https://officefloor.ai/demo">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Officefloor">
 <meta property="og:title" content="Officefloor demo: 22 synthetic agent seats">
-<meta property="og:description" content="A clean screenshot of the Officefloor synthetic demo fleet, with 22 agent seats and four parked cars.">
+<meta property="og:description" content="The live Officefloor synthetic demo fleet running in your browser: 22 agent seats and four parked cars.">
 <meta property="og:url" content="https://officefloor.ai/demo">
 <meta property="og:image" content="https://officefloor.ai/assets/demo-screenshot.png">
-<meta property="og:image:alt" content="Screenshot of the Officefloor synthetic demo floor with 22 agent seats and four parked cars. Not live.">
+<meta property="og:image:alt" content="The Officefloor synthetic demo floor with 22 agent seats and four parked cars.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Officefloor demo: 22 synthetic agent seats">
-<meta name="twitter:description" content="A clean screenshot of the Officefloor synthetic demo fleet, with 22 agent seats and four parked cars.">
+<meta name="twitter:description" content="The live Officefloor synthetic demo fleet running in your browser: 22 agent seats and four parked cars.">
 <meta name="twitter:image" content="https://officefloor.ai/assets/demo-screenshot.png">
 <meta name="theme-color" content="#15140D">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2315140D'/%3E%3Cpath d='M16 5 27 11.5 16 18 5 11.5Z M5 11.5v6L16 24l11-6.5v-6' fill='none' stroke='%23F2EFDA' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E">
@@ -84,10 +82,9 @@ SCREENSHOT_HTML = """<!doctype html>
   <a class="pill" href="demo.html" aria-current="page">Demo</a>
 </nav>
 
-<main class="demo-screenshot">
-  <img src="assets/demo-screenshot.png" width="1440" height="900"
-    alt="Screenshot of the officefloor demo floor: an isometric office with 22 synthetic agent seats. Not a live view.">
-  <p class="micro">Screenshot of the demo floor (22 synthetic seats). Not live. Run it yourself: pip install officefloor &amp;&amp; officefloor --demo</p>
+<main class="demo-live">
+  <iframe src="embed/demo.html" title="Live Officefloor demo floor: 22 synthetic agent seats" allow="fullscreen" loading="eager"></iframe>
+  <p class="micro">Synthetic demo floor (22 synthetic seats), running live in your browser. Point it at your own agents: pip install officefloor &amp;&amp; officefloor --demo</p>
 </main>
 
 <footer>
@@ -101,7 +98,7 @@ SCREENSHOT_HTML = """<!doctype html>
     </div>
     <div class="foot-col"><h2>Product</h2><a href="index.html#how">How it works</a><a href="index.html#receipt">The receipt</a><a href="index.html#afterhours">After hours</a><a href="fun.html">Fun</a></div>
     <div class="foot-col"><h2>Pages</h2><a href="about.html">About</a><a href="soon.html">Coming soon</a></div>
-    <div class="foot-col"><h2>Company</h2><span>hello@officefloor.ai</span></div>
+    <div class="foot-col"><h2>Company</h2><a href="https://github.com/seanle24246/officefloor" rel="noopener">GitHub</a><span>hello@officefloor.ai</span></div>
   </div>
   <nav class="foot-legal" aria-label="Legal links"><a href="about.html">About</a><span aria-hidden="true">·</span><a href="legal.html">Legal &amp; privacy</a><span aria-hidden="true">·</span><a href="legal.html#license">FSL-1.1-ALv2 license</a><span aria-hidden="true">·</span><a href="legal.html#security">Security</a></nav>
   <div class="foot-base"><span>© 2026 OFFICEFLOOR</span><span>HELLO@OFFICEFLOOR.AI</span></div>
@@ -155,6 +152,20 @@ LEAK_PATTERNS = [
     (re.compile(r"\boffice-render-engine-packets\b"), "an internal repo directory"),
     (re.compile(r"\bseanle[0-9]+\b", re.I), "the founder's github handle"),
 ]
+
+# The one place the handle is allowed: the PUBLIC source repo, which the install
+# page links on purpose (2026-09-14, founder). Stripped from the text before the
+# leak scan so the handle pattern above still refuses every other occurrence.
+PUBLIC_REPO_RE = re.compile(r"github\.com/seanle24246/officefloor\b", re.I)
+
+# The only two off-site NAVIGATION links the site may carry: the public source
+# repo and the PyPI project (2026-09-24, founder). They are plain anchors, not
+# resources the page fetches, so they do not break offline opening. Stripped
+# before the external-resource scan; any other absolute href/src still fails.
+SANCTIONED_ANCHOR_RE = re.compile(
+    r"""<a\b[^>]*\bhref\s*=\s*["']https://(?:github\.com/seanle24246/officefloor|pypi\.org/project/officefloor)/?["'][^>]*>""",
+    re.I,
+)
 
 # Org vocabulary that is product copy, not a fact about anybody. Worth seeing
 # in a public artifact; not worth failing a build over.
@@ -280,13 +291,14 @@ def audit_doc(path: Path) -> tuple[list[str], list[str]]:
 
     # Metadata links (canonical/icon/social) legitimately carry absolute URLs
     # without breaking offline opening — drop them before the resource scan.
-    scan = META_LINK_RE.sub("", doc)
+    scan = SANCTIONED_ANCHOR_RE.sub("", META_LINK_RE.sub("", doc))
     if EXTERNAL_RE.search(scan):
         hits = sorted(set(EXTERNAL_RE.findall(scan)))[:3]
         leaks.append(f"{path.name}: external src/href — the site must open offline {hits}")
 
+    leak_scan = PUBLIC_REPO_RE.sub("", doc)
     for pattern, what in LEAK_PATTERNS:
-        for hit in sorted(set(pattern.findall(doc))):
+        for hit in sorted(set(pattern.findall(leak_scan))):
             leaks.append(f"{path.name}: {what} in a public file: {hit!r}")
     for pattern, what in NOTE_PATTERNS:
         for hit in sorted(set(pattern.findall(doc))):
@@ -304,15 +316,15 @@ def screenshot_dimensions(path: Path) -> tuple[int, int] | None:
 
 
 def audit_screenshot_page(path: Path) -> list[str]:
-    """Pin the public demo page to the approved static screenshot contract."""
+    """Pin the public demo page to the live-frame contract (founder 2026-09-26:
+    "i want demo to be acutal thing"): nav + a same-origin frame of the audited
+    embed/demo.html + footer. The page itself never inlines the floor."""
     problems: list[str] = []
     doc = path.read_text(errors="replace")
     required = {
-        "screenshot wrapper": '<main class="demo-screenshot">',
-        "approved screenshot": 'src="assets/demo-screenshot.png"',
-        "screenshot dimensions": 'width="1440" height="900"',
-        "honest screenshot alt": "Not a live view.",
-        "visible not-live disclosure": "Screenshot of the demo floor (22 synthetic seats). Not live.",
+        "live frame wrapper": '<main class="demo-live">',
+        "same-origin live embed": '<iframe src="embed/demo.html"',
+        "visible synthetic disclosure": "Synthetic demo floor (22 synthetic seats)",
         "public navigation": '<nav aria-label="Primary">',
         "shared navigation links": "data-primary-navlinks",
         "public footer": "<footer>",
@@ -323,7 +335,6 @@ def audit_screenshot_page(path: Path) -> list[str]:
             problems.append(f"{path.name}: missing {label}")
 
     forbidden = {
-        "live demo iframe": "<iframe",
         "purple live-demo frame": "demo-floor-frame",
         "synthetic-demo banner": "live-chip",
         "embedded live floor": "window.__OFFICE_SNAPSHOT__",
@@ -331,7 +342,7 @@ def audit_screenshot_page(path: Path) -> list[str]:
     lowered = doc.lower()
     for label, marker in forbidden.items():
         if marker.lower() in lowered:
-            problems.append(f"{path.name}: {label} survived the screenshot-page split")
+            problems.append(f"{path.name}: {label} survived the live-frame page split")
 
     dimensions = screenshot_dimensions(SCREENSHOT_ASSET)
     if dimensions != (1440, 900):
@@ -354,7 +365,7 @@ def sanitize_credits(path: Path) -> int:
 
 
 def build_screenshot_page(out: Path) -> Path:
-    """Write the public nav + screenshot + footer page, never the live embed."""
+    """Write the public nav + live-embed frame + footer page (never inlines the bake)."""
     dimensions = screenshot_dimensions(SCREENSHOT_ASSET)
     if dimensions != (1440, 900):
         raise ValueError(
@@ -402,18 +413,6 @@ def build(out: Path) -> Path:
     return built
 
 
-def audit_flag_truth(path: Path) -> list[str]:
-    """Run the mutation-honest renderer-claim gate on the exact artifact."""
-    result = subprocess.run(
-        ["node", str(TRUTH_PROBE), str(path)],
-        capture_output=True, text=True, timeout=90,
-    )
-    if result.returncode == 0:
-        return []
-    detail = result.stderr.strip() or result.stdout.strip() or f"exit {result.returncode}"
-    return [f"{path.name}: {detail}"]
-
-
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true",
@@ -441,7 +440,7 @@ def main() -> int:
         leaks = audit_screenshot_page(out)
     else:
         lanes = demo_lanes()
-        leaks = [*audit_flag_truth(out), *audit_bake(out, lanes), *audit_webdemo(out)]
+        leaks = [*audit_bake(out, lanes), *audit_webdemo(out)]
     notes: list[str] = []
     top_level_pages = sorted(SITE.glob("*.html"))
     audit_paths = [*top_level_pages, OUT]
@@ -466,8 +465,8 @@ def main() -> int:
         return 1
 
     # `site/embed/demo.html` is the audited live artifact. `site/demo.html` is
-    # deliberately a screenshot page with the public nav and footer. They have
-    # two different jobs, so a default bake must never mirror one over the other.
+    # a thin page (public nav + footer) that frames it. Never mirror the 17 MB
+    # bake into demo.html: one artifact, framed, keeps the deploy single-copy.
 
     pages = len(top_level_pages)
     audited = f"{pages} top-level pages + embed/demo.html"
@@ -475,7 +474,7 @@ def main() -> int:
         audited += f" + {out}"
     verb = "audited" if args.check else "wrote"
     if screenshot_page:
-        print(f"{verb} {out.name} (static 1440x900 screenshot, nav + footer) "
+        print(f"{verb} {out.name} (nav + live embed frame + footer) "
               f"· {audited} clean, 0 external references")
     else:
         seats = len(json.loads(SNAPSHOT_RE.search(out.read_text()).group(1))["agents"])

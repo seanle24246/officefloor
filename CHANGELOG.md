@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.0 — unreleased
+
+- Weekly office calendar: the clock pill names the current or next event, a
+  "This week" list sits in the HUD, idle agents gather for birthday cake, and
+  Beer o'clock makes the beer break more likely when a tap is placed.
+- Agent lives: a Life tab in the Agent Manager and a rate-limited bank of idle
+  speech bubbles.
+- The demo floor (`officefloor --demo` and the web demo) runs a fictional
+  economy: the office and every agent have a wallet, agents buy food, and the
+  top bar shows the demo office balance labelled DEMO. Live floors are
+  unchanged and never show demo money.
+- Multi-floor buildings: each floor keeps its own office book and seat
+  earnings, and an elevator rides the floor switcher. Single-floor offices are
+  unchanged.
+- City furnishing in the TOKYO3d office: items you own can be placed on the
+  city's grid with Furnish, take on the city palette, and agents walk around
+  them. TOKYO3d needs a source checkout (its scene is not in the wheel).
+- Marketplace preview: a Themes aisle and search across Featured; empty
+  categories are hidden. Buying is still coming soon.
+- The floor activity panel starts collapsed; a saved preference still wins.
+- The office has a restroom with two stalls.
+
 ## 0.2.4 — 2026-10-08
 
 - Idle agents play ping-pong: they walk to a placed table, wait for a partner,
