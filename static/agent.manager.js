@@ -230,8 +230,7 @@ function fictionMeter(label, value, max) {
 }
 function personalityView(entry) {
   const profile = root.OfficeProfile;
-  if ((root.OfficeFeatureFlags?.enabled?.('agent_needs') !== true
-      && root.OfficeFeatureFlags?.enabled?.('agent_dating') !== true) || !profile) return null;
+  if (root.OfficeFeatureFlags?.enabled?.('agent_needs') !== true || !profile) return null;
   const view = profile.profileFor(entry, profile.liveVitalsFor(entry.lane));
   const content = node('div', 'am-fiction-grid');
   const traits = node('div', 'am-personality');
@@ -241,12 +240,6 @@ function personalityView(entry) {
   const mouth = node('div', 'am-mouth');
   mouth.append(fictionMeter('MOUTH', view.mouth, 10), node('p', 'am-context-note', 'Separate from the six-stat personality budget.'));
   traits.append(mouth);
-  if (root.OfficeFeatureFlags?.enabled?.('agent_dating') === true) {
-    const horny = node('div', 'am-horny');
-    horny.append(fictionMeter('HORNY', root.OfficeStats.hornyFor(entry.lane), 10),
-      node('p', 'am-context-note', 'Fictional romance drive · separate from the six-stat budget.'));
-    traits.append(horny);
-  }
   const vitals = node('div', 'am-live-vitals');
   vitals.append(node('h4', '', 'Vitals'), node('p', 'am-vitals-source', view.vitalsLive ? 'Live · session only' : 'Initial snapshot · live vitals unavailable'));
   for (const key of profile.NEED_IDS) vitals.append(fictionMeter(title(key), view.vitals[key], 1));
@@ -254,7 +247,7 @@ function personalityView(entry) {
   return panel('🎭 Fiction · personality & vitals', content, 'am-fiction-panel');
 }
 // AGENT-LIVES-01: the Life tab. Mood and moments are agent_lives; the needs
-// bars need agent_needs; friends and the crush need agent_dating. Each section
+// bars need agent_needs. Each section
 // appears only when its source flag is on, and nothing here reads measured work.
 function lifeBar(label, value) {
   const amount = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : null;
@@ -282,35 +275,6 @@ const LIFE_FRIEND_RANK = Object.freeze({
   romance: 5, dating: 4, crush: 3, close: 2.5, friend: 2, friends: 2,
   acquaintances: 1, acquaintance: 1, strangers: 0.5, tense: 0.25, beef: 0.1,
 });
-function lifeSocialView(entry) {
-  const existing = world()?.social_graph || world()?.relationships || {};
-  const graph = root.OfficeDatingRuntime?.graphFor(existing, Date.now()) || existing;
-  const rows = social.relationships(entry.lane, graph) || [];
-  const ranked = [...rows].sort((left, right) => {
-    const rightRank = LIFE_FRIEND_RANK[right.tier] ?? 0;
-    const leftRank = LIFE_FRIEND_RANK[left.tier] ?? 0;
-    if (rightRank !== leftRank) return rightRank - leftRank;
-    return String(left.other).localeCompare(String(right.other));
-  });
-  const content = node('div');
-  const friends = ranked.filter((row) => !['crush', 'romance', 'dating'].includes(row.tier)).slice(0, 3);
-  const friendList = node('div', 'am-life-friends');
-  if (!friends.length) friendList.append(empty('No friendships reported in the session graph.'));
-  for (const friend of friends) {
-    const row = node('div', 'am-life-friend');
-    row.append(node('span', '', safe(friend.other)), node('span', 'am-life-tier', title(friend.tier)));
-    friendList.append(row);
-  }
-  content.append(friendList);
-  const crush = ranked.find((row) => ['crush', 'romance', 'dating'].includes(row.tier));
-  if (crush) {
-    const row = node('div', 'am-life-crush');
-    row.append(node('span', '', '\u{1F49C}'), node('span', '', `Crush · ${safe(crush.other)}`),
-      truthChip('fiction', crush.one_sided ? 'one-sided' : 'mutual'));
-    content.append(row);
-  }
-  return panel('Friends & crush', content, 'am-life-social');
-}
 function lifeMomentsView(moments) {
   const list = node('div', 'am-life-moments');
   if (!moments.length) list.append(empty('No fiction moments captured yet.'));
@@ -341,7 +305,6 @@ function lifeView(entry) {
     needs.append(node('p', 'am-context-note', live ? 'Live · session only' : 'Initial snapshot · live vitals unavailable'));
     stack.append(needs);
   }
-  if (flags?.enabled?.('agent_dating') === true) stack.append(lifeSocialView(entry));
   stack.append(lifeMomentsView(moments));
   return stack;
 }
@@ -563,7 +526,7 @@ function looksTabView(entry) {
 function socialView(entry) {
   const classInfo = social.socialClass();
   const existingGraph = world()?.social_graph || world()?.relationships || {};
-  const graph = root.OfficeDatingRuntime?.graphFor(existingGraph, Date.now()) || existingGraph;
+  const graph = existingGraph;
   const relationships = social.relationships(entry.lane, graph);
   const participation = social.participation(entry.social || entry);
   const recent = social.recentFiction(entry.social || entry);
@@ -660,7 +623,7 @@ function renderContext(entry) {
     ])), contextSection('Preview', node('p', 'am-context-note', 'This read-only view projects effective policy. It does not alter work, permissions, tests, security, or task instructions.')));
   } else if (lifeTab) {
     content.append(contextSection('Fiction boundary', truthChip('fiction', 'session only')),
-      contextSection('Sources', node('p', 'am-context-note', 'Mood and moments are session fiction. Needs bars come from agent_needs; friends and the crush come from agent_dating.')));
+      contextSection('Sources', node('p', 'am-context-note', 'Mood and moments are session fiction. Needs bars come from agent_needs.')));
   } else if (activeTab === 'looks') {
     content.append(contextSection('Scope', definition([
       ['Agent', identity.name], ['Lane', identity.lane], ['Persistence', 'This browser'], ['Option source', 'Floor renderer'],

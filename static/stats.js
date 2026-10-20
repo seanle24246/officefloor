@@ -109,14 +109,6 @@
     return MOUTH_MIN + (hash % 5) + ((hash >>> 8) % 6);
   }
 
-  // HORNY is deliberately outside STAT_IDS and its point budget, mirroring
-  // MOUTH: it feeds only the fictional dating math, never the six bars.
-  function hornyFor(lane) {
-    if (typeof lane !== 'string') throw new TypeError('lane must be a string');
-    const hash = fnv1a(`${lane}:horny`);
-    return 1 + (hash % 5) + ((hash >>> 8) % 6);
-  }
-
   function assertProfanityLevel(level) {
     if (!Number.isInteger(level) || level < PROFANITY.CLEAN
         || level > PROFANITY.UNFILTERED) {
@@ -216,7 +208,6 @@
     fnv1a,
     rollStat,
     mouthFor,
-    hornyFor,
     effectiveProfanityLevel,
     profanityFor,
     isSessionOnlyProfanityLevel,
