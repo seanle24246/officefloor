@@ -241,7 +241,7 @@
     overlayTitle.id = 'storePreviewTitle';
     const status = make('p', 'store-preview-status', 'COMING SOON');
     const copy = make('p', 'store-preview-copy',
-      'A first look at the catalog. Shopping and customization are not available yet.');
+      'A first look at the catalog. Buying is coming soon. Edit Office and Furnish already work with what the office owns.');
     const close = button('store-preview-close', '✕');
     close.setAttribute('aria-label', 'Close marketplace');
     overlay.append(overlayTitle, status, copy, close);

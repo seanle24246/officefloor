@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 — unreleased
+## 0.3.0 — 2026-10-20
 
 - Weekly office calendar: the clock pill names the current or next event, a
   "This week" list sits in the HUD, idle agents gather for birthday cake, and
