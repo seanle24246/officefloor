@@ -390,6 +390,15 @@ function sameFit(left, right) {
 }
 
 function looksTabView(entry) {
+  // LOOKS-UI-01: office.am.wardrobe.js installs OfficeWardrobeUI only with agent_wardrobe on.
+  if (root.OfficeWardrobeUI) {
+    return root.OfficeWardrobeUI.view(entry, {
+      name: safe(core.agentIdentity(entry).name, entry.lane),
+      setDispose(fn) { disposeLooks = fn; },
+      close,
+      fallbackPreview(host, appearance) { host.replaceChildren(avatar(entry, 144, appearance)); },
+    });
+  }
   const initial = looks.looksView(entry);
   let draft = {
     ...initial.appearance,
@@ -624,6 +633,10 @@ function renderContext(entry) {
   } else if (lifeTab) {
     content.append(contextSection('Fiction boundary', truthChip('fiction', 'session only')),
       contextSection('Sources', node('p', 'am-context-note', 'Mood and moments are session fiction. Needs bars come from agent_needs.')));
+  } else if (activeTab === 'looks' && root.OfficeWardrobeUI) {
+    content.append(contextSection('Scope', definition([
+      ['Agent', identity.name], ['Lane', identity.lane], ...root.OfficeWardrobeUI.contextRows(),
+    ])), contextSection('Save', node('p', 'am-context-note', 'Changes stay a live preview until Save. Clothes the agent does not own yet preview freely; saving buys them with the agent\'s own money.')));
   } else if (activeTab === 'looks') {
     content.append(contextSection('Scope', definition([
       ['Agent', identity.name], ['Lane', identity.lane], ['Persistence', 'This browser'], ['Option source', 'Floor renderer'],

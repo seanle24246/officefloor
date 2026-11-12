@@ -9,6 +9,23 @@ const BAR_ID = 'officeHudTruthBar';
 const CLOCK_ID = 'officeHudClock';
 const CLOCK_TICK_MS = 1000;
 let clockTimer = null;
+let economyFeed = null;
+let economyFloor = null;
+
+function currentFloor(world = OFFICE.state?.world) {
+  const floor = world?.building?.floor;
+  return typeof floor === 'string' && floor ? floor : null;
+}
+
+function setEconomyFeed(feed, floor = currentFloor()) {
+  // A request that started before an elevator switch must never replace the
+  // active floor's pill with its previous floor's balance.
+  if (floor !== currentFloor()) return false;
+  economyFloor = floor;
+  economyFeed = feed && feed.available === true ? feed : null;
+  renderOfficeWallet();
+  return true;
+}
 
 // Needs Me is the operator's primary top-bar action.
 function promoteNeedsAction() {
@@ -64,21 +81,16 @@ function renderOfficeWallet(world = OFFICE.state?.world) {
     element.className = 'pill';
     globalThis.OfficeHudShell.adoptControl(element, 'topbar');
   }
-  const amount = world?.office_wallet_usd;
-  // UI-POLISH-01: a demo fleet ships no real lines, so "unavailable" read as broken next to a live
-  // economy. Demo floors show the demo book's balance (labelled DEMO) or say plainly it is not measured.
-  // A demo floor's office number is the demo book (fiction), labelled DEMO, never MEASURED.
-  const served = world?.mode === 'demo' && Number.isSafeInteger(amount) && amount >= 0 ? amount : undefined;
-  const demoBalance = world?.mode === 'demo'
-    ? (globalThis.OfficeDemoEconomy?.book?.()?.office?.balance_office ?? served) : undefined;
-  const measured = Number.isSafeInteger(amount) && amount >= 0 && world?.mode !== 'demo';
-  element.textContent = measured
-    ? `🏢 $${amount.toLocaleString('en-US')} · MEASURED`
-    : Number.isSafeInteger(demoBalance) && demoBalance >= 0
-      ? `🏢 $${demoBalance.toLocaleString('en-US')} · DEMO`
-      : world?.mode === 'demo' ? '🏢 demo · not measured' : '🏢 unavailable · MEASURED';
-  element.title = measured || world?.mode !== 'demo'
-    ? 'lines of code shipped × $1' : 'demo office book: fiction, not measured work';
+  const floor = currentFloor(world);
+  const balance = economyFloor === floor && Number.isSafeInteger(economyFeed?.office?.balance)
+    ? economyFeed.office.balance : null;
+  const source = world?.mode === 'demo' ? 'DEMO' : 'MEASURED';
+  element.textContent = balance === null
+    ? `🏢 balance unavailable · ${source}`
+    : `🏢 $${balance.toLocaleString('en-US')} · BALANCE · ${source}`;
+  element.title = world?.mode === 'demo'
+    ? 'Demo office balance from the economy book'
+    : 'Office balance from the economy ledger';
   element.setAttribute('aria-label', `Office wallet: ${element.textContent}`);
 }
 
@@ -176,6 +188,7 @@ return Object.freeze({
   startClockTicking,
   stopClockTicking,
   install,
+  setEconomyFeed,
   BAR_ID,
   CLOCK_ID,
 });

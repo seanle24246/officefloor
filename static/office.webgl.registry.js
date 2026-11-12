@@ -38,6 +38,8 @@ import {
   dearticulateRightArm,
 } from './office.webgl.arm.rig.js';
 import { context } from './office.webgl.primitives.js';
+import { WARDROBE_FLAG, wardrobeRevision } from './office.webgl.wardrobe.js';
+import { shareMaterial } from './office.webgl.palette.js';
 import {
   animationRig,
   ARM_DIMS,
@@ -549,16 +551,20 @@ function rebuildAgentBatches(record) {
   const buckets = new Map();
   for (const current of record.objects.values()) {
     for (const source of captureAgentBatchSources(current)) {
+      // WARDROBE-RENDER-01: clothing colours are shared tint materials; one instanced draw per garment structure
+      // carries every agent's colour as an instance colour. Only wardrobe materials carry wardrobeTint.
+      const tinted = source.material.userData?.wardrobeTint ? wardrobeInstanceMaterial(source.material) : null;
       const key = [
         source.geometry.uuid,
-        source.material.uuid,
+        tinted ? tinted.uuid : source.material.uuid,
         source.renderOrder,
         source.castShadow === true,
         source.receiveShadow === true,
       ].join('\u0000');
       const bucket = buckets.get(key) || {
         geometry: source.geometry,
-        material: source.material,
+        material: tinted || source.material,
+        tinted: Boolean(tinted),
         renderOrder: source.renderOrder,
         castShadow: source.castShadow === true,
         receiveShadow: source.receiveShadow === true,
@@ -585,11 +591,30 @@ function rebuildAgentBatches(record) {
     // render-only projection and must not add duplicate ray intersections.
     mesh.raycast = () => {};
     mesh.userData.agentBatch = true;
+    if (bucket.tinted) {
+      bucket.sources.forEach((source, index) => mesh.setColorAt(index, source.material.color));
+      mesh.instanceColor.needsUpdate = true;
+    }
     record.layer.add(mesh);
     record.batches.push({ mesh, sources: bucket.sources });
   }
   record.batchingActive = true;
   record.batchDirty = false;
+}
+
+const wardrobeInstanceMaterials = new Map();
+
+// One white vertex-colour material per material kind; the instance colour supplies each agent's swatch.
+function wardrobeInstanceMaterial(source) {
+  const key = `${source.type}:${source.vertexColors === true}`;
+  if (!wardrobeInstanceMaterials.has(key)) {
+    const value = source.clone();
+    value.color.set(0xffffff);
+    value.name = 'wardrobe:instance-tint';
+    delete value.userData.wardrobeTint;
+    wardrobeInstanceMaterials.set(key, shareMaterial(value));
+  }
+  return wardrobeInstanceMaterials.get(key);
 }
 
 function syncAgentBatches(record) {
@@ -1191,8 +1216,56 @@ function applyActivity(current, animApi, activity, lane, frame, articulatedActiv
   }
 }
 
+function wardrobeEnabled() {
+  return globalThis.OfficeFeatureFlags?.enabled?.(WARDROBE_FLAG) === true;
+}
+
+const wardrobeLookText = new WeakMap();
+
+// WARDROBE-RENDER-01: a dressed agent rebuilds when its v2 look changes, or once when the paid store geometry
+// arrives. Flag off returns before touching anything.
+function wardrobeFingerprint(entry) {
+  try {
+    const api = globalThis.OFFICE?.avatar?.appearance;
+    if (typeof api?.validateV2 !== 'function') return '';
+    const look = api.appearanceFor(entry);
+    // Looks are frozen and memoized upstream, so the string is computed once per look, not once per frame.
+    let text = wardrobeLookText.get(look);
+    if (text === undefined) {
+      text = JSON.stringify(look);
+      if (look && typeof look === 'object') wardrobeLookText.set(look, text);
+    }
+    return `${text}\u0000${wardrobeRevision()}`;
+  } catch (_) {
+    return '';
+  }
+}
+
+function wardrobeModel(entry) {
+  try {
+    const model = globalThis.OFFICE?.avatar?.appearance?.appearanceFor?.(entry)?.model;
+    return ['oscar', 'june', 'bear'].includes(model) ? model : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+// A held activity prop (beer, coffee, paddle, ball) replaces whatever the right hand was carrying; the carried item
+// collapses to zero scale so the instanced batch (which draws from world matrices) hides it too.
+function syncWardrobeHandItem(current, holding) {
+  const hand = current.rig?.rightHand;
+  if (!hand?.children) return;
+  for (const child of hand.children) {
+    if (String(child.name || '').startsWith('wear:hand:') && child.scale.x !== (holding ? 0 : 1)) {
+      child.scale.setScalar(holding ? 0 : 1);
+      child.updateMatrix(); // wardrobe nodes compute their local matrix once (matrixAutoUpdate off)
+    }
+  }
+}
+
 function appearanceFingerprint(entry) {
   try {
+    if (wardrobeEnabled()) return wardrobeFingerprint(entry);
     if (globalThis.OfficeFeatureFlags?.enabled?.('agent_appearance') !== true) return '';
     const appearanceFor = globalThis.OFFICE?.appearance?.appearanceFor;
     return typeof appearanceFor === 'function' ? JSON.stringify(appearanceFor(entry)) : '';
@@ -1253,7 +1326,10 @@ export function updateAgents(agents, frame = {}) {
       entry.x = worldPlacement.position[0];
       entry.y = worldPlacement.position[2];
     }
-    if (globalThis.OfficeFeatureFlags?.enabled?.('agent_appearance') === true) {
+    if (wardrobeEnabled()) {
+      const model = wardrobeModel(entry);
+      if (model) entry.avatarVariant = model;
+    } else if (globalThis.OfficeFeatureFlags?.enabled?.('agent_appearance') === true) {
       const model = globalThis.OFFICE?.appearance?.appearanceFor?.(entry)?.model;
       if (['oscar', 'june', 'bear'].includes(model)) entry.avatarVariant = model;
     }
@@ -1306,6 +1382,7 @@ export function updateAgents(agents, frame = {}) {
     }
     if (!pingPong) clearPingPongPaddle(current);
     if (!articulatedActivity) restoreUnsmokedRig(current);
+    if (wardrobeEnabled()) syncWardrobeHandItem(current, Boolean(articulatedActivity));
     if (activity !== 'pee' || !outdoors) {
       clearPeeProp(current, frame.disposeObject);
     }

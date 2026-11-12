@@ -1,0 +1,1301 @@
+{
+ "packet": "PKT:of-wardrobe-01",
+ "validate": [
+  {
+   "name": "polo-shorts-fedora",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": true,
+   "normalized": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   }
+  },
+  {
+   "name": "empty-wear",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {}
+   },
+   "ok": true,
+   "normalized": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {}
+   }
+  },
+  {
+   "name": "bald-bear-in-suit",
+   "look": {
+    "v": 2,
+    "model": "bear",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bald",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "full": {
+      "id": "two-piece-suit",
+      "color": "#1f2a44"
+     }
+    }
+   },
+   "ok": true,
+   "normalized": {
+    "v": 2,
+    "model": "bear",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bald",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "full": {
+      "id": "two-piece-suit",
+      "color": "#1f2a44"
+     }
+    }
+   }
+  },
+  {
+   "name": "june-skirt-suit-heels",
+   "look": {
+    "v": 2,
+    "model": "june",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob",
+     "color": "#a13228"
+    },
+    "wear": {
+     "full": {
+      "id": "skirt-suit",
+      "color": "#8a2a3a"
+     },
+     "feet": {
+      "id": "heels",
+      "color": "#1f1f24"
+     },
+     "neck": {
+      "id": "pearl-necklace",
+      "color": "#f4f1ea"
+     }
+    }
+   },
+   "ok": true,
+   "normalized": {
+    "v": 2,
+    "model": "june",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob",
+     "color": "#a13228"
+    },
+    "wear": {
+     "full": {
+      "id": "skirt-suit",
+      "color": "#8a2a3a"
+     },
+     "feet": {
+      "id": "heels",
+      "color": "#1f1f24"
+     },
+     "neck": {
+      "id": "pearl-necklace",
+      "color": "#f4f1ea"
+     }
+    }
+   }
+  },
+  {
+   "name": "paid-items-still-valid",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "eyes": {
+      "id": "aviator-shades",
+      "color": "#c9a64a"
+     },
+     "hand": {
+      "id": "coffee-mug",
+      "color": "#e8822a"
+     }
+    }
+   },
+   "ok": true,
+   "normalized": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "eyes": {
+      "id": "aviator-shades",
+      "color": "#c9a64a"
+     },
+     "hand": {
+      "id": "coffee-mug",
+      "color": "#e8822a"
+     }
+    }
+   }
+  },
+  {
+   "name": "uppercase-hex-normalized",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#E5AB7C",
+    "hair": {
+     "style": "afro",
+     "color": "#2B1D16"
+    },
+    "wear": {
+     "top": {
+      "id": "tee",
+      "color": "#F4F1EA"
+     }
+    }
+   },
+   "ok": true,
+   "normalized": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "afro",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "tee",
+      "color": "#f4f1ea"
+     }
+    }
+   }
+  },
+  {
+   "name": "not-object",
+   "look": [
+    1
+   ],
+   "ok": false,
+   "error": {
+    "code": "type",
+    "field": "look"
+   }
+  },
+  {
+   "name": "missing-skin",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "required",
+    "field": "skin"
+   }
+  },
+  {
+   "name": "missing-first-sorted",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c"
+   },
+   "ok": false,
+   "error": {
+    "code": "required",
+    "field": "hair"
+   }
+  },
+  {
+   "name": "unknown-top-key",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    },
+    "accessory": "village-headband"
+   },
+   "ok": false,
+   "error": {
+    "code": "unknown-field",
+    "field": "accessory"
+   }
+  },
+  {
+   "name": "wrong-version",
+   "look": {
+    "v": 1,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "value",
+    "field": "v"
+   }
+  },
+  {
+   "name": "photo-tier",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "photo",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "value",
+    "field": "tier"
+   }
+  },
+  {
+   "name": "unknown-model",
+   "look": {
+    "v": 2,
+    "model": "robot",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "model"
+   }
+  },
+  {
+   "name": "skin-format",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "tan",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "format",
+    "field": "skin"
+   }
+  },
+  {
+   "name": "skin-off-list",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#123456",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "skin"
+   }
+  },
+  {
+   "name": "hair-not-object",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": "#2b1d16",
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "type",
+    "field": "hair"
+   }
+  },
+  {
+   "name": "hair-missing-color",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "required",
+    "field": "hair.color"
+   }
+  },
+  {
+   "name": "hair-extra-key",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob",
+     "color": "#2b1d16",
+     "length": 3
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "unknown-field",
+    "field": "hair.length"
+   }
+  },
+  {
+   "name": "hair-color-format",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob",
+     "color": "brown"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "format",
+    "field": "hair.color"
+   }
+  },
+  {
+   "name": "hair-color-off-list",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob",
+     "color": "#00ff00"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "hair.color"
+   }
+  },
+  {
+   "name": "hair-style-unknown",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "spikes",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "chino-shorts",
+      "color": "#c9b98a"
+     },
+     "feet": {
+      "id": "loafers",
+      "color": "#5c4632"
+     },
+     "head": {
+      "id": "fedora",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "hair.style"
+   }
+  },
+  {
+   "name": "bear-with-hair",
+   "look": {
+    "v": 2,
+    "model": "bear",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob",
+     "color": "#2b1d16"
+    },
+    "wear": {}
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "hair.style"
+   }
+  },
+  {
+   "name": "wear-not-object",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": []
+   },
+   "ok": false,
+   "error": {
+    "code": "type",
+    "field": "wear"
+   }
+  },
+  {
+   "name": "wear-unknown-slot",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "cape": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "unknown-field",
+    "field": "wear.cape"
+   }
+  },
+  {
+   "name": "wear-entry-not-object",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": "polo"
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "type",
+    "field": "wear.top"
+   }
+  },
+  {
+   "name": "wear-missing-color",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "required",
+    "field": "wear.top.color"
+   }
+  },
+  {
+   "name": "wear-extra-key",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7",
+      "size": "L"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "unknown-field",
+    "field": "wear.top.size"
+   }
+  },
+  {
+   "name": "wear-unknown-item",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "toga",
+      "color": "#4f8ef7"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "wear.top.id"
+   }
+  },
+  {
+   "name": "wear-wrong-slot",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "slacks",
+      "color": "#3a5ba0"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "value",
+    "field": "wear.top.id"
+   }
+  },
+  {
+   "name": "bear-cannot-wear-skirt",
+   "look": {
+    "v": 2,
+    "model": "bear",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bald",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "bottom": {
+      "id": "pencil-skirt",
+      "color": "#2e3340"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "wear.bottom.id"
+   }
+  },
+  {
+   "name": "wear-color-format",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "blue"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "format",
+    "field": "wear.top.color"
+   }
+  },
+  {
+   "name": "wear-color-off-swatch",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#000001"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "wear.top.color"
+   }
+  },
+  {
+   "name": "first-bad-slot-sorted",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "top": {
+      "id": "polo",
+      "color": "#000001"
+     },
+     "bottom": {
+      "id": "toga",
+      "color": "#000000"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "undrawable",
+    "field": "wear.bottom.id"
+   }
+  },
+  {
+   "name": "suit-covers-top",
+   "look": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "side-part",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "full": {
+      "id": "two-piece-suit",
+      "color": "#2e3340"
+     },
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "conflict",
+    "field": "wear.top"
+   }
+  },
+  {
+   "name": "dress-covers-bottom-sorted",
+   "look": {
+    "v": 2,
+    "model": "june",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "bob",
+     "color": "#2b1d16"
+    },
+    "wear": {
+     "full": {
+      "id": "wrap-dress",
+      "color": "#1f2a44"
+     },
+     "top": {
+      "id": "polo",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "slacks",
+      "color": "#3a5ba0"
+     }
+    }
+   },
+   "ok": false,
+   "error": {
+    "code": "conflict",
+    "field": "wear.bottom"
+   }
+  }
+ ],
+ "migrate": [
+  {
+   "name": "v1-0",
+   "v1": {
+    "model": "oscar",
+    "fit": {
+     "suit": "#e8822a",
+     "pants": "#3a5ba0"
+    },
+    "hair": "#f2c335",
+    "palette": {
+     "skin": "#e5ab7c",
+     "hair": "#f2c335",
+     "shirt": "#4f8ef7"
+    },
+    "tier": "stylized"
+   },
+   "v2": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#e5ab7c",
+    "hair": {
+     "style": "classic",
+     "color": "#f2c335"
+    },
+    "wear": {
+     "top": {
+      "id": "office-shirt",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "slacks",
+      "color": "#3a5ba0"
+     }
+    }
+   }
+  },
+  {
+   "name": "v1-1",
+   "v1": {
+    "model": "june",
+    "fit": {
+     "suit": "#3a5ba0",
+     "pants": "#2c3350",
+     "vest": "#5f7f46"
+    },
+    "hair": "#a13228",
+    "palette": {
+     "skin": "#c98e62",
+     "hair": "#a13228",
+     "shirt": "#4f8ef7"
+    },
+    "tier": "stylized"
+   },
+   "v2": {
+    "v": 2,
+    "model": "june",
+    "tier": "stylized",
+    "skin": "#c98e62",
+    "hair": {
+     "style": "bun-classic",
+     "color": "#a13228"
+    },
+    "wear": {
+     "top": {
+      "id": "office-shirt",
+      "color": "#4f8ef7"
+     },
+     "bottom": {
+      "id": "slacks",
+      "color": "#2c3350"
+     },
+     "outer": {
+      "id": "suit-vest",
+      "color": "#5f7f46"
+     }
+    }
+   }
+  },
+  {
+   "name": "v1-2",
+   "v1": {
+    "model": "bear",
+    "fit": {
+     "suit": "#2e3340",
+     "pants": "#23283a",
+     "vest": "#8f9aa8"
+    },
+    "hair": "#d8dde3",
+    "palette": {
+     "skin": "#5a3a26",
+     "hair": "#d8dde3",
+     "shirt": "#2e3340"
+    },
+    "tier": "stylized",
+    "accessory": "village-headband"
+   },
+   "v2": {
+    "v": 2,
+    "model": "bear",
+    "tier": "stylized",
+    "skin": "#5a3a26",
+    "hair": {
+     "style": "bald",
+     "color": "#d8dde3"
+    },
+    "wear": {
+     "top": {
+      "id": "office-shirt",
+      "color": "#2e3340"
+     },
+     "bottom": {
+      "id": "slacks",
+      "color": "#23283a"
+     },
+     "outer": {
+      "id": "suit-vest",
+      "color": "#8f9aa8"
+     },
+     "head": {
+      "id": "village-headband",
+      "color": "#2e3340"
+     }
+    }
+   }
+  },
+  {
+   "name": "v1-3",
+   "v1": {
+    "model": "oscar",
+    "fit": {
+     "suit": "#8a2a3a",
+     "pants": "#2c2430"
+    },
+    "hair": "#3c6b3c",
+    "palette": {
+     "skin": "#ffffff",
+     "hair": "#3c6b3c",
+     "shirt": "#123456"
+    },
+    "tier": "stylized"
+   },
+   "v2": {
+    "v": 2,
+    "model": "oscar",
+    "tier": "stylized",
+    "skin": "#f6d7bf",
+    "hair": {
+     "style": "classic",
+     "color": "#3c6b3c"
+    },
+    "wear": {
+     "top": {
+      "id": "office-shirt",
+      "color": "#1f2a44"
+     },
+     "bottom": {
+      "id": "slacks",
+      "color": "#2c2430"
+     }
+    }
+   }
+  }
+ ],
+ "nearest": [
+  {
+   "color": "#e5ab7c",
+   "choices": [
+    "#f6d7bf",
+    "#f1c7a5",
+    "#eab68f",
+    "#e5ab7c",
+    "#d89c6f",
+    "#c98e62",
+    "#b67b52",
+    "#a8714a",
+    "#8f5e3d",
+    "#7d5236",
+    "#6a4430",
+    "#5a3a26",
+    "#47301f"
+   ],
+   "expect": "#e5ab7c"
+  },
+  {
+   "color": "#FFFFFF",
+   "choices": [
+    "#f6d7bf",
+    "#f1c7a5",
+    "#eab68f",
+    "#e5ab7c",
+    "#d89c6f",
+    "#c98e62",
+    "#b67b52",
+    "#a8714a",
+    "#8f5e3d",
+    "#7d5236",
+    "#6a4430",
+    "#5a3a26",
+    "#47301f"
+   ],
+   "expect": "#f6d7bf"
+  },
+  {
+   "color": "#000000",
+   "choices": [
+    "#010000",
+    "#000100"
+   ],
+   "expect": "#010000"
+  }
+ ]
+}

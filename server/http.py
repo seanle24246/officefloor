@@ -23,6 +23,7 @@ from server.customization_purchase import served_market_wallet
 from server import office_pet
 from server import mvp_profile
 from server import agent_spend_http
+from server import looks_http
 
 
 CONTENT_SECURITY_POLICY = (
@@ -1189,36 +1190,55 @@ class Handler(BaseHTTPRequestHandler):
             else:
                 self._customization_error(400, "malformed_target", "invalid customization target")
 
-    def _get_economy(self, _query: str) -> None:
+    def _get_economy(self, query: str) -> None:
         """ECON-VIEW-01 read-only feed. Flag off -> the same 404 as an unknown path.
 
-        Reads the default floor through the customization read path (snapshot +
-        persist=False ledger view); never writes. Unreadable sources are absent.
+        Resolves the same floor/layout selector as the customization and
+        agent-spend reads. The selected floor owns its snapshot and ledger;
+        an unknown selector is a 404 rather than another floor's book.
         """
         from server import agent_wallet, economy_feed
         if not economy_feed.economy_view_enabled():
             return self._send(404, b"not found", "text/plain")
-        wallet_on = agent_wallet.wallet_enabled()
-        state = snapshot = entries = None
-        if wallet_on:
-            target = self.world
-            active_building = self.building
-            if active_building is not None and active_building.first.world is self.world:
-                target = (self._default_own_floor() or active_building.resolve(None)).world
-            # The last collected snapshot only: this GET never triggers a scan
-            # (the floor's /api/state poll keeps it warm). None -> agents absent.
-            state = getattr(target, "snapshot", None) or None
-            try:
-                wallet = self._customization_target({}, writes_available=False).debit
-                snapshot = wallet.snapshot() if hasattr(wallet, "snapshot") else None
-                entries = economy_feed.read_entries(wallet)
-            except Exception:  # no customization authority -> balances/ledger absent
-                snapshot = entries = None
-        self._json(200, economy_feed.build_feed(
-            wallet_on=wallet_on, world=state, snapshot=snapshot, entries=entries,
-            upkeep=economy_feed.upkeep_rows() if wallet_on else [],
-            where=economy_feed.live_where() if wallet_on else (),
-        ))
+        try:
+            selectors = parse_qs(query, keep_blank_values=True, strict_parsing=True) if query else {}
+            service = self._customization_target(selectors, writes_available=False)
+            # Keep the feed's world identity coupled to the customization
+            # service. That is also the agent-spend route's target contract.
+            worlds = [self.world]
+            if self.building is not None:
+                worlds.extend(floor.world for floor in self.building.floors)
+            if self.layout_worlds is not None:
+                worlds.extend(self.layout_worlds.worlds.values())
+            target = next((candidate for candidate in worlds
+                           if getattr(candidate, "customization_ctx", None) is service.ctx), self.world)
+            wallet_on = agent_wallet.wallet_enabled()
+            state = snapshot = entries = earned_by_lane = None
+            if wallet_on:
+                # The last collected snapshot only: this GET never triggers a scan
+                # (the floor's /api/state poll keeps it warm). None -> agents absent.
+                state = getattr(target, "snapshot", None) or None
+                try:
+                    wallet = service.debit
+                    snapshot = wallet.snapshot() if hasattr(wallet, "snapshot") else None
+                    entries = economy_feed.read_entries(wallet)
+                    # Demo snapshots intentionally omit fictional per-seat work
+                    # fields; the wallet reader is the source of its named book.
+                    # Live readings use the same persisted per-floor tally.
+                    earned_by_lane = agent_wallet.agent_earned_usd(
+                        target.ctx, multi_floor.floor_lanes(self.building, target))
+                except Exception:  # no customization authority -> balances/ledger absent
+                    snapshot = entries = earned_by_lane = None
+            self._json(200, economy_feed.build_feed(
+                wallet_on=wallet_on, world=state, snapshot=snapshot, entries=entries,
+                upkeep=economy_feed.upkeep_rows() if wallet_on else [],
+                where=economy_feed.live_where() if wallet_on else (),
+                earned_by_lane=earned_by_lane,
+            ))
+        except customization_api.CustomizationAPIError as exc:
+            self._customization_error(exc.status, exc.code, exc.message, detail=exc.detail)
+        except ValueError:
+            self._customization_error(400, "malformed_target", "invalid economy target")
 
     def _read_customization_body(self) -> dict | None:
         try:
@@ -1576,6 +1596,10 @@ class Handler(BaseHTTPRequestHandler):
         payload = dict(payload)
         payload["floor_config"] = saved_floor_config
         payload["state_dir"] = str(self._floor_config_directory(state_world))
+        if looks_http.flag_enabled():
+            # LOOKS-UI-01: additive saved-looks key; agent rows untouched.
+            # Flag off adds nothing, so the payload stays byte-identical.
+            payload["looks"] = looks_http.state_projection(state_world)
         actions = self._actions_state()
         if actions["capability"]:
             payload["actions"] = actions
@@ -1779,6 +1803,8 @@ GET_ROUTES: dict[str, Callable[[Handler, str], None]] = {
     office_pet.PET_PATH: office_pet.get_pet,
     "/api/economy": Handler._get_economy,
     agent_spend_http.AGENT_SPEND_PATH: agent_spend_http.get_agent_spend,
+    looks_http.LOOKS_PATH: looks_http.get_looks,
+    looks_http.LOOKS_ACTION_PATH: looks_http.get_looks_action,
 }
 
 POST_ROUTES: dict[str, Callable[[Handler], None]] = {
@@ -1791,4 +1817,5 @@ POST_ROUTES: dict[str, Callable[[Handler], None]] = {
     "/api/attach": Handler._post_attach,
     office_pet.PET_PATH: office_pet.post_pet,
     agent_spend_http.AGENT_SPEND_PATH: agent_spend_http.post_agent_spend,
+    looks_http.LOOKS_ACTION_PATH: looks_http.post_looks_action,
 }

@@ -29,7 +29,7 @@ export function disposeFigure(root) {
   materials.forEach(value => value.dispose());
 }
 
-export function mount(host, entry, appearance) {
+function mountFloorPreview(host, entry, appearance) {
   const canvas = document.createElement('canvas');
   canvas.setAttribute('aria-label', 'Rotating 3D floor avatar');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -69,4 +69,31 @@ export function mount(host, entry, appearance) {
   try { update(appearance); host.replaceChildren(canvas); frame = requestAnimationFrame(tick); }
   catch (error) { dispose(); throw error; }
   return { update, dispose };
+}
+
+// WARDROBE-CLOSEUP-01: with agent_wardrobe on, the preview is the close-up studio (office.webgl.wardrobe.studio.js,
+// fetched only then). The handle is returned at once, like today's; the studio takes the host when it loads, and a
+// draft that arrives meanwhile is kept. No v2 look to show, or no studio: today's floor preview. Flag off: unchanged.
+const WARDROBE_FLAG = 'agent_wardrobe';
+
+function mountCloseup(host, entry, appearance) {
+  let draft = appearance, live = null, disposed = false;
+  const fallback = () => {
+    if (disposed || draft?.v === 2 || draft?.wardrobe) return;
+    try { live = mountFloorPreview(host, entry, draft); } catch (_) { live = null; }
+  };
+  import('./office.webgl.wardrobe.studio.js').then(({ mountStudio }) => {
+    if (disposed) return;
+    live = mountStudio(host, entry, draft);
+    if (!live) fallback();
+  }).catch(fallback);
+  return {
+    update(next) { draft = next; live?.update(next); },
+    dispose() { disposed = true; live?.dispose(); live = null; },
+  };
+}
+
+export function mount(host, entry, appearance) {
+  if (globalThis.OfficeFeatureFlags?.enabled?.(WARDROBE_FLAG) === true) return mountCloseup(host, entry, appearance);
+  return mountFloorPreview(host, entry, appearance);
 }

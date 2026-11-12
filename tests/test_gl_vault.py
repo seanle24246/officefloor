@@ -98,12 +98,20 @@ PINNED_NON_MANIFEST_INVENTORY = [
     "office.webgl.vehicle.kit.js",
     "office.webgl.vig.leaf.js",
     "office.webgl.vig.surface.js",
+    "office.webgl.wardrobe.js",
     "stats.js",
     "vendor/BufferGeometryUtils.js",
     "vendor/GLTFLoader.js",
     "vendor/three.module.js",
 ]
-EXPECTED_INVENTORY = sorted({*PINNED_NON_MANIFEST_INVENTORY, *mesh_manifest_modules()})
+# WARDROBE-CLOSEUP-01: the close-up studio, reached from office.am.looks3d.js (flag agent_wardrobe only)
+WARDROBE_CLOSEUP_INVENTORY = (
+    "office.webgl.agent.face.js",
+    "office.webgl.wardrobe.closeup.js",
+    "office.webgl.wardrobe.studio.css",
+    "office.webgl.wardrobe.studio.js",
+)
+EXPECTED_INVENTORY = sorted({*PINNED_NON_MANIFEST_INVENTORY, *WARDROBE_CLOSEUP_INVENTORY, *mesh_manifest_modules()})
 
 
 class GLVaultTests(unittest.TestCase):
@@ -169,6 +177,7 @@ class GLVaultTests(unittest.TestCase):
                 "office.webgl.edit.selection.css",
                 "office.webgl.overlay.css",
                 "office.webgl.perf.css",
+                "office.webgl.wardrobe.studio.css",
                 *gl_vault.PLATE_ASSETS,
             },
         )

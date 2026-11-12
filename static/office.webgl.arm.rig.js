@@ -109,6 +109,8 @@ function createState(rig, ctx) {
 
   const material = firstMaterial(originalArm);
   if (!material) throw new TypeError('right-arm requires a shirt material');
+  // WARDROBE-RENDER-01: a dressed arm names its sleeve and forearm colours (absent on every other figure).
+  const dressed = originalArm.userData?.wardrobeArmMaterials;
 
   const shoulder = ctx.group();
   shoulder.name = originalArm.name;
@@ -118,7 +120,7 @@ function createState(rig, ctx) {
 
   const upperArm = ctx.group();
   upperArm.name = namedLike(originalArm.name, 'right-upper-arm');
-  const upperBody = ctx.tileBox(ARM_WIDTH, ARM_DEPTH, UPPER_ARM_HEIGHT, material);
+  const upperBody = ctx.tileBox(ARM_WIDTH, ARM_DEPTH, UPPER_ARM_HEIGHT, dressed?.upper || material);
   upperBody.position.y = -UPPER_ARM_HEIGHT;
   upperArm.add(upperBody);
 
@@ -130,7 +132,7 @@ function createState(rig, ctx) {
   // rotating this named group applies elbow flex and carries the existing hand.
   const forearm = ctx.group();
   forearm.name = namedLike(originalArm.name, 'right-forearm');
-  const forearmBody = ctx.tileBox(ARM_WIDTH, ARM_DEPTH, FOREARM_HEIGHT, material);
+  const forearmBody = ctx.tileBox(ARM_WIDTH, ARM_DEPTH, FOREARM_HEIGHT, dressed?.fore || material);
   forearmBody.position.y = -FOREARM_HEIGHT;
   forearm.add(forearmBody);
   elbow.add(forearm);

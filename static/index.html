@@ -281,11 +281,15 @@
 <script src="office.npcvig.arc.drivehome.js" data-office-side-effect></script>
 <script src="office.npcvig.follow.js"></script>
 <script src="office.follow.card.js"></script>
+<!-- WARDROBE-RENDER-01: the generated wardrobe catalog (data only; installs OFFICE.wardrobeCatalog, registers no
+     OFFICE.module). Read by the v2 appearance contract and the dressed WebGL figures only when agent_wardrobe is on. -->
+<script src="office.wardrobe.catalog.js" data-office-side-effect></script>
 <script src="office.avatar.appearance.js"></script>
 <script src="office.am.core.js"></script>
 <script src="office.am.placement.js"></script>
 <script src="office.am.behavior.js"></script>
 <script src="office.am.looks.js"></script>
+<script src="office.am.wardrobe.js" data-office-side-effect></script>
 <script src="office.am.social.js"></script>
 <script src="office.am.history.js"></script>
 <script src="agent.manager.js"></script>
@@ -325,6 +329,9 @@
 <script src="office.excursion.rave.view.js" data-office-side-effect></script>
 <script src="office.excursion.elsewhere.view.js" data-office-side-effect></script>
 <script src="office.pet.dog.js" data-office-side-effect></script>
+<!-- WARDROBE-CLOSEUP-01: a Close-up button in the seat inspector. Side-effect
+     script that installs nothing unless agent_wardrobe is on (default off). -->
+<script src="office.wardrobe.closeup.inspector.js" data-office-side-effect></script>
 <!-- DIRECTOR-02: deterministic film clock + cast staging. Side-effect script:
      installs window.officeFilm / OFFICE.film only when the director_mode flag
      is on or ?film=1 is on a demo floor; loads before office.main.js so the

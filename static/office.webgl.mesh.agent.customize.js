@@ -149,6 +149,9 @@ function addAccessories(root, appearance, ctx, accent) {
 export function customizeAgentMesh(root, entry, ctx, { featureFlags } = {}) {
   const flags = featureFlags || rootObject().OfficeFeatureFlags;
   if (!flagEnabled(flags)) return root;
+  // WARDROBE-RENDER-01: with agent_wardrobe on the dressed figure owns every colour through shared materials;
+  // this layer's per-agent material clones would break instancing, so it steps aside.
+  if (rootObject().OfficeFeatureFlags?.enabled?.('agent_wardrobe') === true) return root;
   if (!root?.isObject3D || !ctx?.THREE || typeof ctx.tileBox !== 'function') return root;
 
   const appearance = entry?.previewAppearance || appearanceFor(entry);

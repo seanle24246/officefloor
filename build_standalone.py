@@ -1173,11 +1173,34 @@ if (doc?.readyState === 'loading') {
 })();
 """
 
+    if script == "office.am.wardrobe.js":
+        # LOOKS-UI-01: a bake has no looks routes; looks live in localStorage and the
+        # preview module resolves from the embedded WebGL vault.
+        source = replace_bake_region(
+            source,
+            "// LOOKS-UI-01 network: served floors only.",
+            "// end LOOKS-UI-01 network\n",
+            "// LOOKS-UI-01 network: baked snapshot -- no server.\n"
+            "const net = {\n"
+            "  served: () => false,\n"
+            "  request: async () => { throw new Error('baked: no server'); },\n"
+            "  preview: () => import('office-gl:/office.am.looks3d.js'),\n"
+            "};\n",
+            script=script,
+        )
+
     if script == "agent.manager.js":
         # Live uses a relative module; the offline bake resolves it from the vault.
         source = source.replace(
             "import('./office.am.looks3d.js')",
             "import('office-gl:/office.am.looks3d.js')",
+        )
+
+    if script == "office.wardrobe.closeup.inspector.js":
+        # WARDROBE-CLOSEUP-01: the close-up studio rides the vault (reached from office.am.looks3d.js).
+        source = source.replace(
+            "import('./office.webgl.wardrobe.studio.js')",
+            "import('office-gl:/office.webgl.wardrobe.studio.js')",
         )
 
     # After executable live branches are gone, scrub their remaining prose so

@@ -3,6 +3,7 @@
 import { buildAvatarVariant } from './office.webgl.avatar.variants.js';
 import { mainFacePlanFor } from './office.webgl.agent.face.js';
 import { mountAgentAppearanceMesh } from './office.webgl.mesh.agent.customize.js';
+import { WARDROBE_FLAG, buildAgentFigure } from './office.webgl.wardrobe.js';
 
 const customizeAgentMesh = mountAgentAppearanceMesh();
 
@@ -215,11 +216,43 @@ export function animationRig(object) {
   };
 }
 
+// WARDROBE-RENDER-01 (flag agent_wardrobe): the agent's v2 look (saved look, hired cast body, or today's look
+// migrated) drawn by office.webgl.wardrobe.js with shared structure geometry and colour materials. Flag off never
+// reaches here. A look that cannot be resolved falls back to today's figure.
+function wardrobeOn() {
+  return globalThis.OfficeFeatureFlags?.enabled?.(WARDROBE_FLAG) === true;
+}
+
+function dressedAgent(entry, ctx) {
+  let look = null;
+  try {
+    const api = globalThis.OFFICE?.avatar?.appearance;
+    look = typeof api?.validateV2 === 'function' ? api.appearanceFor(entry) : null;
+  } catch {
+    look = null;
+  }
+  if (!look) return null;
+  const figure = buildAgentFigure(look, ctx, { tier: 'floor', lane: entry?.lane ?? 'unknown' });
+  figure.add(...faceParts(entry, ctx));
+  figure.rotation.y = facingYaw(entry?.facing);
+  const shadow = ctx.contactShadow(0.90, 0.55);
+  shadow.name = 'agent-part:contact-shadow';
+  const root = ctx.group(shadow, figure);
+  root.name = `agent:${entry?.lane ?? 'unknown'}`;
+  root.userData.mainAgentModel = figure.userData.mainAgentModel;
+  root.userData.wardrobeLook = look;
+  return root;
+}
+
 function build(entry, ctx) {
   const avatarVariant = buildAvatarVariant(entry, ctx);
   if (avatarVariant) {
     avatarVariant.rotation.y = facingYaw(entry?.facing);
     return customizeAgentMesh(avatarVariant, entry, ctx);
+  }
+  if (wardrobeOn()) {
+    const dressed = dressedAgent(entry, ctx);
+    if (dressed) return dressed;
   }
 
   const identity = entry?.lane ?? entry?.state ?? 'agent';

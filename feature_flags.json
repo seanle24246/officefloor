@@ -166,5 +166,9 @@
   "city_customization": {
     "default": false,
     "desc": "City customization (founder 2026-10-17): placed store items render inside the Manhattan/Tokyo worlds on the city's placement grid, re-coloured with the city palette; later, edit mode in city zones. Off: city worlds draw only their authored scene."
+  },
+  "agent_wardrobe": {
+    "default": false,
+    "desc": "Agent wardrobe (PKT:of-wardrobe-01): the catalog of office clothes, shoes, hats, accessories, 20 hairstyles and 13 skin tones (data/wardrobe-catalog.json), appearance contract v2, per-floor saved looks (GET /api/looks, POST /api/looks/action, additive /api/state looks key), hired cast bodies, and the close-up Looks render. Paid store accessories need a purchase. Off: today's v1 looks, meshes and Looks tab, both routes 404 and /api/state is byte-identical."
   }
 }

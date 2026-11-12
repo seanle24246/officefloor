@@ -1,0 +1,53 @@
+/* office.webgl.wardrobe.studio.css — the close-up Looks studio (PKT:of-wardrobe-closeup-01; agent_wardrobe on only). */
+.wardrobe-studio-host { position: relative; }
+.am-looks-preview-canvas.wardrobe-studio-host:not(.am-wd-canvas) { width: 260px; height: 340px; }
+/* the wardrobe Looks tab card (LOOKS-UI-01): a taller showcase */
+.am-wd-canvas.am-looks-preview-canvas.wardrobe-studio-host { height: 380px; }
+.wardrobe-studio {
+  position: relative; width: 100%; height: 100%; min-height: 160px; overflow: hidden; border-radius: 6px;
+  /* the Agent Manager palette: deep navy, a soft lift behind the figure, a cool floor glow */
+  background:
+    radial-gradient(ellipse 62% 48% at 50% 38%, rgba(120, 160, 210, .26) 0%, rgba(60, 96, 140, .10) 55%, rgba(8, 18, 29, 0) 78%),
+    radial-gradient(ellipse 80% 30% at 50% 92%, rgba(102, 173, 255, .16), transparent 70%),
+    linear-gradient(180deg, #172a40 0%, #0d1b2b 58%, #08121d 100%);
+  box-shadow: inset 0 0 0 1px rgba(125, 165, 210, .16);
+}
+.wardrobe-studio-canvas {
+  display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; outline: none;
+}
+.wardrobe-studio-canvas:active { cursor: grabbing; }
+.wardrobe-studio-canvas:focus-visible { box-shadow: inset 0 0 0 2px #f7b819; border-radius: 10px; }
+.wardrobe-studio-bar {
+  position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); display: flex; gap: 2px;
+  padding: 2px; border-radius: 999px; background: rgba(12, 20, 31, .62); backdrop-filter: blur(4px);
+}
+.wardrobe-studio-btn {
+  font: 600 10px/1 system-ui, sans-serif; letter-spacing: .03em; color: #e7edf6; background: transparent;
+  border: 0; border-radius: 999px; padding: 5px 8px; cursor: pointer; min-height: 22px;
+}
+.wardrobe-studio-btn:hover { background: rgba(255, 255, 255, .12); }
+.wardrobe-studio-btn:focus-visible { outline: 2px solid #f7b819; outline-offset: 1px; }
+.wardrobe-studio-btn[aria-pressed="true"] { background: #f7b819; color: #10161f; }
+.wardrobe-closeup-overlay {
+  position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 16px;
+  background: rgba(3, 7, 12, .62);
+}
+.wardrobe-closeup-dialog {
+  display: flex; flex-direction: column; gap: 8px; width: min(520px, 100%); height: min(680px, calc(100vh - 32px));
+  padding: 12px; border-radius: 14px; background: #08121d; border: 1px solid #26384b; color: #e7edf6;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+}
+.wardrobe-closeup-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.wardrobe-closeup-head strong { color: #f7b819; font: 700 14px/1.2 system-ui, sans-serif; }
+.wardrobe-closeup-head span { color: #91a0b5; font: 11px/1.2 system-ui, sans-serif; }
+.wardrobe-closeup-stage { position: relative; flex: 1; min-height: 0; }
+.wardrobe-closeup-close {
+  border: 1px solid #26384b; background: #0b1724; color: #e7edf6; border-radius: 8px; width: 30px; height: 30px;
+  cursor: pointer; font-size: 14px;
+}
+.wardrobe-closeup-close:focus-visible { outline: 2px solid #f7b819; outline-offset: 1px; }
+@media (max-width: 560px) {
+  .am-looks-preview-canvas.wardrobe-studio-host:not(.am-wd-canvas) { width: 200px; height: 260px; }
+  .am-wd-canvas.am-looks-preview-canvas.wardrobe-studio-host { height: 300px; }
+  .wardrobe-closeup-dialog { height: calc(100vh - 32px); }
+}

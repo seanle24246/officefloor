@@ -174,6 +174,16 @@ export function shadowMaterial(index) {
   return shadowMaterials[index];
 }
 
+// WARDROBE-RENDER-01: colour-keyed clothing materials are shared across agents and never disposed with one agent.
+// Empty unless agent_wardrobe is on.
+const extraSharedMaterials = new WeakSet();
+
+export function shareMaterial(value) {
+  if (value?.isMaterial === true) extraSharedMaterials.add(value);
+  return value;
+}
+
 export function isSharedMaterial(value) {
-  return [vertexColorMaterial, ...materials.values(), ...screenMaterials.values(), ...shadowMaterials].includes(value);
+  return [vertexColorMaterial, ...materials.values(), ...screenMaterials.values(), ...shadowMaterials].includes(value)
+    || extraSharedMaterials.has(value);
 }

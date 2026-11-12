@@ -26,6 +26,18 @@ let filter = 'all';
 let lastFocus = null;
 let mini; let pill; let full; let panel; let railButton;
 
+// Match office.state.js's floor selector. The state response is the only
+// authority for the active building floor; do not infer it from the URL.
+function currentFloor() {
+  const floor = root.OFFICE?.state?.world?.building?.floor;
+  return typeof floor === 'string' && floor ? floor : null;
+}
+
+function economyPath() {
+  const floor = currentFloor();
+  return floor ? `/api/economy?floor=${encodeURIComponent(floor)}` : '/api/economy';
+}
+
 function readOpen() {
   try { return root.localStorage?.getItem(STORAGE_KEY) !== '0'; } catch (_) { return true; }
 }
@@ -68,12 +80,17 @@ function render() {
 }
 
 async function refresh() {
+  const floor = currentFloor();
+  let nextFeed = null;
   try {
-    const response = await root.fetch('/api/economy', { cache: 'no-store' });
-    feed = response.ok ? await response.json() : null;
-  } catch (_) {
-    feed = null;
-  }
+    const response = await root.fetch(economyPath(), { cache: 'no-store' });
+    nextFeed = response.ok ? await response.json() : null;
+  } catch (_) { /* leave the next feed unavailable */ }
+  // Floor switches may finish before an older request. Do not render the old
+  // floor's book into the newly selected pane.
+  if (floor !== currentFloor()) return;
+  feed = nextFeed;
+  root.OfficeHudTopbar?.setEconomyFeed?.(nextFeed, floor);
   render();
 }
 

@@ -194,7 +194,8 @@ def upkeep_rows(providers: Iterable[Callable[[], Iterable[dict]]] | None = None)
     return rows
 
 
-def agent_rows(agents: Iterable[dict], scrip_entries: Iterable[dict] | None) -> list[dict]:
+def agent_rows(agents: Iterable[dict], scrip_entries: Iterable[dict] | None,
+               earned_by_lane: dict[str, object] | None = None) -> list[dict]:
     """One wallet row per world agent that has a non-empty str ``lane``.
 
     ``{"lane", "name", "spent", ["earned", "balance"], ["last_purchase"]}``:
@@ -202,8 +203,11 @@ def agent_rows(agents: Iterable[dict], scrip_entries: Iterable[dict] | None) -> 
     - spent: sum of ``-amount`` over scrip entries with account == lane and
       amount < 0 (0 when none). scrip_entries None (ledger unreadable) -> spent,
       balance and last_purchase are ABSENT: an unread ledger is not $0 spent.
-    - earned: agent["wallet_usd"] only when it is a safe int >= 0; else ABSENT,
-      and then balance is ABSENT too. balance = earned - spent.
+    - earned: agent["wallet_usd"] when it is a safe int >= 0. When a cached
+      world snapshot predates its per-seat wallet fields, ``earned_by_lane``
+      supplies the same authoritative wallet reader value for that lane. An
+      invalid or absent value stays ABSENT, and then balance is ABSENT too.
+      balance = earned - spent.
     - last_purchase: ``{"what": describe_entry(e), "time": e["created_at"]}`` for the
       newest (created_at, entry_id) negative scrip entry of that lane; ABSENT when none.
     Sorted by name (case-insensitive), then lane. Never ranked by money.
@@ -224,6 +228,8 @@ def agent_rows(agents: Iterable[dict], scrip_entries: Iterable[dict] | None) -> 
         if scrip_entries is not None:
             row["spent"] = sum(-e["amount"] for e in negatives)
         earned = agent.get("wallet_usd")
+        if not (_safe_int(earned) and earned >= 0) and isinstance(earned_by_lane, dict):
+            earned = earned_by_lane.get(lane)
         if _safe_int(earned) and earned >= 0:
             row["earned"] = earned
             if "spent" in row:
@@ -239,7 +245,7 @@ def agent_rows(agents: Iterable[dict], scrip_entries: Iterable[dict] | None) -> 
 
 def build_feed(*, wallet_on: bool, world: dict | None, snapshot: dict | None,
                entries: list[dict] | None, upkeep: list[dict],
-               where: Iterable[str] = ()) -> dict:
+               where: Iterable[str] = (), earned_by_lane: dict[str, object] | None = None) -> dict:
     """The /api/economy payload.
 
     wallet_on False -> exactly ``{"ok": True, "available": False, "reason": "agent_wallet_off"}``.
@@ -251,7 +257,7 @@ def build_feed(*, wallet_on: bool, world: dict | None, snapshot: dict | None,
       Each key ABSENT when its source is missing/invalid.
     - "credits": {"balance": snapshot["credits"]} only when that is a safe int.
     - "agents": agent_rows(world.get("agents") or [], scrip entries, or None when entries
-      is None) only when world is a dict.
+      is None, plus the optional authoritative per-lane earnings map) only when world is a dict.
     - "ledger": ledger_rows(entries) only when entries is not None.
     """
     if not wallet_on:
@@ -279,7 +285,7 @@ def build_feed(*, wallet_on: bool, world: dict | None, snapshot: dict | None,
     if isinstance(world, dict):
         scrip = None if entries is None else [
             e for e in entries if isinstance(e, dict) and e.get("book") == "scrip"]
-        feed["agents"] = agent_rows(world.get("agents") or [], scrip)
+        feed["agents"] = agent_rows(world.get("agents") or [], scrip, earned_by_lane)
     if entries is not None:
         feed["ledger"] = ledger_rows(entries)
     feed["upkeep"] = upkeep

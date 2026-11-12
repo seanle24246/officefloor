@@ -29,6 +29,13 @@ export function isSharedGeometry(value) {
   return sharedGeometries.has(value);
 }
 
+// WARDROBE-RENDER-01: structure-cached geometry built outside this module (agent clothing) joins the shared set so
+// disposing one agent never frees a buffer other agents still draw. Unused unless agent_wardrobe is on.
+export function shareGeometry(geometry) {
+  if (geometry?.isBufferGeometry === true) sharedGeometries.add(geometry);
+  return geometry;
+}
+
 function positive(value, label) {
   if (!Number.isFinite(value) || value <= 0) {
     throw new TypeError(`${label} must be a positive finite number`);
