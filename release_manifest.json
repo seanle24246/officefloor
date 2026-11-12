@@ -107,5 +107,25 @@
     "store_hide_empty_categories",
     "webgl_floor",
     "webgl_plate_themes"
+  ],
+  "0.3.1": [
+    "activity_collapsed_default",
+    "agent_animation",
+    "agent_appearance",
+    "agent_lives",
+    "agent_needs",
+    "agent_wardrobe",
+    "city_customization",
+    "economy_view",
+    "living_demo",
+    "multi_floor_v2",
+    "npc_vignettes",
+    "office_calendar",
+    "rave_schedule",
+    "store_aisles_v2",
+    "store_coming_soon",
+    "store_hide_empty_categories",
+    "webgl_floor",
+    "webgl_plate_themes"
   ]
 }

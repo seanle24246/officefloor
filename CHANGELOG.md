@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.1 — 2026-11-12
+
+- Agent wardrobe, on by default: a Looks tab in the Agent Manager with a
+  catalog of office clothes, shoes, hats and accessories, 20 hairstyles and
+  13 skin tones. Changes stay a live preview until Save; saving buys any
+  clothes the agent does not own yet with the agent's own money. Looks are
+  saved per floor, and a Close-up button in the seat inspector renders the
+  agent up close.
+- Economy view, on by default: the economy pane, a top-bar balance pill and a
+  full-screen view. The feed follows the floor you are on, the pill shows the
+  balance, and the AGENTS tile shows earned and balance.
+
 ## 0.3.0 — 2026-10-20
 
 - Weekly office calendar: the clock pill names the current or next event, a

@@ -1,6 +1,6 @@
 {
   "schema": "officefloor/ship-manifest@2",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "target": "public",
   "signed_by": "founder-approved 2026-09-04",
   "signed_at": "2026-09-04T18:48:55-04:00",
@@ -156,6 +156,18 @@
           "signed": true,
           "signed_at": "2026-10-18T02:53:13-04:00",
           "note": "founder 2026-10-18 RC: \"Yes i approve it all\" \u2014 in reply to theoffice--flags-next-release (All), theoffice--sign-living-demo and city_customization; recorded by Dwight (CEO)."
+        },
+        "agent_wardrobe": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-11-12T12:00:00-05:00",
+          "note": "founder 2026-11-12: \"can u have it on my default and repush it. agent wardrobe yes. economy fixes.\""
+        },
+        "economy_view": {
+          "on": true,
+          "signed": true,
+          "signed_at": "2026-11-12T12:00:00-05:00",
+          "note": "founder 2026-11-12: \"can u have it on my default and repush it. agent wardrobe yes. economy fixes.\""
         }
       },
       "inclusions": {
